@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import com.ctre.phoenix6.configs.Slot0Configs;
+
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
  * constants. This class should not be used for any other purpose. All constants should be declared
@@ -13,6 +15,23 @@ package frc.robot;
  * constants are needed, to reduce verbosity.
  */
 public final class Constants {
+  public static class HoodConstants{
+    public static final double kI = 0;
+    public static final double kD = 0;
+    public static final double kP = 0.01;
+    public static final int HoodId = 3; //fix this
+  }
+
+  public static class ShooterConstants{
+    public static final double SkI = 0;
+    public static final double SkD = 0;
+    public static final double SkP = 0.01;
+    public static final int ShooterIDOne = 4;
+    public static final int ShooterIDTwo = 5;
+    public static final int ShooterIDThree = 6;
+    public static final int ShooterIDFour = 7;
+  }
+
   public static class OperatorConstants {
     public static final int kDriverControllerPort = 0;
   }
