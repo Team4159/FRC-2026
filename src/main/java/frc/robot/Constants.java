@@ -32,6 +32,10 @@ public final class Constants {
     public static final int ShooterIDFour = 7;
   }
 
+  public static class HopperConstants{
+    public static final int HopperId = 8;
+  }
+
   public static class OperatorConstants {
     public static final int kDriverControllerPort = 0;
   }

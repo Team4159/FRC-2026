@@ -21,7 +21,7 @@ public class Shooter extends SubsystemBase{
     private PositionVoltage motorThreeVoltage;
     private PositionVoltage motorFourVoltage;
 
-    public Shooter() {
+    public Shooter() { 
         Slot0Configs shooterConfig = new Slot0Configs();
         shooterConfig.kP = Constants.ShooterConstants.SkP;
         shooterConfig.kI = Constants.ShooterConstants.SkI;
@@ -53,11 +53,19 @@ public class Shooter extends SubsystemBase{
         hoodPositionVoltage = new PositionVoltage(0);
     }
 
-    public void setHoodAngle(double position) {
+    public void setHoodAngle(double position, double speed) {
         hood.setControl(hoodPositionVoltage.withPosition(position));
     }
 
-    public void periodic() {
 
+    public void shootSpeed(double speed) {
+        shooterMotorOne.set(speed);
+        shooterMotorTwo.set(speed);
+        shooterMotorThree.set(speed);
+        shooterMotorFour.set(speed);
+    }
+
+    public void periodic() {
+        
     }
 }
