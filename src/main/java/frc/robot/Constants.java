@@ -4,6 +4,15 @@
 
 package frc.robot;
 
+import java.util.Map;
+
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
+
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
  * constants. This class should not be used for any other purpose. All constants should be declared
@@ -15,5 +24,26 @@ package frc.robot;
 public final class Constants {
   public static class OperatorConstants {
     public static final int kDriverControllerPort = 0;
+  }
+
+  public static class DrivetrainConstants {
+    public static final PIDController AutoAimRotationController = new PIDController(10, 0.01, 0);
+  }
+
+  public static class ShooterConstants {
+    //TODO: find ball launch velocity
+    /** units: m/s */
+    public static final double launchVelocity = Units.feetToMeters(29);//convert from ft/s to m/s
+    public static final double ratio = 1;
+  }
+
+  public static class FieldConstants {
+    public static final Map<DriverStation.Alliance, Pose2d> hubLocations = Map.of(
+      Alliance.Blue, new Pose2d(Units.inchesToMeters(182.11), Units.inchesToMeters(158.84), new Rotation2d()),
+      Alliance.Red, new Pose2d(Units.inchesToMeters(651.22 - 182.11), Units.inchesToMeters(158.84), new Rotation2d())
+    );
+
+    /** Units:m/s^2 */
+    public static final double g = 9.80;
   }
 }
