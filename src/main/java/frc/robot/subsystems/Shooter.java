@@ -5,6 +5,7 @@ import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Constants.ShooterConstants;
@@ -59,8 +60,8 @@ public class Shooter extends SubsystemBase{
     }
 
     // adjust hood
-    public void adjustHood() {
-        hoodMotor.setControl(hoodPositionVoltage.withPosition(0));
+    public void adjustHood(double angle) {
+        hoodMotor.setControl(hoodPositionVoltage.withPosition(angle));
         
     }
 
