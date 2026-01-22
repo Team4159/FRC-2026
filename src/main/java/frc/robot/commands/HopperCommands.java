@@ -21,7 +21,7 @@ public class HopperCommands extends Command{
 
     @Override
     public void end(boolean interupt){
-        hopper.stop()
+        hopper.stop();
     }
 
     @Override

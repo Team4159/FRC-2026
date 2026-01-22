@@ -55,8 +55,7 @@ public class Shooter extends SubsystemBase{
         l_topMotor.setControl(shooterVelocityVoltage);
         l_botMotor.setControl(shooterVelocityVoltage);
         r_topMotor.setControl(shooterVelocityVoltage);
-        r_botMotor.setControl(shooterVelocityVoltage);
-        
+        r_botMotor.setControl(shooterVelocityVoltage); 
     }
 
     // adjust hood

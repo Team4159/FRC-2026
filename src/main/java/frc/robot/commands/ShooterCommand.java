@@ -5,17 +5,24 @@ import frc.robot.subsystems.Shooter;
 
 public class ShooterCommand extends Command{
     private final Shooter shooter;
-    private final Shooter hood;
     
     public ShooterCommand(Shooter shooter, Shooter hood) {
         this.shooter = shooter;
-        this.hood = hood;
-        addRequirements(shooter, hood);
+        addRequirements(shooter);
     }
-
+    
+    @Override
     public void execute() {
         shooter.setSpeed(10);
+    }
 
-        
+    @Override
+    public void end(boolean interupt) {
+        shooter.setSpeed(0);
+    }
+
+    @Override
+    public boolean isFinished() {
+        return false;
     }
 }
