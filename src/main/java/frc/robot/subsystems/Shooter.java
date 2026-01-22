@@ -2,70 +2,43 @@ package frc.robot.subsystems;
 
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.controls.PositionVoltage;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 
-import edu.wpi.first.wpilibj.motorcontrol.Talon;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.Constants.ShooterConstants;
 
-public class Shooter extends SubsystemBase{
-    private TalonFX hood;
-    private TalonFX shooterMotorOne;
-    private TalonFX shooterMotorTwo;
-    private TalonFX shooterMotorThree;
-    private TalonFX shooterMotorFour;
+public class Shooter {
+    private TalonFX l_topMotor = new TalonFX(ShooterConstants.lTopMotor_ControllerPort);
+    private TalonFX l_botMotor = new TalonFX(ShooterConstants.lBotMotor_ControllerPort);
+    private TalonFX r_topMotor = new TalonFX(ShooterConstants.rTopMotor_ControllerPort);
+    private TalonFX r_botMotor = new TalonFX(ShooterConstants.rBotMotor_ControllerPort);
+    private TalonFX hoodMotor = new TalonFX(ShooterConstants.hoodMotor_ControllerPort);
 
-    private PositionVoltage hoodPositionVoltage;
-    private PositionVoltage motorOneVoltage;
-    private PositionVoltage motorTwoVoltage;
-    private PositionVoltage motorThreeVoltage;
-    private PositionVoltage motorFourVoltage;
+    private final PositionVoltage hoodPositionVoltage = new PositionVoltage(0);
+    private final VelocityVoltage shooterVelocityVoltage = new VelocityVoltage(0);
 
-    public Shooter() { 
-        Slot0Configs shooterConfig = new Slot0Configs();
-        shooterConfig.kP = Constants.ShooterConstants.SkP;
-        shooterConfig.kI = Constants.ShooterConstants.SkI;
-        shooterConfig.kD = Constants.ShooterConstants.SkD;
-
-        Slot0Configs hoodConfig = new Slot0Configs();
-        hoodConfig.kP = Constants.HoodConstants.kP;
-        hoodConfig.kI = Constants.HoodConstants.kI;
-        hoodConfig.kD = Constants.HoodConstants.kD;
-
-        hood = new TalonFX(Constants.HoodConstants.HoodId);
-        shooterMotorOne = new TalonFX(Constants.ShooterConstants.ShooterIDOne);
-        shooterMotorTwo = new TalonFX(Constants.ShooterConstants.ShooterIDTwo);
-        shooterMotorThree = new TalonFX(Constants.ShooterConstants.ShooterIDThree);
-        shooterMotorFour = new TalonFX(Constants.ShooterConstants.ShooterIDFour);
-
-        shooterMotorOne.getConfigurator().apply(shooterConfig);
-        shooterMotorTwo.getConfigurator().apply(shooterConfig);
-        shooterMotorThree.getConfigurator().apply(shooterConfig);
-        shooterMotorFour.getConfigurator().apply(shooterConfig);
-
-        hood.getConfigurator().apply(hoodConfig);
-
-        motorOneVoltage = new PositionVoltage(0);
-        motorTwoVoltage = new PositionVoltage(0);
-        motorThreeVoltage = new PositionVoltage(0);
-        motorFourVoltage = new PositionVoltage(0);
-
-        hoodPositionVoltage = new PositionVoltage(0);
+    Slot0Configs hoodConfig = new Slot0Configs();
+    {
+        hoodConfig.kP = Constants.ShooterConstants.kP;
+        hoodConfig.kI = Constants.ShooterConstants.kI;
+        hoodConfig.kD = Constants.ShooterConstants.kD;
     }
 
-    public void setHoodAngle(double position, double speed) {
-        hood.setControl(hoodPositionVoltage.withPosition(position));
-    }
-
-
-    public void shootSpeed(double speed) {
-        shooterMotorOne.set(speed);
-        shooterMotorTwo.set(speed);
-        shooterMotorThree.set(speed);
-        shooterMotorFour.set(speed);
-    }
-
-    public void periodic() {
+    // set speed
+    public void setSpeed(double speed) {
+        shooterVelocityVoltage.withVelocity(speed);
+        l_topMotor.setControl(shooterVelocityVoltage);
+        l_botMotor.setControl(shooterVelocityVoltage);
+        r_topMotor.setControl(shooterVelocityVoltage);
+        r_botMotor.setControl(shooterVelocityVoltage);
         
+
     }
+
+    // adjust hood
+    public void adjustHood() {
+        hoodMotor.setControl(hoodPositionVoltage.withPosition(0));
+    }
+
 }
