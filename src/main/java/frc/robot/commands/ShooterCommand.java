@@ -14,7 +14,7 @@ public class ShooterCommand extends Command{
     }
 
     public void execute() {
-        shooter.shootSpeed(10);
+        shooter.setSpeed(10);
 
         
     }
