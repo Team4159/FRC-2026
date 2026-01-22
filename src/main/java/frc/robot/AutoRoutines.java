@@ -21,4 +21,16 @@ public class AutoRoutines {
         );
         return routine;
     }
+
+    public AutoRoutine leftAuto(){
+        final AutoRoutine routine = m_factory.newRoutine("leftAuto");
+        final AutoTrajectory leftPath1 = routine.trajectory("Left1");
+        final AutoTrajectory leftPath2 = routine.trajectory("Left2");
+
+        routine.active().onTrue(
+            leftPath1.resetOdometry().andThen(leftPath1.cmd())
+            .andThen(leftPath2.cmd())
+        );
+        return routine;
+    }
 }
