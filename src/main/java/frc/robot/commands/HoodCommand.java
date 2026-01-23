@@ -18,7 +18,7 @@ public class HoodCommand extends Command{
     }
     @Override
     public void end(boolean interupt) {
-        hood.adjustHood(0);
+        hood.stopHood();;
     }
 
     @Override

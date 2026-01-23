@@ -60,9 +60,24 @@ public class Shooter extends SubsystemBase{
     }
 
     // adjust hood
-    public void adjustHood(double angle) {
+    public void adjustHood(double v, double h, double d) { // check below for more info
+        // MEASUED IN FEET
+        //double v = 40; // initial velocity
+        //double h = 7; // height
+        //double d = 15; // distance
+        double g = 32.2; // gravity
+        double fC = (g * Math.pow(d, 2)) / (2 * Math.pow(v, 2)); // first constant
+        double sC = fC + h; // second constant
+        double r = Math.atan((d + Math.sqrt(Math.pow(d, 2) - (4 * fC) * sC)) / (2 * fC)); // radians
+        double angle = r * 180/Math.PI;
+
+
         hoodMotor.setControl(hoodPositionVoltage.withPosition(angle));
         
+    }
+
+    public void stopHood() {
+        hoodMotor.setControl(hoodPositionVoltage.withPosition(0));
     }
 
 }
