@@ -11,6 +11,7 @@ import com.ctre.phoenix6.swerve.utility.PhoenixPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.Unit;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 
@@ -36,6 +37,7 @@ public final class Constants {
     /** units: m/s */
     public static final double launchVelocity = Units.feetToMeters(29);//convert from ft/s to m/s
     public static final double ratio = 1;
+    public static final double shootHeight = Units.inchesToMeters(40);
   }
 
   public static class FieldConstants {
@@ -46,5 +48,7 @@ public final class Constants {
 
     /** Units:m/s^2 */
     public static final double g = 9.80;
+
+    public static final double hubZ = Units.inchesToMeters(56.4);
   }
 }
