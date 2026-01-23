@@ -6,7 +6,8 @@ package frc.robot;
 
 import java.util.Map;
 
-import edu.wpi.first.math.controller.PIDController;
+import com.ctre.phoenix6.swerve.utility.PhoenixPIDController;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
@@ -27,7 +28,7 @@ public final class Constants {
   }
 
   public static class DrivetrainConstants {
-    public static final PIDController AutoAimRotationController = new PIDController(10, 0.01, 0);
+    public static final PhoenixPIDController AutoAimRotationController = new PhoenixPIDController(10, 0.01, 0);
   }
 
   public static class ShooterConstants {
