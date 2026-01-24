@@ -28,7 +28,7 @@ public final class Constants {
   }
 
   public static class DrivetrainConstants {
-    public static final PhoenixPIDController AutoAimRotationController = new PhoenixPIDController(10, 0.01, 0);
+    public static final PhoenixPIDController AutoAimRotationController = new PhoenixPIDController(15, 0, 0);
   }
 
   public static class ShooterConstants {
