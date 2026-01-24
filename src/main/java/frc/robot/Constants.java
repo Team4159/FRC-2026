@@ -29,6 +29,9 @@ public final class Constants {
 
   public static class DrivetrainConstants {
     public static final PhoenixPIDController AutoAimRotationController = new PhoenixPIDController(15, 0, 0);
+    static {
+      AutoAimRotationController.enableContinuousInput(-Math.PI, Math.PI);
+    }
   }
 
   public static class ShooterConstants {
