@@ -6,13 +6,15 @@ import edu.wpi.first.wpilibj.LEDPattern;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class LEDs extends SubsystemBase {
-    
-    AddressableLED led;
-    AddressableLEDBuffer ledBuffer;
+    private static final int kPort = 8;
+    private static final int kLength = 60;
+
+    private static final AddressableLED led = new AddressableLED(kPort); //i would prefer to not make it static and define it in the constructor but ethan thinks this is better.
+    private final AddressableLEDBuffer ledBuffer;
+
 
     public LEDs () {
-        led = new AddressableLED(8);
-        ledBuffer = new AddressableLEDBuffer(60);
+        ledBuffer = new AddressableLEDBuffer(kLength);
 
         led.setLength(ledBuffer.getLength());
 
