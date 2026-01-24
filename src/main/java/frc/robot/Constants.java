@@ -10,6 +10,8 @@ import com.ctre.phoenix6.swerve.utility.PhoenixPIDController;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.Unit;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -38,6 +40,23 @@ public final class Constants {
     public static final double launchVelocity = Units.feetToMeters(29);//convert from ft/s to m/s
     public static final double ratio = 1;
     public static final double shootHeight = Units.inchesToMeters(40);
+
+    /** distance from hub, time of flight */
+    public static final Map<Double, Double> timeLookupTable = Map.of(
+      0.0, 0.5,
+      1.0, 1.0,
+      2.0, 1.25
+    );
+
+    //robot relative shooter offset
+    //TODO implement in the calculation
+    public static final Transform2d shooterOffset = new Transform2d(0, 0, new Rotation2d());
+  }
+
+  public static class PhotonVisionConstants {
+    //TODO get camera transforms
+    public static Transform3d leftShooterCamTransform = new Transform3d();
+    public static Transform3d rightShooterCamTransform = new Transform3d();
   }
 
   public static class FieldConstants {

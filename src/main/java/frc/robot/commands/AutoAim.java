@@ -4,12 +4,19 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructArrayPublisher;
+import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -42,7 +49,10 @@ public class AutoAim extends Command {
     }
     private double velocity = 10; // example value
     private double g = 9.81;
-    private double goalPitch;
+    private Pose2d adjustedRobotPose;
+
+    StructPublisher<Pose2d> adjustedRobotPosePublisher = NetworkTableInstance.getDefault()
+  .getStructTopic("adjustedRobotPose", Pose2d.struct).publish();
 
     public AutoAim(CommandSwerveDrivetrain drivetrain, CommandXboxController controller) {
         this.controller = controller;
@@ -54,15 +64,100 @@ public class AutoAim extends Command {
 
     @Override
     public void initialize(){
-        //TODO set initial goalpitch based on a lookuptable
-        goalPitch = 45;
+        //set adjusted robot pose to current robot pose initially
+        //(need a baseline to get time from lookup table)
+        adjustedRobotPose = drivetrain.getState().Pose;
+        System.out.println("set adjustedRobotPose");
     }
 
     @Override
     public void execute() {
-        // old
-        double desiredAngle = target.getTranslation().minus(drivetrain.getState().Pose.getTranslation()).getAngle()
+        //get distance from adjusted robot pose
+        double distance = getDistanceFromHub(adjustedRobotPose);
+        //double distance = 1;
+        System.out.println("getDistanceFromHub");
+
+        //get time of flight from distance
+        double timeOfFlight = getTimeOfFlight(distance);
+        System.out.println("getTOF");
+
+        //maximum height of the ball during the trajectory
+        double maxHeight = Units.inchesToMeters(70);
+        System.out.println("maxHeight");
+
+        //Field2d adjustedRobotPoseF2d = new Field2d();
+        //adjustedRobotPoseF2d.setRobotPose(adjustedRobotPose);
+        //SmartDashboard.putData("adjustedPose", adjustedRobotPoseF2d);
+        adjustedRobotPosePublisher.set(adjustedRobotPose);
+
+        Transform2d adjustedRobotPoseTranslation = new Transform2d(
+            drivetrain.getState().Speeds.vxMetersPerSecond * timeOfFlight,
+            drivetrain.getState().Speeds.vyMetersPerSecond * timeOfFlight,
+            new Rotation2d());
+
+        adjustedRobotPose = drivetrain.getState().Pose.plus(adjustedRobotPoseTranslation);
+        //offset robot pose based off current robot velocities and time
+        // adjustedRobotPose = new Pose2d(
+        // drivetrain.getState().Speeds.vxMetersPerSecond * timeOfFlight,
+        // drivetrain.getState().Speeds.vyMetersPerSecond * timeOfFlight,
+        // drivetrain.getState().Pose.getRotation());
+        //double height = Units.inchesToMeters(distance)
+
+        //calculate desired horizontal and vertical initial ball velocities
+        //vx = distance/time
+        double robotRelativeBallVelocityHorizontal = distance/timeOfFlight;
+        //vy = (hmax - hstart)/time + (1/2)g*time (derived from hmax = hstart + vy*time - (1/2)g*time^2)
+        double robotRelativeBallVelocityVertical = (maxHeight - Constants.ShooterConstants.shootHeight) / timeOfFlight + (0.5) * Constants.FieldConstants.g * timeOfFlight;
+
+        //calculate hood angle from ball velocities
+        double hoodAngle = Math.atan2(robotRelativeBallVelocityVertical, robotRelativeBallVelocityHorizontal);
+
+        //calculate desired ball velocity 
+        double robotRelativeBallVelocity = Math.sqrt(Math.pow(robotRelativeBallVelocityHorizontal, 2) + Math.pow(robotRelativeBallVelocityVertical, 2));
+
+        //calculate desired wheel velocity
+        double wheelVelocity = robotRelativeBallVelocity/Constants.ShooterConstants.ratio;
+
+        //TODO implement shooter (hoodAngle, wheelVelocity) -> shooter setpoints
+
+        //calculate robot theta based on adjusted velocity
+        double desiredRobotAngle = target.getTranslation().minus(adjustedRobotPose.getTranslation()).getAngle()
                 .getRadians();
+
+        //tell the swerve to rotate to the desired angle
+        rotateSwerve(desiredRobotAngle);
+
+        double vx = robotRelativeBallVelocityHorizontal*Math.sin(desiredRobotAngle)
+                    + drivetrain.getState().Speeds.vxMetersPerSecond;
+        System.out.println("vxrobotrelative:" + robotRelativeBallVelocityHorizontal*Math.sin(desiredRobotAngle));
+
+        double vy = robotRelativeBallVelocityHorizontal*Math.cos(desiredRobotAngle)
+                    + drivetrain.getState().Speeds.vyMetersPerSecond;
+        System.out.println("vyrobotrelative:" + robotRelativeBallVelocityHorizontal*Math.cos(desiredRobotAngle));
+
+        //AdvantageScope trajectory sim
+        //TODO actually do the calculation correctly, need to account for the signs
+        double vHorizontal = Math.sqrt(vx * vx + vy * vy);
+
+        double vz = robotRelativeBallVelocityVertical;
+        double lastAngle = 0;
+
+        for (int i = 0; i < trajectoryLigaments.length; i++) {
+            double tScale = 10 / 60.0;
+            double t0 = tScale * i;
+            double t1 = tScale * (i + 1);
+            double x0 = vHorizontal * t0;
+            double x1 = vHorizontal * t1;
+            double y0 = vz * t0 - 0.5 * g * t0 * t0;
+            double y1 = vz * t1 - 0.5 * g * t1 * t1;
+            double angle = Math.toDegrees(Math.atan2(y1 - y0, x1 - x0));
+            trajectoryLigaments[i].setLength(Math.hypot(x1 - x0, y1 - y0));
+            trajectoryLigaments[i].setAngle(angle - lastAngle);
+            lastAngle = angle;
+        }
+    }
+
+    private void rotateSwerve(double desiredAngle){
         SmartDashboard.putNumber("desiredAngle", Units.radiansToDegrees(desiredAngle));
         SmartDashboard.putNumber("current angle", drivetrain.getState().Pose.getRotation().getDegrees());
 
@@ -76,128 +171,42 @@ public class AutoAim extends Command {
                 omega);
         SmartDashboard.putNumber("omega", omega);
         drivetrain.setControl(fieldCentric.withSpeeds(chassisSpeeds));
-        // once angle is aligned start shooting with shooter angled accordingly
-        double pitch = getPitch();
-        SmartDashboard.putNumber("pitch", pitch);
-        double vx = velocity * Math.cos(pitch);
-        double vy = velocity * Math.sin(pitch);
-        double lastAngle = 0;
-        for (int i = 0; i < trajectoryLigaments.length; i++) {
-            double tScale = 10 / 60.0;
-            double t0 = tScale * i;
-            double t1 = tScale * (i + 1);
-            double x0 = vx * t0;
-            double x1 = vx * t1;
-            double y0 = vy * t0 - 0.5 * g * t0 * t0;
-            double y1 = vy * t1 - 0.5 * g * t1 * t1;
-            double angle = Math.toDegrees(Math.atan2(y1 - y0, x1 - x0));
-            trajectoryLigaments[i].setLength(Math.hypot(x1 - x0, y1 - y0));
-            trajectoryLigaments[i].setAngle(angle - lastAngle);
-            lastAngle = angle;
+    }
+
+    private double getDistanceFromHub(Pose2d robotPose){
+        return robotPose.getTranslation().getDistance(target.getTranslation());
+    }
+
+    private double getTimeOfFlight(double distance){
+        double closestDistance = 0, secondClosestDistance = 0;
+        var lookupTable = Constants.ShooterConstants.timeLookupTable;
+        var keyset = lookupTable.keySet();
+        for(var key : keyset){
+            double currentDistance = key;
+            if(Math.abs(currentDistance - distance) < Math.abs(closestDistance - distance)){
+                secondClosestDistance = closestDistance;
+                closestDistance = currentDistance;
+            }
+            else if(Math.abs(currentDistance - distance) < Math.abs(secondClosestDistance - distance)){
+                secondClosestDistance = currentDistance;
+            }
         }
-
-        //new
-        //calculate initial z velocity of the ball based on shooter velocity and hood angle
-        //TODO use actual shooter velocity in calculation for more reliablity
-        double vozB = Constants.ShooterConstants.ratio * Constants.ShooterConstants.launchVelocity * Math.sin(goalPitch);
-
-        //calculate the change in vertical required to score
-        double deltaZ = Constants.FieldConstants.hubZ - Constants.ShooterConstants.shootHeight;
-
-        //calculate the final velocity of the ball
-        double vfzB = Math.sqrt(vozB * vozB + 2 * Constants.FieldConstants.g * deltaZ);
-
-        //calculate the time of flight
-        double timeOfFlight = (vfzB - vozB)/Constants.FieldConstants.g;
-
-        //calculate required x velocity
-        double voxB = (target.getX() - drivetrain.getState().Pose.getX())/timeOfFlight - drivetrain.getState().Speeds.vxMetersPerSecond;
-
-        //calculate required y velocity
-        double voyB = (target.getY() - drivetrain.getState().Pose.getY())/timeOfFlight - drivetrain.getState().Speeds.vyMetersPerSecond;
+        double difference = Math.abs(secondClosestDistance - closestDistance);
+        double percentage = Math.abs(closestDistance - distance) / difference;
+        //return MathUtil.interpolate(lookupTable.get(closestDistance), lookupTable.get(secondClosestDistance), percentage);
+        System.out.println("closestDistance: " + closestDistance);
+        return lookupTable.get(closestDistance);
     }
 
-    private double getPitch() {
-        // distance from robot to target
-        Translation2d robotTranslation = drivetrain.getState().Pose.getTranslation();
-        double distance = robotTranslation.getDistance(target.getTranslation());
-        double height = Units.inchesToMeters(72);
-        SmartDashboard.putNumber("height", height);
-        // TODO: implement shooter logic
-        return Math.atan((Math.pow(velocity, 2)
-                + Math.sqrt(Math.pow(velocity, 4) - Math.pow(g * distance, 2) - 2 * g * height * Math.pow(velocity, 2)))
-                / (g * distance));
-    }
+    // private double getPitch() {
+    //     // distance from robot to target
+    //     Translation2d robotTranslation = drivetrain.getState().Pose.getTranslation();
+    //     double distance = robotTranslation.getDistance(target.getTranslation());
+    //     double height = Units.inchesToMeters(72);
+    //     SmartDashboard.putNumber("height", height);
+    //     // TODO: implement shooter logic
+    //     return Math.atan((Math.pow(velocity, 2)
+    //             + Math.sqrt(Math.pow(velocity, 4) - Math.pow(g * distance, 2) - 2 * g * height * Math.pow(velocity, 2)))
+    //             / (g * distance));
+    // }
 }
-
-// package frc.robot.commands;
-
-// import com.ctre.phoenix6.swerve.SwerveRequest;
-
-// import edu.wpi.first.math.geometry.Pose2d;
-// import edu.wpi.first.math.kinematics.ChassisSpeeds;
-// import edu.wpi.first.math.util.Units;
-// import edu.wpi.first.wpilibj.DriverStation;
-// import edu.wpi.first.wpilibj.DriverStation.Alliance;
-// import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-// import edu.wpi.first.wpilibj2.command.Command;
-// import frc.robot.Constants;
-// import frc.robot.subsystems.CommandSwerveDrivetrain;
-
-// public class AutoAim extends Command{
-//     private CommandSwerveDrivetrain drivetrain;
-//     private SwerveRequest.ApplyFieldSpeeds fieldCentric = new SwerveRequest.ApplyFieldSpeeds();
-//     private Pose2d target;
-//     private double goalPitch;
-
-//     public AutoAim(CommandSwerveDrivetrain drivetrain){
-//         this.drivetrain = drivetrain;
-//         this.target = Constants.FieldConstants.hubLocations.get(DriverStation.getAlliance().orElse(Alliance.Blue));
-//         addRequirements(drivetrain);
-//     }
-
-//     @Override
-//     public void initialize(){
-//         //set goalPitch to lookuptable initial value
-//     }
-
-//     @Override
-//     public void execute(){
-//         //old
-//         // double desiredAngle = target.getTranslation().minus(drivetrain.getState().Pose.getTranslation()).getAngle().getRadians();
-//         // SmartDashboard.putNumber("desiredAngle", Units.radiansToDegrees(desiredAngle));
-//         // SmartDashboard.putNumber("current angle", drivetrain.getState().Pose.getRotation().getDegrees());
-
-//         // double omega = Constants.DrivetrainConstants.AutoAimRotationController.calculate(drivetrain.getState().Pose.getRotation().getRadians(), desiredAngle);
-//         // ChassisSpeeds chassisSpeeds = new ChassisSpeeds(0, 0, omega);
-//         // SmartDashboard.putNumber("omega", omega);
-//         // drivetrain.setControl(fieldCentric.withSpeeds(chassisSpeeds));
-//         //once angle is aligned start shooting with shooter angled accordingly
-
-//         //calculate initial z velocity of the ball based on shooter velocity and hood angle
-//         //TODO use actual shooter velocity in calculation for more reliablity
-//         double vozB = Constants.ShooterConstants.ratio * Constants.ShooterConstants.launchVelocity * Math.sin(goalPitch);
-
-//         //calculate the change in vertical required to score
-//         double deltaZ = Constants.FieldConstants.hubZ - Constants.ShooterConstants.shootHeight;
-
-//         //calculate the final velocity of the ball
-//         double vfzB = Math.sqrt(vozB * vozB + 2 * Constants.FieldConstants.g * deltaZ);
-
-//         //calculate the time of flight
-//         double timeOfFlight = (vfzB - vozB)/Constants.FieldConstants.g;
-
-//         //calculate required x velocity
-//         double voxB = (target.getX() - drivetrain.getState().Pose.getX())/timeOfFlight - drivetrain.getState().Speeds.vxMetersPerSecond;
-
-//         //calculate required y velocity
-//         double voyB = (target.getY() - drivetrain.getState().Pose.getY())/timeOfFlight - drivetrain.getState().Speeds.vyMetersPerSecond;
-
-//     }
-
-//     private double getPitch(){
-//         //distance from robot to target
-//         double distance = drivetrain.getState().Pose.getTranslation().getDistance(target.getTranslation());
-//         //TODO: implement shooter logic
-//     }
-// }
