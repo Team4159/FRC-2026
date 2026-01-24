@@ -10,12 +10,11 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
-import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants;
+import frc.robot.lib.GraphMechanism;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 
 public class AutoAim extends Command {
@@ -23,23 +22,7 @@ public class AutoAim extends Command {
     private SwerveRequest.ApplyFieldSpeeds fieldCentric = new SwerveRequest.ApplyFieldSpeeds();
     private Pose2d target;
     private CommandXboxController controller;
-    private Mechanism2d trajectory = new Mechanism2d(1, 1);
-    private MechanismLigament2d[] trajectoryLigaments = new MechanismLigament2d[20];
-    {
-        var root = trajectory.getRoot("shooter", 0.5, 0);
-        MechanismLigament2d last = null;
-        for (int i = 0; i < trajectoryLigaments.length; i++) {
-            var ligament = new MechanismLigament2d(String.valueOf(i), 0, 0);
-            trajectoryLigaments[i] = ligament;
-            ligament.setLineWeight(2);
-            if (last == null) {
-                root.append(ligament);
-            } else {
-                last.append(ligament);
-            }
-            last = ligament;
-        }
-    }
+    private GraphMechanism trajectoryVisual = new GraphMechanism("Shoot Trajectory");
     private double velocity = 10; // example value
     private double g = 9.81;
 
@@ -47,7 +30,6 @@ public class AutoAim extends Command {
         this.controller = controller;
         this.drivetrain = drivetrain;
         this.target = Constants.FieldConstants.hubLocations.get(DriverStation.getAlliance().orElse(Alliance.Blue));
-        SmartDashboard.putData("shoot trajectory", trajectory);
         addRequirements(drivetrain);
     }
 
@@ -74,21 +56,7 @@ public class AutoAim extends Command {
         SmartDashboard.putNumber("pitch", pitch);
         double vx = velocity * Math.cos(pitch);
         double vy = velocity * Math.sin(pitch);
-        double lastAngle = 0;
-        for (int i = 0; i < trajectoryLigaments.length; i++) {
-            double tScale = 10 / 60.0;
-            double t0 = tScale * i;
-            double t1 = tScale * (i + 1);
-            double x0 = vx * t0;
-            double x1 = vx * t1;
-            double y0 = vy * t0 - 0.5 * g * t0 * t0;
-            double y1 = vy * t1 - 0.5 * g * t1 * t1;
-            double angle = Math.toDegrees(Math.atan2(y1 - y0, x1 - x0));
-            trajectoryLigaments[i].setLength(Math.hypot(x1 - x0, y1 - y0));
-            trajectoryLigaments[i].setAngle(angle - lastAngle);
-            lastAngle = angle;
-        }
-
+        trajectoryVisual.update(t -> new Translation2d(vx * t, vy * t - 0.5 * g * t * t));
     }
 
     private double getPitch() {
