@@ -9,12 +9,22 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.LEDs;
 
 public class ChangeLED extends Command {
+    
     private LEDPattern pattern;
 
     private final LEDs led;
-    private final Distance ledSpacing;
-    private final LEDPattern rainbow = LEDPattern.rainbow(255, 64);
-    private final LEDPattern rainbowScroll;
+    private static Distance ledSpacing;
+    private static LEDPattern rainbow = LEDPattern.rainbow(255, 64);
+    
+    enum PatternList { 
+       rainbowScroll{
+           public LEDPattern getPattern() {
+               return rainbow.scrollAtAbsoluteSpeed(MetersPerSecond.of(1), ledSpacing);
+            }
+       };
+
+       public abstract LEDPattern getPattern(); 
+    }
     
     public ChangeLED(LEDPattern pattern, LEDs led) {
         this.pattern = pattern;
@@ -22,13 +32,13 @@ public class ChangeLED extends Command {
 
         ledSpacing = Meters.of(1.0 / 120.0);
 
-        rainbowScroll = rainbow.scrollAtAbsoluteSpeed(MetersPerSecond.of(1), ledSpacing);
 
         addRequirements(led);
     }
- 
+    
+
     public void execute() {
-        pattern = rainbowScroll; //change once more options to not make input redundant
+        pattern = PatternList.rainbowScroll.getPattern(); //change once more options to not make input redundant
 
         led.setBuffer(pattern);
     }
