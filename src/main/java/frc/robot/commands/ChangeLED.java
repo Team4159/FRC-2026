@@ -10,21 +10,10 @@ import frc.robot.subsystems.LEDs;
 
 public class ChangeLED extends Command {
     
-    private LEDPattern pattern;
+    public LEDPattern pattern;
 
     private final LEDs led;
     private static Distance ledSpacing;
-    private static LEDPattern rainbow = LEDPattern.rainbow(255, 64);
-    
-    public static enum PatternList { 
-       RAINBOW_SCROLL{
-           public LEDPattern getPattern() {
-               return rainbow.scrollAtAbsoluteSpeed(MetersPerSecond.of(1), ledSpacing);
-            }
-       };
-
-       public abstract LEDPattern getPattern(); 
-    }
     
     public ChangeLED(LEDPattern pattern, LEDs led) {
         this.pattern = pattern;
@@ -37,8 +26,18 @@ public class ChangeLED extends Command {
     }
     
 
+    public static enum PatternList { 
+        RAINBOW(LEDPattern.rainbow(255,64)),
+        RAINBOW_SCROLL(RAINBOW.pattern.scrollAtAbsoluteSpeed(MetersPerSecond.of(1), ledSpacing));
+
+        private LEDPattern pattern;
+
+        PatternList(LEDPattern c_InPattern) {
+        }
+    }
+
     public void execute() {
-        pattern = PatternList.RAINBOW_SCROLL.getPattern(); //change once more options to not make input redundant
+        pattern = PatternList.RAINBOW_SCROLL.pattern; //change once more options to not make input redundant
 
         led.setBuffer(pattern);
     }
