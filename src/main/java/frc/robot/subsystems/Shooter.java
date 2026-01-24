@@ -75,6 +75,8 @@ public class Shooter extends SubsystemBase{
         hoodMotor.setControl(hoodPositionVoltage.withPosition(angle));
         
     }
+    
+    
 
     public void stopHood() {
         hoodMotor.setControl(hoodPositionVoltage.withPosition(0));

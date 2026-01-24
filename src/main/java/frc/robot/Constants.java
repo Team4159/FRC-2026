@@ -32,6 +32,14 @@ public final class Constants {
     public static final int ShooterIDFour = 7;
   }
 
+  public static class ClimberConstants{
+    public static final double CkI = 0;
+    public static final double CkD = 0;
+    public static final double CkP = 0;
+    public static final int idClimberOne = 9;
+    public static final int idClimberTwo = 10;
+  }
+
   public static class HopperConstants{
     public static final int HopperId = 8;
   }
