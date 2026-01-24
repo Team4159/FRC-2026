@@ -7,11 +7,11 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class LEDs extends SubsystemBase {
     
-    AddressableLED led;
-    AddressableLEDBuffer ledBuffer;
+    private final AddressableLED led;
+    private final AddressableLEDBuffer ledBuffer;
 
     public LEDs () {
-        led = new AddressableLED(8);
+        led = new AddressableLED(8); //only ever one port so it could be static, but this is nicer i think.
         ledBuffer = new AddressableLEDBuffer(60);
 
         led.setLength(ledBuffer.getLength());
