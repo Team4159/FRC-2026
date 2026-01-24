@@ -16,8 +16,8 @@ public class ChangeLED extends Command {
     private static Distance ledSpacing;
     private static LEDPattern rainbow = LEDPattern.rainbow(255, 64);
     
-    enum PatternList { 
-       rainbowScroll{
+    public static enum PatternList { 
+       RAINBOW_SCROLL{
            public LEDPattern getPattern() {
                return rainbow.scrollAtAbsoluteSpeed(MetersPerSecond.of(1), ledSpacing);
             }
@@ -38,7 +38,7 @@ public class ChangeLED extends Command {
     
 
     public void execute() {
-        pattern = PatternList.rainbowScroll.getPattern(); //change once more options to not make input redundant
+        pattern = PatternList.RAINBOW_SCROLL.getPattern(); //change once more options to not make input redundant
 
         led.setBuffer(pattern);
     }
