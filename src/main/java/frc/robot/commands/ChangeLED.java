@@ -14,7 +14,7 @@ public class ChangeLED extends Command {
     private LEDPattern pattern;
 
     private final LEDs led;
-    private static Distance ledSpacing;
+    private static final Distance ledSpacing = Meters.of(1.0 / 120.0);
     
     public static enum LEDStatus { 
         RAINBOW(LEDPattern.rainbow(255,64)),
@@ -38,9 +38,6 @@ public class ChangeLED extends Command {
     public ChangeLED(LEDStatus ledStatus, LEDs led) {
         this.pattern = ledStatus.getPattern();
         this.led = led;
-
-        ledSpacing = Meters.of(1.0 / 120.0);
-
 
         addRequirements(led);
     }
