@@ -16,8 +16,27 @@ public class ChangeLED extends Command {
     private final LEDs led;
     private static Distance ledSpacing;
     
-    public ChangeLED(LEDPattern pattern, LEDs led) {
-        this.pattern = pattern;
+    public static enum LEDStatus { 
+        RAINBOW(LEDPattern.rainbow(255,64)),
+        RAINBOW_SCROLL(RAINBOW.pattern.scrollAtAbsoluteSpeed(MetersPerSecond.of(1), ledSpacing)),
+
+        RED_SOLID(LEDPattern.solid(Color.kRed)),
+        BLUE_SOLID(LEDPattern.solid(Color.kBlue)),
+        GREEN_SOLID(LEDPattern.solid(Color.kGreen));
+
+        private LEDPattern pattern;
+
+        LEDStatus(LEDPattern c_InPattern) {
+            this.pattern = c_InPattern;
+        }
+
+        public LEDPattern getPattern() {
+            return pattern;
+        }
+    }
+
+    public ChangeLED(LEDStatus ledStatus, LEDs led) {
+        this.pattern = ledStatus.getPattern();
         this.led = led;
 
         ledSpacing = Meters.of(1.0 / 120.0);
@@ -26,26 +45,7 @@ public class ChangeLED extends Command {
         addRequirements(led);
     }
     
-
-    public static enum LEDStatus { 
-        RAINBOW(LEDPattern.rainbow(255,64)),
-        RAINBOW_SCROLL(RAINBOW.patternList.scrollAtAbsoluteSpeed(MetersPerSecond.of(1), ledSpacing)),
-
-        RED_SOLID(LEDPattern.solid(Color.kRed)),
-        BLUE_SOLID(LEDPattern.solid(Color.kBlue)),
-        GREEN_SOLID(LEDPattern.solid(Color.kGreen));
-
-        private LEDPattern patternList;
-
-        LEDStatus(LEDPattern c_InPattern) {
-            this.patternList = c_InPattern;
-        }
-
-        public LEDPattern getLEDStatus() {
-            return patternList;
-        }
-    }
-
+    @Override
     public void execute() {
         led.setBuffer(pattern);
     }
