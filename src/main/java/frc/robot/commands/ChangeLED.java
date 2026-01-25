@@ -16,17 +16,6 @@ public class ChangeLED extends Command {
     private final LEDs led;
     private static Distance ledSpacing;
     
-    public ChangeLED(LEDPattern pattern, LEDs led) {
-        this.pattern = pattern;
-        this.led = led;
-
-        ledSpacing = Meters.of(1.0 / 120.0);
-
-
-        addRequirements(led);
-    }
-    
-
     public static enum LEDStatus { 
         RAINBOW(LEDPattern.rainbow(255,64)),
         RAINBOW_SCROLL(RAINBOW.pattern.scrollAtAbsoluteSpeed(MetersPerSecond.of(1), ledSpacing)),
@@ -41,11 +30,22 @@ public class ChangeLED extends Command {
             this.pattern = c_InPattern;
         }
 
+        //@Override //gives error, not completely necessary too since method does not override anything.
         public LEDPattern getPattern() {
             return pattern;
         }
     }
 
+    public ChangeLED(LEDStatus ledStatus, LEDs led) {
+        this.pattern = ledStatus.getPattern();
+        this.led = led;
+
+        ledSpacing = Meters.of(1.0 / 120.0);
+
+
+        addRequirements(led);
+    }
+    
     public void execute() {
         led.setBuffer(pattern);
     }
