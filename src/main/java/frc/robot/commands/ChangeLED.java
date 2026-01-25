@@ -30,7 +30,6 @@ public class ChangeLED extends Command {
             this.pattern = c_InPattern;
         }
 
-        //@Override //gives error, not completely necessary too since method does not override anything.
         public LEDPattern getPattern() {
             return pattern;
         }
@@ -46,6 +45,7 @@ public class ChangeLED extends Command {
         addRequirements(led);
     }
     
+    @Override
     public void execute() {
         led.setBuffer(pattern);
     }
