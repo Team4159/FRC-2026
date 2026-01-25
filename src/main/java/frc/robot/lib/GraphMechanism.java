@@ -25,7 +25,7 @@ public class GraphMechanism {
     {
         if (RobotBase.isSimulation()) {
             MechanismLigament2d lastLigament = null;
-            for (int i = 0; i < 25; i++) {
+            for (int i = 0; i < 40; i++) {
                 var ligament = new MechanismLigament2d(String.valueOf(i), 0, 0);
                 ligaments.add(ligament);
                 ligament.setLineWeight(lineWeight);

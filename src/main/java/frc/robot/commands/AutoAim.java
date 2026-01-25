@@ -4,9 +4,11 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
+import edu.wpi.first.math.MathSharedStore;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -19,6 +21,7 @@ import frc.robot.Constants;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.generated.TunerConstants;
+import frc.robot.lib.FuelSimulation;
 import frc.robot.lib.GraphMechanism;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 
@@ -43,6 +46,8 @@ public class AutoAim extends Command {
     public void initialize() {
         trajectoryVisual.show();
     }
+
+    double lastShoot = MathSharedStore.getTimestamp();
 
     @Override
     public void execute() {
@@ -72,6 +77,20 @@ public class AutoAim extends Command {
         double vx = ShooterConstants.launchVelocity * Math.cos(pitch);
         double vy = ShooterConstants.launchVelocity * Math.sin(pitch);
         trajectoryVisual.update(t -> new Translation2d(vx * t, vy * t - 0.5 * FieldConstants.g * t * t));
+        if (MathSharedStore.getTimestamp() - lastShoot > 0.5) {
+            double robotRotation = drivetrain.getState().Pose.getRotation().getRadians();
+            double robotRelativeVelocityX = drivetrain.getState().Speeds.vxMetersPerSecond;
+            double robotRelativeVelocityY = drivetrain.getState().Speeds.vyMetersPerSecond;
+            double robotFieldVelocityX = robotRelativeVelocityX * Math.cos(robotRotation) - robotRelativeVelocityY * Math.sin(robotRotation);
+            double robotFieldVelocityY = robotRelativeVelocityX * Math.sin(robotRotation) + robotRelativeVelocityY * Math.cos(robotRotation);
+            FuelSimulation.getInstance().shootFuel(
+                    new Translation3d(drivetrain.getState().Pose.getTranslation().getX(),
+                            drivetrain.getState().Pose.getTranslation().getY(), 0),
+                    new Translation3d(robotFieldVelocityX,
+                            robotFieldVelocityY, 0).plus(new Translation3d(vx * Math.cos(robotRotation), vx * Math.sin(robotRotation), vy)),
+                    new Translation3d(0, 0, 0));
+            lastShoot = MathSharedStore.getTimestamp();
+        }
     }
 
     @Override
