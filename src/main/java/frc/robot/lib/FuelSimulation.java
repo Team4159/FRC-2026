@@ -39,6 +39,7 @@ public class FuelSimulation {
     private static FuelSimulation instance;
 
     private static class Fuel {
+        @SuppressWarnings("unused")
         private Translation3d position, linearVelocity, angularVelocity;
         private double accumulatedDeltaTime = 0.0;
 
@@ -65,17 +66,13 @@ public class FuelSimulation {
         private void stepPhysics() {
             if (position.getZ() > kFuelRadius || linearVelocity.getZ() > 0) {
                 double linearVelocityMagnitude = linearVelocity.getNorm();
-                Vector<N3> linearVector = linearVelocity.div(linearVelocity.getNorm()).toVector();
-                Vector<N3> angularVector = angularVelocity.div(angularVelocity.getNorm()).toVector();
-                Vector<N3> upVector = Vector.cross(angularVector, linearVector);
+                Vector<N3> linearVector = linearVelocity.toVector();
+                Vector<N3> linearUnitVector = linearVector.unit();
                 // gravity
                 linearVelocity = linearVelocity.plus(kGravity.times(kSimulationStepPeriod));
                 // air resistance
                 double airResistanceMagnitude = 0.5 * kFuelDragCoefficient * kAirDensity * kFuelCrossSectionalArea * Math.pow(linearVelocityMagnitude, 2);
-                linearVelocity = linearVelocity.minus(new Translation3d(linearVector.times(airResistanceMagnitude)).times(kSimulationStepPeriod));
-                // magnus force
-                // double magnusForceMagnitude = 0.5 * kFuelDragCoefficient * kAirDensity * kFuelCrossSectionalArea * Math.pow(linearVelocityMagnitude, 2);
-                // linearVelocity = linearVelocity.minus(new Translation3d(upVector.times(airResistanceMagnitude)));
+                linearVelocity = linearVelocity.minus(new Translation3d(linearUnitVector.times(airResistanceMagnitude)).times(kSimulationStepPeriod));
             } else {
                 position = new Translation3d(position.getX(), position.getY(), kFuelRadius);
                 linearVelocity = new Translation3d(0, 0, 0);
@@ -103,12 +100,12 @@ public class FuelSimulation {
     }
 
     public void setupFieldFuel() {
-        for (int x = -6; x <= 6; x++) {
+        for (int x = -6; x < 6; x++) {
             for (int y = -14; y <= 0; y++) {
-                new Fuel(kFieldCenter.plus(new Translation3d(x * kFuelSpacing, y * kFuelSpacing - kFieldCenterFuelOffset, kFuelRadius)));
+                new Fuel(kFieldCenter.plus(new Translation3d(x * kFuelSpacing + kFuelRadius, y * kFuelSpacing - kFieldCenterFuelOffset, kFuelRadius)));
             }
             for (int y = 0; y <= 14; y++) {
-                new Fuel(kFieldCenter.plus(new Translation3d(x * kFuelSpacing, y * kFuelSpacing + kFieldCenterFuelOffset, kFuelRadius)));
+                new Fuel(kFieldCenter.plus(new Translation3d(x * kFuelSpacing + kFuelRadius, y * kFuelSpacing + kFieldCenterFuelOffset, kFuelRadius)));
             }
         }
     }

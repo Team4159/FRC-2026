@@ -11,14 +11,15 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants;
 import frc.robot.Constants.FieldConstants;
+import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.generated.TunerConstants;
 import frc.robot.lib.FuelSimulation;
@@ -36,8 +37,7 @@ public class AutoAim extends Command {
     public AutoAim(CommandSwerveDrivetrain drivetrain, CommandXboxController controller) {
         this.controller = controller;
         this.drivetrain = drivetrain;
-        this.target = Constants.FieldConstants.hubLocations
-                .get(DriverStation.getAlliance().orElse(Alliance.Blue));
+        this.target = FieldConstants.hubLocations.get(OperatorConstants.kAlliance);
         this.trajectoryVisual.hide();
         addRequirements(drivetrain);
     }
@@ -64,32 +64,25 @@ public class AutoAim extends Command {
         ChassisSpeeds chassisSpeeds = new ChassisSpeeds(
                 MathUtil.applyDeadband(Math.abs(controller.getLeftY()), 0.1)
                         * Math.signum(controller.getLeftY())
-                        * maxSpeed,
+                        * maxSpeed
+                        * (OperatorConstants.kAlliance.equals(Alliance.Blue) ? -1 : 1),
                 MathUtil.applyDeadband(Math.abs(controller.getLeftX()), 0.1)
                         * Math.signum(controller.getLeftX())
-                        * maxSpeed,
+                        * maxSpeed
+                        * (OperatorConstants.kAlliance.equals(Alliance.Blue) ? -1 : 1),
                 omega);
         SmartDashboard.putNumber("omega", omega);
         drivetrain.setControl(fieldCentric.withSpeeds(chassisSpeeds));
         // once angle is aligned start shooting with shooter angled accordingly
         double pitch = getPitch();
+        boolean validTrajectory = !Double.isNaN(pitch);
         SmartDashboard.putNumber("pitch", pitch);
         double vx = ShooterConstants.launchVelocity * Math.cos(pitch);
         double vy = ShooterConstants.launchVelocity * Math.sin(pitch);
         trajectoryVisual.update(t -> new Translation2d(vx * t, vy * t - 0.5 * FieldConstants.g * t * t));
-        if (MathSharedStore.getTimestamp() - lastShoot > 0.5) {
-            double robotRotation = drivetrain.getState().Pose.getRotation().getRadians();
-            double robotRelativeVelocityX = drivetrain.getState().Speeds.vxMetersPerSecond;
-            double robotRelativeVelocityY = drivetrain.getState().Speeds.vyMetersPerSecond;
-            double robotFieldVelocityX = robotRelativeVelocityX * Math.cos(robotRotation) - robotRelativeVelocityY * Math.sin(robotRotation);
-            double robotFieldVelocityY = robotRelativeVelocityX * Math.sin(robotRotation) + robotRelativeVelocityY * Math.cos(robotRotation);
-            FuelSimulation.getInstance().shootFuel(
-                    new Translation3d(drivetrain.getState().Pose.getTranslation().getX(),
-                            drivetrain.getState().Pose.getTranslation().getY(), 0),
-                    new Translation3d(robotFieldVelocityX,
-                            robotFieldVelocityY, 0).plus(new Translation3d(vx * Math.cos(robotRotation), vx * Math.sin(robotRotation), vy)),
-                    new Translation3d(0, 0, 0));
-            lastShoot = MathSharedStore.getTimestamp();
+        
+        if (validTrajectory) {
+            sim_shootFuel(new Translation2d(vx, vy));
         }
     }
 
@@ -111,5 +104,27 @@ public class AutoAim extends Command {
                         - 2 * FieldConstants.g * height
                                 * Math.pow(ShooterConstants.launchVelocity, 2)))
                 / (FieldConstants.g * distance));
+    }
+
+    private void sim_shootFuel(Translation2d shootVelocity) {
+        if (!RobotBase.isSimulation() || MathSharedStore.getTimestamp() - lastShoot <= 1.0 / 10.0) {
+            return;
+        }
+        double robotRotation = drivetrain.getState().Pose.getRotation().getRadians();
+        double robotRelativeVelocityX = drivetrain.getState().Speeds.vxMetersPerSecond;
+        double robotRelativeVelocityY = drivetrain.getState().Speeds.vyMetersPerSecond;
+        double robotFieldVelocityX = robotRelativeVelocityX * Math.cos(robotRotation)
+                - robotRelativeVelocityY * Math.sin(robotRotation);
+        double robotFieldVelocityY = robotRelativeVelocityX * Math.sin(robotRotation)
+                + robotRelativeVelocityY * Math.cos(robotRotation);
+        FuelSimulation.getInstance().shootFuel(
+                new Translation3d(drivetrain.getState().Pose.getTranslation().getX(),
+                        drivetrain.getState().Pose.getTranslation().getY(), 0),
+                new Translation3d(robotFieldVelocityX,
+                        robotFieldVelocityY, 0)
+                        .plus(new Translation3d(shootVelocity.getX() * Math.cos(robotRotation),
+                                shootVelocity.getX() * Math.sin(robotRotation), shootVelocity.getY())),
+                new Translation3d(0, 0, 0));
+        lastShoot = MathSharedStore.getTimestamp();
     }
 }
