@@ -13,7 +13,7 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
 
 /*
-simplified version of FuelSim by Team 5000 that includes air resistance and magnus force
+simplified version of FuelSim by Team 5000 that includes air resistance
 https://github.com/hammerheads5000/FuelSim
 */
 public class FuelSimulation {
