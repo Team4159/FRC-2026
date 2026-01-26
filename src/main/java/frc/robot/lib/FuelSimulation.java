@@ -18,6 +18,8 @@ https://github.com/hammerheads5000/FuelSim
 */
 public class FuelSimulation {
     private static final double kSimulationStepPeriod = 0.005;
+    private static final int kSimulationMaxStepsPerFrame = 20;
+    private static final double kSimulationTimeScale = 1.0;
     private static final Translation3d kGravity = new Translation3d(0, 0, -9.81);
     private static final double kAirDensity = 1.2;
     private static final double kFuelRadius = Units.inchesToMeters(5.91 / 2.0);
@@ -59,26 +61,26 @@ public class FuelSimulation {
             int steps = (int)(accumulatedDeltaTime / kSimulationStepPeriod);
             accumulatedDeltaTime %= kSimulationStepPeriod;
             for (int i = 0; i < steps; i++) {
-                stepPhysics();
+                stepPhysics(kSimulationStepPeriod * kSimulationTimeScale);
             }
         }
 
-        private void stepPhysics() {
+        private void stepPhysics(double deltaTime) {
             if (position.getZ() > kFuelRadius || linearVelocity.getZ() > 0) {
                 double linearVelocityMagnitude = linearVelocity.getNorm();
                 Vector<N3> linearVector = linearVelocity.toVector();
                 Vector<N3> linearUnitVector = linearVector.unit();
                 // gravity
-                linearVelocity = linearVelocity.plus(kGravity.times(kSimulationStepPeriod));
+                linearVelocity = linearVelocity.plus(kGravity.times(deltaTime));
                 // air resistance
                 double airResistanceMagnitude = 0.5 * kFuelDragCoefficient * kAirDensity * kFuelCrossSectionalArea * Math.pow(linearVelocityMagnitude, 2);
-                linearVelocity = linearVelocity.minus(new Translation3d(linearUnitVector.times(airResistanceMagnitude)).times(kSimulationStepPeriod));
+                linearVelocity = linearVelocity.minus(new Translation3d(linearUnitVector.times(airResistanceMagnitude)).times(deltaTime));
             } else {
                 position = new Translation3d(position.getX(), position.getY(), kFuelRadius);
                 linearVelocity = new Translation3d(0, 0, 0);
                 angularVelocity = new Translation3d(0, 0, 0);
             }
-            position = position.plus(linearVelocity.times(kSimulationStepPeriod));
+            position = position.plus(linearVelocity.times(deltaTime));
         }
 
         private void destroy() {
@@ -133,8 +135,9 @@ public class FuelSimulation {
             iterator.remove();
         }
         // step physics
+        double deltaTime = Math.min(time - lastUpdate, kSimulationStepPeriod * kSimulationMaxStepsPerFrame);
         for (Fuel fuel : fuels) {
-            fuel.update(time - lastUpdate);
+            fuel.update(deltaTime);
         }
         lastUpdate = time;
         output();
