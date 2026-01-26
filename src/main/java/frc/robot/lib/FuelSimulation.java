@@ -22,7 +22,7 @@ public class FuelSimulation {
     private static final double kSimulationTimeScale = 1.0;
     private static final Translation3d kGravity = new Translation3d(0, 0, -9.81);
     private static final double kAirDensity = 1.2;
-    private static final double kFuelRadius = Units.inchesToMeters(5.91 / 2.0);
+    private static final double kFuelRadius = 0.15;
     private static final double kFuelMass = Units.lbsToKilograms((0.5 + 0.448) / 2.0);
     private static final double kFuelSpacing = Units.inchesToMeters(6.0);
     private static final double kFuelCrossSectionalArea = Math.PI * Math.pow(kFuelRadius, 2);
