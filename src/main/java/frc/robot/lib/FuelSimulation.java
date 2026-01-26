@@ -23,6 +23,7 @@ public class FuelSimulation {
     private static final Translation3d kGravity = new Translation3d(0, 0, -9.81);
     private static final double kAirDensity = 1.2;
     private static final double kFuelRadius = Units.inchesToMeters(5.91 / 2.0);
+    private static final double kFuelMass = Units.lbsToKilograms((0.5 + 0.448) / 2.0);
     private static final double kFuelSpacing = Units.inchesToMeters(6.0);
     private static final double kFuelCrossSectionalArea = Math.PI * Math.pow(kFuelRadius, 2);
     private static final double kFuelDragCoefficient = 0.47; // of a sphere
@@ -74,7 +75,8 @@ public class FuelSimulation {
                 linearVelocity = linearVelocity.plus(kGravity.times(deltaTime));
                 // air resistance
                 double airResistanceMagnitude = 0.5 * kFuelDragCoefficient * kAirDensity * kFuelCrossSectionalArea * Math.pow(linearVelocityMagnitude, 2);
-                linearVelocity = linearVelocity.minus(new Translation3d(linearUnitVector.times(airResistanceMagnitude)).times(deltaTime));
+                double airResistanceForce = new Translation3d(linearUnitVector.times(airResistanceMagnitude));
+                linearVelocity = linearVelocity.minus(airResistanceForce.div(kFuelMass).times(deltaTime));
             } else {
                 position = new Translation3d(position.getX(), position.getY(), kFuelRadius);
                 linearVelocity = new Translation3d(0, 0, 0);
