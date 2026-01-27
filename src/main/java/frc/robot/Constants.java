@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 
 /**
@@ -38,10 +39,26 @@ public final class Constants {
     public static final double CkP = 0;
     public static final int idClimberOne = 9;
     public static final int idClimberTwo = 10;
+
+    public static enum ClimberState{
+      CLIMB(1),STOP(0),DOWN(-1);
+      public double percentage;
+      private ClimberState(double speed) {
+        percentage = speed;
+      }
+    }
   }
 
   public static class HopperConstants{
     public static final int HopperId = 8;
+
+    public static enum HopperState{
+      FEED(0.5),REVERSE(-0.5),STOP(0);
+      public double percentage;
+      private HopperState(double speed){
+        percentage = speed;
+      }
+    }
   }
 
   public static class OperatorConstants {

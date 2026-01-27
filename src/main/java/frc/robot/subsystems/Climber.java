@@ -6,9 +6,11 @@ import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Constants.ShooterConstants;
+import frc.robot.Constants.ClimberConstants.ClimberState;
 import frc.robot.Constants.HoodConstants;
 
 public class Climber extends SubsystemBase{
@@ -49,4 +51,21 @@ public class Climber extends SubsystemBase{
         climber2.setControl(climberVelocityVoltage.withVelocity(0));
     }
 
+    public class ChangeState extends Command{
+        private ClimberState climberState;
+        public ChangeState(ClimberState climberState){
+            this.climberState = climberState;
+            addRequirements(Climber.this);
+        }
+
+        @Override
+        public void initialize(){
+            Climber.this.setSpeed(climberState.percentage);
+        }
+
+        @Override
+        public void end(boolean interupt){
+            Climber.this.stopClimber();
+        }
+    }
 }
