@@ -12,10 +12,10 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 
 public class Shooter extends SubsystemBase{
+    private TalonFX hoodMotor;
     private TalonFX motorOne;
     private TalonFX motorTwo;
     private TalonFX motorThree;
-    private TalonFX hoodMotor;
 
     private final PositionVoltage hoodPositionVoltage;
     private final VelocityVoltage shooterVelocityVoltage;
@@ -38,14 +38,13 @@ public class Shooter extends SubsystemBase{
         motorThree = new TalonFX(Constants.ShooterConstants.ShooterIDThree);
         
         motorOne.getConfigurator().apply(new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive));
+        
+        hoodMotor.getConfigurator().apply(hoodConfig);
         motorOne.getConfigurator().apply(shooterConfig);
         motorTwo.getConfigurator().apply(shooterConfig);
         motorThree.getConfigurator().apply(shooterConfig);
         
-        hoodMotor.getConfigurator().apply(hoodConfig);
-
         hoodPositionVoltage = new PositionVoltage(0);
-
         shooterVelocityVoltage = new VelocityVoltage(0);
     }
     // set speed
@@ -60,14 +59,17 @@ public class Shooter extends SubsystemBase{
         //double angle = Math.atan((15 + Math.sqrt(Math.pow(distance, 2)-4*(gravity * Math.pow(distance, 2)) / (2 * Math.pow(fps, 2))*((gravity * Math.pow(distance, 2)) / (2 * Math.pow(fps, 2)) + height))) / (2*(gravity * Math.pow(distance, 2)) / (2 * Math.pow(fps, 2)))) * 180/Math.PI;
         hoodMotor.setControl(hoodPositionVoltage.withPosition(angle));    
     }
+    
     public class ShooterCommand extends Command{
         private double velocity;
         private double angle;
+        
         public ShooterCommand(double velocity, double angle){
             addRequirements(Shooter.this);
             this.velocity=velocity;
             this.angle=angle;
         }
+        
         @Override
         public void initialize() {
             Shooter.this.adjustHood(angle);

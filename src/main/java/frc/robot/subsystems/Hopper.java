@@ -22,9 +22,10 @@ public class Hopper extends SubsystemBase{
         hopperMotor.set(0);
     }
 
-    public class ChangeState extends Command{
+    public class ChangeHopperState extends Command{
         private HopperState hopperState;
-        public ChangeState(HopperState hopperState) {
+        
+        public ChangeHopperState(HopperState hopperState) {
             this.hopperState = hopperState;
             addRequirements(Hopper.this);
         }

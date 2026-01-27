@@ -10,53 +10,54 @@ import frc.robot.Constants;
 import frc.robot.Constants.ClimberConstants.ClimberState;
 
 public class Climber extends SubsystemBase{
-    private TalonFX climber1;
-    private TalonFX climber2;
+    private TalonFX climbMotorOne;
+    private TalonFX climbMotorTwo;
     
     private final VelocityVoltage climberVelocityVoltage;
 
     public Climber(){
-        Slot0Configs climberConfig1 = new Slot0Configs();
-        climberConfig1.kP = Constants.ClimberConstants.kP;
-        climberConfig1.kI = Constants.ClimberConstants.kI;
-        climberConfig1.kD = Constants.ClimberConstants.kD;
+        Slot0Configs climberConfigOne = new Slot0Configs();
+        climberConfigOne.kP = Constants.ClimberConstants.kP;
+        climberConfigOne.kI = Constants.ClimberConstants.kI;
+        climberConfigOne.kD = Constants.ClimberConstants.kD;
 
-        Slot0Configs climberConfig2 = new Slot0Configs();
-        climberConfig2.kP = Constants.ClimberConstants.kP;
-        climberConfig2.kI = Constants.ClimberConstants.kI;
-        climberConfig2.kD = Constants.ClimberConstants.kD;
+        Slot0Configs climberConfigTwo = new Slot0Configs();
+        climberConfigTwo.kP = Constants.ClimberConstants.kP;
+        climberConfigTwo.kI = Constants.ClimberConstants.kI;
+        climberConfigTwo.kD = Constants.ClimberConstants.kD;
 
-        climber1 = new TalonFX(Constants.ClimberConstants.idClimberOne);
-        climber2 = new TalonFX(Constants.ClimberConstants.idClimberTwo);
+        climbMotorOne = new TalonFX(Constants.ClimberConstants.idClimberOne);
+        climbMotorTwo = new TalonFX(Constants.ClimberConstants.idClimberTwo);
 
-        climber1.getConfigurator().apply(climberConfig1);
-        climber2.getConfigurator().apply(climberConfig2);
+        climbMotorOne.getConfigurator().apply(climberConfigOne);
+        climbMotorTwo.getConfigurator().apply(climberConfigTwo);
 
         climberVelocityVoltage = new VelocityVoltage(0);
 
     }
 
-    public void setSpeed(double climberSpeed){
+    public void setClimberSpeed(double climberSpeed){
         climberVelocityVoltage.withVelocity(climberSpeed);
-        climber1.setControl(climberVelocityVoltage);
-        climber2.setControl(climberVelocityVoltage);
+        climbMotorOne.setControl(climberVelocityVoltage);
+        climbMotorTwo.setControl(climberVelocityVoltage);
     }
 
     public void stopClimber(){
-        climber1.setControl(climberVelocityVoltage.withVelocity(0));
-        climber2.setControl(climberVelocityVoltage.withVelocity(0));
+        climbMotorOne.setControl(climberVelocityVoltage.withVelocity(0));
+        climbMotorTwo.setControl(climberVelocityVoltage.withVelocity(0));
     }
 
-    public class ChangeState extends Command{
+    public class ChangeClimberState extends Command{
         private ClimberState climberState;
-        public ChangeState(ClimberState climberState){
+        
+        public ChangeClimberState(ClimberState climberState){
             this.climberState = climberState;
             addRequirements(Climber.this);
         }
 
         @Override
         public void initialize(){
-            Climber.this.setSpeed(climberState.percentage);
+            Climber.this.setClimberSpeed(climberState.percentage);
         }
 
         @Override
