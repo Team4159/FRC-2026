@@ -1,24 +1,20 @@
 package frc.robot.subsystems;
 
-import org.ejml.dense.row.SpecializedOps_CDRM;
-
+import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
 
-import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
-import frc.robot.Constants.ShooterConstants;
-import frc.robot.Constants.HoodConstants;
 
 public class Shooter extends SubsystemBase{
-    private TalonFX l_topMotor;
-    private TalonFX l_botMotor;
-    private TalonFX r_topMotor;
-    private TalonFX r_botMotor;
+    private TalonFX motorOne;
+    private TalonFX motorTwo;
+    private TalonFX motorThree;
     private TalonFX hoodMotor;
 
     private final PositionVoltage hoodPositionVoltage;
@@ -26,25 +22,25 @@ public class Shooter extends SubsystemBase{
 
     public Shooter() {
         Slot0Configs hoodConfig = new Slot0Configs();
-        hoodConfig.kP = Constants.ShooterConstants.SkP;
-        hoodConfig.kI = Constants.ShooterConstants.SkI;
-        hoodConfig.kD = Constants.ShooterConstants.SkD;
+        hoodConfig.kP = Constants.HoodConstants.kP;
+        hoodConfig.kI = Constants.HoodConstants.kI;
+        hoodConfig.kD = Constants.HoodConstants.kD;
 
         Slot0Configs shooterConfig = new Slot0Configs();
-        shooterConfig.kP = Constants.ShooterConstants.SkP;
-        shooterConfig.kI = Constants.ShooterConstants.SkI;
-        shooterConfig.kD = Constants.ShooterConstants.SkD;
+        shooterConfig.kP = Constants.ShooterConstants.kP;
+        shooterConfig.kI = Constants.ShooterConstants.kI;
+        shooterConfig.kD = Constants.ShooterConstants.kD;
+
 
         hoodMotor = new TalonFX(Constants.HoodConstants.HoodId);
-        l_topMotor = new TalonFX(Constants.ShooterConstants.ShooterIDOne);
-        l_botMotor = new TalonFX(Constants.ShooterConstants.ShooterIDTwo);
-        r_topMotor = new TalonFX(Constants.ShooterConstants.ShooterIDThree);
-        r_botMotor = new TalonFX(Constants.ShooterConstants.ShooterIDFour);
+        motorOne = new TalonFX(Constants.ShooterConstants.ShooterIDOne);
+        motorTwo = new TalonFX(Constants.ShooterConstants.ShooterIDTwo);
+        motorThree = new TalonFX(Constants.ShooterConstants.ShooterIDThree);
         
-        l_topMotor.getConfigurator().apply(shooterConfig);
-        l_botMotor.getConfigurator().apply(shooterConfig);
-        r_topMotor.getConfigurator().apply(shooterConfig);
-        r_botMotor.getConfigurator().apply(shooterConfig);
+        motorOne.getConfigurator().apply(new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive));
+        motorOne.getConfigurator().apply(shooterConfig);
+        motorTwo.getConfigurator().apply(shooterConfig);
+        motorThree.getConfigurator().apply(shooterConfig);
         
         hoodMotor.getConfigurator().apply(hoodConfig);
 
@@ -52,38 +48,28 @@ public class Shooter extends SubsystemBase{
 
         shooterVelocityVoltage = new VelocityVoltage(0);
     }
-
     // set speed
-
-
     public void setSpeed(double speed) {
         shooterVelocityVoltage.withVelocity(speed);
-        l_topMotor.setControl(shooterVelocityVoltage);
-        l_botMotor.setControl(shooterVelocityVoltage);
-        r_topMotor.setControl(shooterVelocityVoltage);
-        r_botMotor.setControl(shooterVelocityVoltage); 
+        motorOne.setControl(shooterVelocityVoltage);
+        motorTwo.setControl(shooterVelocityVoltage);
+        motorThree.setControl(shooterVelocityVoltage);
     }
-
     // adjust hood
     public void adjustHood(double angle) {
         //double angle = Math.atan((15 + Math.sqrt(Math.pow(distance, 2)-4*(gravity * Math.pow(distance, 2)) / (2 * Math.pow(fps, 2))*((gravity * Math.pow(distance, 2)) / (2 * Math.pow(fps, 2)) + height))) / (2*(gravity * Math.pow(distance, 2)) / (2 * Math.pow(fps, 2)))) * 180/Math.PI;
-
-        hoodMotor.setControl(hoodPositionVoltage.withPosition(angle));
-        
+        hoodMotor.setControl(hoodPositionVoltage.withPosition(angle));    
     }
-
     public class ShooterCommand extends Command{
-        private Shooter shooter;
-
-        public ShooterCommand(Shooter shooter){
-            this.shooter = shooter;
+        private double velocity;
+        private double angle;
+        public ShooterCommand(double velocity, double angle){
             addRequirements(Shooter.this);
+            this.velocity=velocity;
+            this.angle=angle;
         }
-
         @Override
         public void initialize() {
-            double angle = 45; //replace with correct angle
-            double velocity = 10; //replace with corresponding velocity to hit the money
             Shooter.this.adjustHood(angle);
             Shooter.this.setSpeed(velocity);
         }
