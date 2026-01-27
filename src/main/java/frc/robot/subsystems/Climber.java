@@ -64,7 +64,7 @@ public class Climber extends SubsystemBase{
         }
 
         @Override
-        public void end(boolean interupt){
+        public void end(boolean interrupt){
             Climber.this.stopClimber();
         }
     }

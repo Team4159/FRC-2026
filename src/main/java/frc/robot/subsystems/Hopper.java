@@ -35,7 +35,7 @@ public class Hopper extends SubsystemBase{
         }
 
         @Override
-        public void end(boolean interupt){
+        public void end(boolean interrupt){
             Hopper.this.stopHopper();
         }
     }
