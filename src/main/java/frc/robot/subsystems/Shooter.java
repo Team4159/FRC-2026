@@ -1,11 +1,14 @@
 package frc.robot.subsystems;
 
+import org.ejml.dense.row.SpecializedOps_CDRM;
+
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Constants.ShooterConstants;
@@ -51,6 +54,8 @@ public class Shooter extends SubsystemBase{
     }
 
     // set speed
+
+
     public void setSpeed(double speed) {
         shooterVelocityVoltage.withVelocity(speed);
         l_topMotor.setControl(shooterVelocityVoltage);
@@ -60,26 +65,32 @@ public class Shooter extends SubsystemBase{
     }
 
     // adjust hood
-    public void adjustHood(double v, double h, double d) { // check below for more info
-        // MEASUED IN FEET
-        //double v = 40; // initial velocity
-        //double h = 7; // height
-        //double d = 15; // distance
-        double g = 32.2; // gravity
-        double fC = (g * Math.pow(d, 2)) / (2 * Math.pow(v, 2)); // first constant
-        double sC = fC + h; // second constant
-        double r = Math.atan((d + Math.sqrt(Math.pow(d, 2) - (4 * fC) * sC)) / (2 * fC)); // radians
-        double angle = r * 180/Math.PI;
-
+    public void adjustHood(double angle) {
+        //double angle = Math.atan((15 + Math.sqrt(Math.pow(distance, 2)-4*(gravity * Math.pow(distance, 2)) / (2 * Math.pow(fps, 2))*((gravity * Math.pow(distance, 2)) / (2 * Math.pow(fps, 2)) + height))) / (2*(gravity * Math.pow(distance, 2)) / (2 * Math.pow(fps, 2)))) * 180/Math.PI;
 
         hoodMotor.setControl(hoodPositionVoltage.withPosition(angle));
         
     }
-    
-    
 
-    public void stopHood() {
-        hoodMotor.setControl(hoodPositionVoltage.withPosition(0));
+    public class ShooterCommand extends Command{
+        private Shooter shooter;
+
+        public ShooterCommand(Shooter shooter){
+            this.shooter = shooter;
+            addRequirements(Shooter.this);
+        }
+
+        @Override
+        public void initialize() {
+            double angle = 45; //replace with correct angle
+            double velocity = 10; //replace with corresponding velocity to hit the money
+            Shooter.this.adjustHood(angle);
+            Shooter.this.setSpeed(velocity);
+        }
+
+        @Override
+        public void end(boolean interrupt) {
+            Shooter.this.setSpeed(0);
+        }
     }
-
 }
