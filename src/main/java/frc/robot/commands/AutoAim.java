@@ -1,64 +1,51 @@
 package frc.robot.commands;
 
+import java.util.function.DoubleSupplier;
+
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
+import edu.wpi.first.math.MathSharedStore;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.smartdashboard.Field2d;
-import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
-import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants;
+import frc.robot.lib.FuelSimulation;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 
 public class AutoAim extends Command {
     private CommandSwerveDrivetrain drivetrain;
     private SwerveRequest.ApplyFieldSpeeds fieldCentric = new SwerveRequest.ApplyFieldSpeeds();
     private Pose2d target;
-    private CommandXboxController controller;
-    private Mechanism2d trajectory = new Mechanism2d(1, 1);
-    private MechanismLigament2d[] trajectoryLigaments = new MechanismLigament2d[20];
-    {
-        var root = trajectory.getRoot("shooter", 0.5, 0);
-        MechanismLigament2d last = null;
-        for (int i = 0; i < trajectoryLigaments.length; i++) {
-            var ligament = new MechanismLigament2d(String.valueOf(i), 0, 0);
-            trajectoryLigaments[i] = ligament;
-            ligament.setLineWeight(2);
-            if (last == null) {
-                root.append(ligament);
-            } else {
-                last.append(ligament);
-            }
-            last = ligament;
-        }
-    }
-    private double velocity = 10; // example value
-    private double g = 9.81;
+    
+    private DoubleSupplier robotXVelocitySupplier, robotYVelocitySupplier;
+    
     private Pose2d adjustedRobotPose;
 
-    StructPublisher<Pose2d> adjustedRobotPosePublisher = NetworkTableInstance.getDefault()
-  .getStructTopic("adjustedRobotPose", Pose2d.struct).publish();
+    private double lastShoot = MathSharedStore.getTimestamp();
 
-    public AutoAim(CommandSwerveDrivetrain drivetrain, CommandXboxController controller) {
-        this.controller = controller;
+    private StructPublisher<Pose2d> adjustedRobotPosePublisher = NetworkTableInstance.getDefault()
+    .getStructTopic("adjustedRobotPose", Pose2d.struct).publish();
+
+    /**@param drivetrain the CommandSwerveDrivetrain
+     * @param robotXVelocitySupplier a DoubleSupplier for providing the desired field relative robot velocity x component
+     * @param robotYVelocitySupplier a DoubleSupplier for providing the desired field relative robot velocity y component
+     */
+    public AutoAim(CommandSwerveDrivetrain drivetrain, DoubleSupplier robotXVelocitySupplier, DoubleSupplier robotYVelocitySupplier) {
         this.drivetrain = drivetrain;
+        this.robotXVelocitySupplier = robotXVelocitySupplier;
+        this.robotYVelocitySupplier = robotYVelocitySupplier;
         this.target = Constants.FieldConstants.hubLocations.get(DriverStation.getAlliance().orElse(Alliance.Blue));
-        SmartDashboard.putData("shoot trajectory", trajectory);
         addRequirements(drivetrain);
     }
 
@@ -67,41 +54,30 @@ public class AutoAim extends Command {
         //set adjusted robot pose to current robot pose initially
         //(need a baseline to get time from lookup table)
         adjustedRobotPose = drivetrain.getState().Pose;
-        System.out.println("set adjustedRobotPose");
     }
 
     @Override
     public void execute() {
         //get distance from adjusted robot pose
-        double distance = getDistanceFromHub(adjustedRobotPose);
-        //double distance = 1;
-        System.out.println("getDistanceFromHub");
+        double distance = getDistanceFromTarget(adjustedRobotPose);
 
         //get time of flight from distance
         double timeOfFlight = getTimeOfFlight(distance);
-        System.out.println("getTOF");
 
         //maximum height of the ball during the trajectory
         double maxHeight = Units.inchesToMeters(70);
-        System.out.println("maxHeight");
 
-        //Field2d adjustedRobotPoseF2d = new Field2d();
-        //adjustedRobotPoseF2d.setRobotPose(adjustedRobotPose);
-        //SmartDashboard.putData("adjustedPose", adjustedRobotPoseF2d);
-        adjustedRobotPosePublisher.set(adjustedRobotPose);
+        //calculate adjusted robot pose
 
-        Transform2d adjustedRobotPoseTranslation = new Transform2d(
+        //calculate the distance traveled by the robot during the time of flight
+        Transform2d adjustedRobotPoseTransform = new Transform2d(
             drivetrain.getState().Speeds.vxMetersPerSecond * timeOfFlight,
             drivetrain.getState().Speeds.vyMetersPerSecond * timeOfFlight,
             new Rotation2d());
 
-        adjustedRobotPose = drivetrain.getState().Pose.plus(adjustedRobotPoseTranslation);
-        //offset robot pose based off current robot velocities and time
-        // adjustedRobotPose = new Pose2d(
-        // drivetrain.getState().Speeds.vxMetersPerSecond * timeOfFlight,
-        // drivetrain.getState().Speeds.vyMetersPerSecond * timeOfFlight,
-        // drivetrain.getState().Pose.getRotation());
-        //double height = Units.inchesToMeters(distance)
+        //add the distance traveled during TOF to current robot pose to get the adjusted robot pose
+        //this will be used for shooting while moving adjustment
+        adjustedRobotPose = drivetrain.getState().Pose.plus(adjustedRobotPoseTransform);
 
         //calculate desired horizontal and vertical initial ball velocities
         //vx = distance/time
@@ -120,63 +96,58 @@ public class AutoAim extends Command {
 
         //TODO implement shooter (hoodAngle, wheelVelocity) -> shooter setpoints
 
-        //calculate robot theta based on adjusted velocity
+        //calculate robot theta based on adjusted robot pose
+        //this allows for shooting while moving
         double desiredRobotAngle = target.getTranslation().minus(adjustedRobotPose.getTranslation()).getAngle()
                 .getRadians();
 
-        //tell the swerve to rotate to the desired angle
+        //rotate the swerve to the desired angle
         rotateSwerve(desiredRobotAngle);
 
-        double vx = robotRelativeBallVelocityHorizontal*Math.sin(desiredRobotAngle)
-                    + drivetrain.getState().Speeds.vxMetersPerSecond;
-        System.out.println("vxrobotrelative:" + robotRelativeBallVelocityHorizontal*Math.sin(desiredRobotAngle));
+        //send adjusted robot pose to advantageScope(for sim testing)
+        adjustedRobotPosePublisher.set(adjustedRobotPose);
 
-        double vy = robotRelativeBallVelocityHorizontal*Math.cos(desiredRobotAngle)
-                    + drivetrain.getState().Speeds.vyMetersPerSecond;
-        System.out.println("vyrobotrelative:" + robotRelativeBallVelocityHorizontal*Math.cos(desiredRobotAngle));
+        //AdvantageScope fuel simulation
+        //get the current robot yaw angle
+        double robotYaw = drivetrain.getState().Pose.getRotation().getRadians();
 
-        //AdvantageScope trajectory sim
-        //TODO actually do the calculation correctly, need to account for the signs
-        double vHorizontal = Math.sqrt(vx * vx + vy * vy);
+        //calculate field relative initial fuel velocities
+        double vx = robotRelativeBallVelocityHorizontal*Math.cos(desiredRobotAngle)
+                    + drivetrain.getState().Speeds.vxMetersPerSecond * Math.cos(robotYaw) - drivetrain.getState().Speeds.vyMetersPerSecond * Math.sin(robotYaw);
+
+        double vy = robotRelativeBallVelocityHorizontal*Math.sin(desiredRobotAngle)
+                    + drivetrain.getState().Speeds.vxMetersPerSecond * Math.sin(robotYaw) + drivetrain.getState().Speeds.vyMetersPerSecond * Math.cos(robotYaw);
 
         double vz = robotRelativeBallVelocityVertical;
-        double lastAngle = 0;
 
-        for (int i = 0; i < trajectoryLigaments.length; i++) {
-            double tScale = 10 / 60.0;
-            double t0 = tScale * i;
-            double t1 = tScale * (i + 1);
-            double x0 = vHorizontal * t0;
-            double x1 = vHorizontal * t1;
-            double y0 = vz * t0 - 0.5 * g * t0 * t0;
-            double y1 = vz * t1 - 0.5 * g * t1 * t1;
-            double angle = Math.toDegrees(Math.atan2(y1 - y0, x1 - x0));
-            trajectoryLigaments[i].setLength(Math.hypot(x1 - x0, y1 - y0));
-            trajectoryLigaments[i].setAngle(angle - lastAngle);
-            lastAngle = angle;
-        }
+        sim_shootFuel(vx, vy, vz);
     }
 
+    /** @param desiredAngle the desired field relative angle for the drivetrain
+     * This also translates the robot using the DoubleSuppliers as well
+     */
     private void rotateSwerve(double desiredAngle){
-        SmartDashboard.putNumber("desiredAngle", Units.radiansToDegrees(desiredAngle));
-        SmartDashboard.putNumber("current angle", drivetrain.getState().Pose.getRotation().getDegrees());
-
+        //PID controller to calculate omega
         double omega = Constants.DrivetrainConstants.AutoAimRotationController.calculate(
                 drivetrain.getState().Pose.getRotation().getRadians(), desiredAngle, Timer.getFPGATimestamp());
+        //set ChassisSpeeds to the current values of the DoubleSuppliers for translation and omega for rotation
         ChassisSpeeds chassisSpeeds = new ChassisSpeeds(
-                MathUtil.applyDeadband(Math.abs(controller.getLeftY()), 0.1) * Math.signum(controller.getLeftY())
-                        * 4.54,
-                MathUtil.applyDeadband(Math.abs(controller.getLeftX()), 0.1) * Math.signum(controller.getLeftX())
-                        * 4.54,
+                robotXVelocitySupplier.getAsDouble(),
+                robotYVelocitySupplier.getAsDouble(),
                 omega);
-        SmartDashboard.putNumber("omega", omega);
         drivetrain.setControl(fieldCentric.withSpeeds(chassisSpeeds));
     }
 
-    private double getDistanceFromHub(Pose2d robotPose){
+    /** @param robotPose the current field relative robot pose
+     * @return the distance from the current target
+     */
+    private double getDistanceFromTarget(Pose2d robotPose){
         return robotPose.getTranslation().getDistance(target.getTranslation());
     }
 
+    /** @param distance estimated robot distance from target 
+     * @return the estimated time of flight of a fuel launched, using a lookuptable and linear interpolation
+    */
     private double getTimeOfFlight(double distance){
         double closestDistance = 0, secondClosestDistance = 0;
         var lookupTable = Constants.ShooterConstants.timeLookupTable;
@@ -191,22 +162,28 @@ public class AutoAim extends Command {
                 secondClosestDistance = currentDistance;
             }
         }
+        //linear interpolation
         double difference = Math.abs(secondClosestDistance - closestDistance);
         double percentage = Math.abs(closestDistance - distance) / difference;
-        //return MathUtil.interpolate(lookupTable.get(closestDistance), lookupTable.get(secondClosestDistance), percentage);
-        System.out.println("closestDistance: " + closestDistance);
-        return lookupTable.get(closestDistance);
+        return MathUtil.interpolate(lookupTable.get(closestDistance), lookupTable.get(secondClosestDistance), percentage);
     }
 
-    // private double getPitch() {
-    //     // distance from robot to target
-    //     Translation2d robotTranslation = drivetrain.getState().Pose.getTranslation();
-    //     double distance = robotTranslation.getDistance(target.getTranslation());
-    //     double height = Units.inchesToMeters(72);
-    //     SmartDashboard.putNumber("height", height);
-    //     // TODO: implement shooter logic
-    //     return Math.atan((Math.pow(velocity, 2)
-    //             + Math.sqrt(Math.pow(velocity, 4) - Math.pow(g * distance, 2) - 2 * g * height * Math.pow(velocity, 2)))
-    //             / (g * distance));
-    // }
+    /** 
+     * AdvantageScope fuel shooting simulation
+     * @param vx initial field relative fuel velocity x component
+     * @param vy initial field relative fuel velocity y component
+     * @param vz initial field relative fuel velocity z component (FuelSimulation class will simulate gravity)
+     */
+    private void sim_shootFuel(double vx, double vy, double vz) {
+        if (!RobotBase.isSimulation() || MathSharedStore.getTimestamp() - lastShoot <= 1.0 / 10.0) {
+            return;
+        }
+        FuelSimulation.getInstance().shootFuel(
+                new Translation3d(drivetrain.getState().Pose.getTranslation().getX(),
+                        drivetrain.getState().Pose.getTranslation().getY(), 0),
+                new Translation3d(vx,
+                        vy, vz),
+                new Translation3d(0, 0, 0));
+        lastShoot = MathSharedStore.getTimestamp();
+    }
 }
