@@ -13,14 +13,14 @@ package frc.robot;
  * constants are needed, to reduce verbosity.
  */
 public final class Constants {
-  public static class HoodConstants{
+  public static class HoodConstants {
     public static final double kI = 0;
     public static final double kD = 0;
     public static final double kP = 0.01;
     public static final int HoodId = 3; //fix this
   }
 
-  public static class ShooterConstants{
+  public static class ShooterConstants {
     public static final double kI = 0;
     public static final double kD = 0;
     public static final double kP = 0.01;
@@ -30,14 +30,14 @@ public final class Constants {
     public static final int ShooterIDFour = 7;
   }
 
-  public static class ClimberConstants{
+  public static class ClimberConstants {
     public static final double kI = 0;
     public static final double kD = 0;
     public static final double kP = 0;
     public static final int idClimberOne = 9;
     public static final int idClimberTwo = 10;
 
-    public static enum ClimberState{
+    public static enum ClimberState {
       CLIMB(1),STOP(0),DOWN(-1);
       public double percentage;
       private ClimberState(double speed) {
@@ -46,14 +46,43 @@ public final class Constants {
     }
   }
 
-  public static class HopperConstants{
+  public static class HopperConstants {
     public static final int HopperId = 8;
 
-    public static enum HopperState{
+    public static enum HopperState {
       FEED(0.5),REVERSE(-0.5),STOP(0);
       public double percentage;
       private HopperState(double speed){
         percentage = speed;
+      }
+    }
+  }
+
+  public static class IntakeConstants{
+    public static final double kI = 0;
+    public static final double kD = 0;
+    public static final double kP = 0.01;
+
+    public static final int kIntakeLocationId = 9; //I don't know the port, change once known.
+    public static final int kIntakeSpinId = 10;
+
+    public static enum IntakeLocationState {
+      UP(0), DOWN(0.25); //I don't know the gear ratio
+
+      public double rotationLocation;
+
+      private IntakeLocationState(double location){
+        rotationLocation = location;
+      }
+    }
+
+    public static enum IntakeSpinState {
+      IN(0.5), OUT(-0.5), STOP(0);
+
+      public double spinSpeed;
+
+      private IntakeSpinState(double speed) {
+        spinSpeed = speed;
       }
     }
   }
