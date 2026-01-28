@@ -17,6 +17,7 @@ import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
@@ -34,19 +35,45 @@ public class AutoAim extends Command {
 
     private double lastShoot = MathSharedStore.getTimestamp();
 
+    //used to send the angle to the auto path controller for use in auto period
+    private double desiredOmega;
+    private boolean autonomousMode;
+
     private StructPublisher<Pose2d> adjustedRobotPosePublisher = NetworkTableInstance.getDefault()
     .getStructTopic("adjustedRobotPose", Pose2d.struct).publish();
 
     /**@param drivetrain the CommandSwerveDrivetrain
      * @param robotXVelocitySupplier a DoubleSupplier for providing the desired field relative robot velocity x component
      * @param robotYVelocitySupplier a DoubleSupplier for providing the desired field relative robot velocity y component
+     * @param autonomousMode if set to true the actual robot swerve control will be disabled and the robot desired omega will be returned by the getDesiredOmega() function
+     * it will also no longer require the drivetrain because a different command will be running for the auto path control to work
      */
-    public AutoAim(CommandSwerveDrivetrain drivetrain, DoubleSupplier robotXVelocitySupplier, DoubleSupplier robotYVelocitySupplier) {
+    public AutoAim(CommandSwerveDrivetrain drivetrain, DoubleSupplier robotXVelocitySupplier, DoubleSupplier robotYVelocitySupplier, boolean autonomousMode) {
         this.drivetrain = drivetrain;
         this.robotXVelocitySupplier = robotXVelocitySupplier;
         this.robotYVelocitySupplier = robotYVelocitySupplier;
+        this.autonomousMode = autonomousMode;
         this.target = Constants.FieldConstants.hubLocations.get(DriverStation.getAlliance().orElse(Alliance.Blue));
-        addRequirements(drivetrain);
+        //only require drivetrain if not in autonomous mode
+        //this is because swerve control is handled separately when in autonomous mode
+        if(!autonomousMode) addRequirements(drivetrain);
+    }
+
+    /**@param drivetrain the CommandSwerveDrivetrain
+     * @param autonomousMode if set to true the actual robot swerve control will be disabled and the robot desired omega will be returned by the getDesiredOmega() function
+     * it will also no longer require the drivetrain because a different command will be running for the auto path control to work
+     * otherwise this constructor without the doublesuppliers will set the robot translation velocities to 0, it is designed to be used for auto
+     */
+    public AutoAim(CommandSwerveDrivetrain drivetrain, boolean autonomousMode){
+        this(drivetrain, () -> 0, () -> 0, autonomousMode);
+    }
+
+    /**@param drivetrain the CommandSwerveDrivetrain
+     * @param robotXVelocitySupplier a DoubleSupplier for providing the desired field relative robot velocity x component
+     * @param robotYVelocitySupplier a DoubleSupplier for providing the desired field relative robot velocity y component
+     */
+    public AutoAim(CommandSwerveDrivetrain drivetrain, DoubleSupplier robotXVelocitySupplier, DoubleSupplier robotYVelocitySupplier) {
+        this(drivetrain, robotXVelocitySupplier, robotYVelocitySupplier, false);
     }
 
     @Override
@@ -58,6 +85,7 @@ public class AutoAim extends Command {
 
     @Override
     public void execute() {
+        System.out.println("running");
         //get distance from adjusted robot pose
         double distance = getDistanceFromTarget(adjustedRobotPose);
 
@@ -135,7 +163,11 @@ public class AutoAim extends Command {
                 robotXVelocitySupplier.getAsDouble(),
                 robotYVelocitySupplier.getAsDouble(),
                 omega);
-        drivetrain.setControl(fieldCentric.withSpeeds(chassisSpeeds));
+
+        //only actually control the swerve if not in autonomousMode
+        if(!autonomousMode) drivetrain.setControl(fieldCentric.withSpeeds(chassisSpeeds));
+        //this is so that the desired omega can be used in the command that controls swerve in auto period
+        desiredOmega = omega;
     }
 
     /** @param robotPose the current field relative robot pose
@@ -185,5 +217,10 @@ public class AutoAim extends Command {
                         vy, vz),
                 new Translation3d(0, 0, 0));
         lastShoot = MathSharedStore.getTimestamp();
+    }
+
+    //used for auto
+    public double getDesiredOmega(){
+        return desiredOmega;
     }
 }

@@ -25,9 +25,10 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-
+import frc.robot.commands.AutoAim;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
 
 /**
@@ -59,6 +60,14 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private final SwerveRequest.SysIdSwerveTranslation m_translationCharacterization = new SwerveRequest.SysIdSwerveTranslation();
     private final SwerveRequest.SysIdSwerveSteerGains m_steerCharacterization = new SwerveRequest.SysIdSwerveSteerGains();
     private final SwerveRequest.SysIdSwerveRotation m_rotationCharacterization = new SwerveRequest.SysIdSwerveRotation();
+
+    //I hate this implementation but I am stupid
+    //false = regular auto path mode
+    //true = auto aim auto path mode
+    private boolean autoPathAutoAimMode = false;
+
+    //for auto aim in auto
+    private AutoAim autoAimCommand = new AutoAim(this, true);
 
     /* SysId routine for characterizing translation. This is used to find PID gains for the drive motors. */
     private final SysIdRoutine m_sysIdRoutineTranslation = new SysIdRoutine(
@@ -241,26 +250,48 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
      * @param sample Sample along the path to follow
      */
     public void followPath(SwerveSample sample) {
-        m_pathThetaController.enableContinuousInput(-Math.PI, Math.PI);
+        System.out.println(autoPathAutoAimMode);
+        if(autoPathAutoAimMode){
+            var pose = getState().Pose;
 
-        var pose = getState().Pose;
+            var targetSpeeds = sample.getChassisSpeeds();
+            targetSpeeds.vxMetersPerSecond += m_pathXController.calculate(
+                pose.getX(), sample.x
+            );
+            targetSpeeds.vyMetersPerSecond += m_pathYController.calculate(
+                pose.getY(), sample.y
+            );
+            //get the desired omega directly from the auto aim controller
+            targetSpeeds.omegaRadiansPerSecond = autoAimCommand.getDesiredOmega();
 
-        var targetSpeeds = sample.getChassisSpeeds();
-        targetSpeeds.vxMetersPerSecond += m_pathXController.calculate(
-            pose.getX(), sample.x
-        );
-        targetSpeeds.vyMetersPerSecond += m_pathYController.calculate(
-            pose.getY(), sample.y
-        );
-        targetSpeeds.omegaRadiansPerSecond += m_pathThetaController.calculate(
-            pose.getRotation().getRadians(), sample.heading
-        );
+            setControl(
+                m_pathApplyFieldSpeeds.withSpeeds(targetSpeeds)
+                    .withWheelForceFeedforwardsX(sample.moduleForcesX())
+                    .withWheelForceFeedforwardsY(sample.moduleForcesY())
+            );
+        }
+        else{
+            m_pathThetaController.enableContinuousInput(-Math.PI, Math.PI);
 
-        setControl(
-            m_pathApplyFieldSpeeds.withSpeeds(targetSpeeds)
-                .withWheelForceFeedforwardsX(sample.moduleForcesX())
-                .withWheelForceFeedforwardsY(sample.moduleForcesY())
-        );
+            var pose = getState().Pose;
+
+            var targetSpeeds = sample.getChassisSpeeds();
+            targetSpeeds.vxMetersPerSecond += m_pathXController.calculate(
+                pose.getX(), sample.x
+            );
+            targetSpeeds.vyMetersPerSecond += m_pathYController.calculate(
+                pose.getY(), sample.y
+            );
+            targetSpeeds.omegaRadiansPerSecond += m_pathThetaController.calculate(
+                pose.getRotation().getRadians(), sample.heading
+            );
+
+            setControl(
+                m_pathApplyFieldSpeeds.withSpeeds(targetSpeeds)
+                    .withWheelForceFeedforwardsX(sample.moduleForcesX())
+                    .withWheelForceFeedforwardsY(sample.moduleForcesY())
+            );
+        }
     }
 
     /**
@@ -364,5 +395,19 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     @Override
     public Optional<Pose2d> samplePoseAt(double timestampSeconds) {
         return super.samplePoseAt(Utils.fpgaToCurrentTime(timestampSeconds));
+    }
+
+    /** @param autoPathAutoAimMode if true the robot will run autoaim along the auto trajectory 
+     * a value of true will activate the AutoAim command and a value of false will cancel it
+     * I hate this implementation but I have negative intelligence
+    */
+    public void setAutoPathAutoAimMode(boolean autoPathAutoAimMode){
+        this.autoPathAutoAimMode = autoPathAutoAimMode;
+        if(autoPathAutoAimMode){
+            CommandScheduler.getInstance().schedule(autoAimCommand);
+        }
+        else{
+            CommandScheduler.getInstance().cancel(autoAimCommand);
+        }
     }
 }
