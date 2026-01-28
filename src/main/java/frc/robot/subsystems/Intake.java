@@ -18,9 +18,11 @@ public class Intake extends SubsystemBase {
     private final PositionVoltage intakePositionVoltage;
     private final VelocityVoltage intakeVelocityVoltage;
 
+    private static final double locationGearRatio = 1.0/64.0; //placeholder
+    private static final double spinGearRatio = 1.0/28.0; //placeholder
+
     public Intake() {
         Slot0Configs locationConfig = new Slot0Configs();
-        
         
         locationConfig.kP = Constants.IntakeConstants.kP;
         locationConfig.kI = Constants.IntakeConstants.kI;
@@ -43,11 +45,11 @@ public class Intake extends SubsystemBase {
     }
 
     public void setSpinSpeed(double speed) {
-        spinMotor.setControl(intakeVelocityVoltage.withVelocity(speed));
+        spinMotor.setControl(intakeVelocityVoltage.withVelocity(speed / spinGearRatio)); //I don't think I am properly accounting for gear ratio
     }
 
     public void setLocation(double angle) {
-        locationMotor.setControl(intakePositionVoltage.withPosition(angle));
+        locationMotor.setControl(intakePositionVoltage.withPosition(angle / locationGearRatio)); //here too
     }
 
     public class ChangeStates extends Command {
