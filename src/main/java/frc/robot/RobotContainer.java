@@ -53,6 +53,7 @@ public class RobotContainer {
 
         autoChooser.addRoutine("SimplePath", autoRoutines::simplePathAuto);
         autoChooser.addRoutine("Left", autoRoutines::leftAuto);
+        autoChooser.addRoutine("Right", autoRoutines::rightAuto);
         SmartDashboard.putData("Auto Chooser", autoChooser);
 
         configureBindings();

@@ -37,6 +37,21 @@ public class AutoRoutines {
             leftPath1.resetOdometry().andThen(leftPath1.cmd())
             .andThen(new InstantCommand(() -> drivetrain.setAutoPathAutoAimMode(true)))
             .andThen(leftPath2.cmd())
+            .andThen(new InstantCommand(() -> drivetrain.setAutoPathAutoAimMode(false)))
+        );
+        return routine;
+    }
+
+    public AutoRoutine rightAuto() {
+        final AutoRoutine routine = m_factory.newRoutine("rightAuto");
+        final AutoTrajectory rightPath1 = routine.trajectory("Right1");
+        final AutoTrajectory rightPath2 = routine.trajectory("Right2");
+        
+        routine.active().onTrue(
+            rightPath1.resetOdometry().andThen(rightPath1.cmd())
+            .andThen(new InstantCommand(() -> drivetrain.setAutoPathAutoAimMode(true)))
+            .andThen(rightPath2.cmd())
+            .andThen(new InstantCommand(() -> drivetrain.setAutoPathAutoAimMode(false)))
         );
         return routine;
     }

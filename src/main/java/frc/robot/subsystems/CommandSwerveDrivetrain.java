@@ -250,7 +250,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
      * @param sample Sample along the path to follow
      */
     public void followPath(SwerveSample sample) {
-        System.out.println(autoPathAutoAimMode);
         if(autoPathAutoAimMode){
             var pose = getState().Pose;
 

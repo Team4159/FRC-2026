@@ -53,7 +53,6 @@ public class AutoAim extends Command {
         this.robotXVelocitySupplier = robotXVelocitySupplier;
         this.robotYVelocitySupplier = robotYVelocitySupplier;
         this.autonomousMode = autonomousMode;
-        this.target = Constants.FieldConstants.hubLocations.get(DriverStation.getAlliance().orElse(Alliance.Blue));
         //only require drivetrain if not in autonomous mode
         //this is because swerve control is handled separately when in autonomous mode
         if(!autonomousMode) addRequirements(drivetrain);
@@ -80,6 +79,7 @@ public class AutoAim extends Command {
     public void initialize(){
         //set adjusted robot pose to current robot pose initially
         //(need a baseline to get time from lookup table)
+        this.target = Constants.FieldConstants.hubLocations.get(DriverStation.getAlliance().orElse(Alliance.Blue));
         adjustedRobotPose = drivetrain.getState().Pose;
     }
 
