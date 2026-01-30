@@ -122,6 +122,8 @@ public class AutoAim extends Command {
         //calculate desired wheel velocity
         double wheelVelocity = robotRelativeBallVelocity/Constants.ShooterConstants.ratio;
 
+        SmartDashboard.putNumber("shooter wheel velocity", wheelVelocity);
+
         //TODO implement shooter (hoodAngle, wheelVelocity) -> shooter setpoints
 
         //calculate robot theta based on adjusted robot pose
