@@ -8,18 +8,14 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
-import frc.robot.Constants.IntakeConstants.IntakeLocationState;
-import frc.robot.Constants.IntakeConstants.IntakeSpinState;
+import frc.robot.Constants.IntakeConstants.IntakeState;
 
 public class Intake extends SubsystemBase {
     private TalonFX locationMotor;
     private TalonFX spinMotor;
 
     private final PositionVoltage intakePositionVoltage;
-    private final VelocityVoltage intakeVelocityVoltage;
-
-    private static final double locationGearRatio = 1.0/64.0; //placeholder
-    private static final double spinGearRatio = 1.0/28.0; //placeholder
+    private final VelocityVoltage intakeVelocityVoltage; 
 
     public Intake() {
         Slot0Configs locationConfig = new Slot0Configs();
@@ -45,22 +41,21 @@ public class Intake extends SubsystemBase {
     }
 
     public void setSpinSpeed(double speed) {
-        spinMotor.setControl(intakeVelocityVoltage.withVelocity(speed / spinGearRatio)); //I don't think I am properly accounting for gear ratio
+        spinMotor.setControl(intakeVelocityVoltage.withVelocity(speed * Constants.IntakeConstants.kSpinGearRatio)); //I don't think I am properly accounting for gear ratio
     }
 
     public void setLocation(double angle) {
-        locationMotor.setControl(intakePositionVoltage.withPosition(angle / locationGearRatio)); //here too
+        locationMotor.setControl(intakePositionVoltage.withPosition(angle * Constants.IntakeConstants.kLocationGearRatio)); //here too
     }
 
     public class ChangeStates extends Command {
-        private IntakeLocationState location;
-        private IntakeSpinState spinSpeed;
+        private IntakeState state;
 
         private double currentLocation;
 
-        public ChangeStates(IntakeLocationState location, IntakeSpinState spinSpeed) {
-            this.location = location;
-            this.spinSpeed = spinSpeed;
+        public ChangeStates(IntakeState state) {
+            this.state = state;
+
             currentLocation = 0;
 
             addRequirements(Intake.this);
@@ -68,16 +63,20 @@ public class Intake extends SubsystemBase {
 
         @Override
         public void initialize() {
-            if (location.rotationLocation != currentLocation) { 
-                Intake.this.setLocation(location.rotationLocation);
+            if (state.rotationLocation != currentLocation) { 
+                Intake.this.setLocation(state.rotationLocation);
             }
-            Intake.this.setSpinSpeed(spinSpeed.spinSpeed);
+            Intake.this.setSpinSpeed(state.spinSpeed);
 
-            currentLocation = location.rotationLocation;
+            currentLocation = state.rotationLocation;
         }
 
         @Override
         public void end(boolean interrupt) {
+            if (interrupt) {
+                Intake.this.setLocation(0);
+            }
+            
             Intake.this.setSpinSpeed(0);
         }
     }

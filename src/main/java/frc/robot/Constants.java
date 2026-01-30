@@ -66,22 +66,17 @@ public final class Constants {
     public static final int kIntakeLocationId = 9; //I don't know the port, change once known.
     public static final int kIntakeSpinId = 10;
 
-    public static enum IntakeLocationState {
-      UP(0), DOWN(0.25); //I don't know the gear ratio
+    public static final double kLocationGearRatio = 1.0/2.0;
+    public static final double kSpinGearRatio = 1.0/5.0;
+
+    public static enum IntakeState {
+      DOWN_ON(0.25, 0.5), DOWN_OFF(0.25, 0), UP_OFF(0, 0), STOP(0, 0); 
 
       public double rotationLocation;
-
-      private IntakeLocationState(double location){
-        rotationLocation = location;
-      }
-    }
-
-    public static enum IntakeSpinState {
-      IN(0.5), OUT(-0.5), STOP(0);
-
       public double spinSpeed;
 
-      private IntakeSpinState(double speed) {
+      private IntakeState(double location, double speed){
+        rotationLocation = location;
         spinSpeed = speed;
       }
     }
