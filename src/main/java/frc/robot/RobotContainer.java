@@ -73,8 +73,8 @@ public class RobotContainer {
 
         AutoAimTrigger.whileTrue(new AutoAim(
             drivetrain, 
-            () -> MathUtil.applyDeadband(Math.abs(joystick.getLeftY()), 0.1) * Math.signum(joystick.getLeftY())  * 4.54, 
-            () -> MathUtil.applyDeadband(Math.abs(joystick.getLeftX()), 0.1) * Math.signum(joystick.getLeftX()) * 4.54));
+            () -> -MathUtil.applyDeadband(Math.abs(joystick.getLeftY()), 0.1) * Math.signum(joystick.getLeftY())  * 4.54, 
+            () -> -MathUtil.applyDeadband(Math.abs(joystick.getLeftX()), 0.1) * Math.signum(joystick.getLeftX()) * 4.54));
 
         // Idle while the robot is disabled. This ensures the configured
         // neutral mode is applied to the drive motors while disabled.

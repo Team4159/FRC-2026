@@ -2,6 +2,8 @@ package frc.robot.commands;
 
 import java.util.function.DoubleSupplier;
 
+import org.opencv.core.Mat;
+
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.MathSharedStore;
@@ -9,6 +11,7 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
@@ -21,6 +24,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
+import frc.robot.Constants.FieldConstants;
+import frc.robot.Constants.ShooterConstants;
 import frc.robot.lib.FuelSimulation;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 
@@ -38,6 +43,11 @@ public class AutoAim extends Command {
     //used to send the angle to the auto path controller for use in auto period
     private double desiredOmega;
     private boolean autonomousMode;
+
+    //sim testing to simulate loss of velocity
+    private double timeOffset;
+
+    private final double height = Constants.FieldConstants.hubZ - Constants.ShooterConstants.shootHeight;
 
     private StructPublisher<Pose2d> adjustedRobotPosePublisher = NetworkTableInstance.getDefault()
     .getStructTopic("adjustedRobotPose", Pose2d.struct).publish();
@@ -81,48 +91,17 @@ public class AutoAim extends Command {
         //(need a baseline to get time from lookup table)
         this.target = Constants.FieldConstants.hubLocations.get(DriverStation.getAlliance().orElse(Alliance.Blue));
         adjustedRobotPose = drivetrain.getState().Pose;
+        //used to simulate loss of shooter velocity over time for sim
+        timeOffset = MathSharedStore.getTimestamp();
     }
 
     @Override
     public void execute() {
-        System.out.println("running");
-        //get distance from adjusted robot pose
-        double distance = getDistanceFromTarget(adjustedRobotPose);
+        //calculate desired pitch for hood angle
+        double desiredHoodAngle = getDesiredHoodPitch();
 
-        //get time of flight from distance
-        double timeOfFlight = getTimeOfFlight(distance);
-
-        //maximum height of the ball during the trajectory
-        double maxHeight = Units.inchesToMeters(70);
-
-        //calculate adjusted robot pose
-
-        //calculate the distance traveled by the robot during the time of flight
-        Transform2d adjustedRobotPoseTransform = new Transform2d(
-            drivetrain.getState().Speeds.vxMetersPerSecond * timeOfFlight,
-            drivetrain.getState().Speeds.vyMetersPerSecond * timeOfFlight,
-            new Rotation2d());
-
-        //add the distance traveled during TOF to current robot pose to get the adjusted robot pose
-        //this will be used for shooting while moving adjustment
-        adjustedRobotPose = drivetrain.getState().Pose.plus(adjustedRobotPoseTransform);
-
-        //calculate desired horizontal and vertical initial ball velocities
-        //vx = distance/time
-        double robotRelativeBallVelocityHorizontal = distance/timeOfFlight;
-        //vy = (hmax - hstart)/time + (1/2)g*time (derived from hmax = hstart + vy*time - (1/2)g*time^2)
-        double robotRelativeBallVelocityVertical = (maxHeight - Constants.ShooterConstants.shootHeight) / timeOfFlight + (0.5) * Constants.FieldConstants.g * timeOfFlight;
-
-        //calculate hood angle from ball velocities
-        double hoodAngle = Math.atan2(robotRelativeBallVelocityVertical, robotRelativeBallVelocityHorizontal);
-
-        //calculate desired ball velocity 
-        double robotRelativeBallVelocity = Math.sqrt(Math.pow(robotRelativeBallVelocityHorizontal, 2) + Math.pow(robotRelativeBallVelocityVertical, 2));
-
-        //calculate desired wheel velocity
-        double wheelVelocity = robotRelativeBallVelocity/Constants.ShooterConstants.ratio;
-
-        SmartDashboard.putNumber("shooter wheel velocity", wheelVelocity);
+        double robotRelativeBallVelocityHorizontal = getLaunchVelocity() * Math.cos(desiredHoodAngle);
+        double robotRelativeBallVelocityVertical = getLaunchVelocity() * Math.sin(desiredHoodAngle);
 
         //TODO implement shooter (hoodAngle, wheelVelocity) -> shooter setpoints
 
@@ -133,6 +112,17 @@ public class AutoAim extends Command {
 
         //rotate the swerve to the desired angle
         rotateSwerve(desiredRobotAngle);
+
+        //calculate TOF(used for calculating adjusted robot pose)
+        double timeOfFlight = getTimeOfFlight(desiredHoodAngle, getLaunchVelocity());
+        //calculate the distance traveled by the robot during the time of flight
+        Transform2d adjustedRobotPoseTransform = new Transform2d(
+            drivetrain.getState().Speeds.vxMetersPerSecond * timeOfFlight,
+            drivetrain.getState().Speeds.vyMetersPerSecond * timeOfFlight,
+            new Rotation2d());
+        //add the distance traveled during TOF to current robot pose to get the adjusted robot pose
+        //this will be used for shooting while moving adjustment
+        adjustedRobotPose = drivetrain.getState().Pose.plus(adjustedRobotPoseTransform);
 
         //send adjusted robot pose to advantageScope(for sim testing)
         adjustedRobotPosePublisher.set(adjustedRobotPose);
@@ -172,34 +162,45 @@ public class AutoAim extends Command {
         desiredOmega = omega;
     }
 
-    /** @param robotPose the current field relative robot pose
-     * @return the distance from the current target
+    /** @param hoodPitch the current pitch of the hood
+     * @param launchVelocity the current launch velocity (magnitude of linear velocity for the fuel)
+     * @return the time of flight (TOF) of the fuel when shot at hoodPitch with launchVelocity. takes the height difference of the shooter and hub into account.
      */
-    private double getDistanceFromTarget(Pose2d robotPose){
-        return robotPose.getTranslation().getDistance(target.getTranslation());
+    private double getTimeOfFlight(double hoodPitch, double launchVelocity){
+        //initial y component of launch velocity
+        double vy = launchVelocity * Math.sin(hoodPitch);
+        //the calculation is based on delta y = vy * TOF - (1/2)g * TOF^2 (where g is a positive constant)
+        //the delta y for TOF would be the height
+        //the equation then becomes 0 = -(1/2)g * TOF^2 + vy * TOF - height -> 0 = (1/2)g * TOF^2 - vy * TOF + height
+        //then use quadratic formula and always add the radical to get the 2nd time the fuel is at the target height (so that it is on the way down)
+        double radical = Math.sqrt(Math.pow(vy, 2) - 2 * Constants.FieldConstants.g * height);
+        double numerator = vy + radical;
+        double time = numerator/Constants.FieldConstants.g;
+        SmartDashboard.putNumber("time of flight", time);
+        return time;
+    }
+ 
+    /** @return the desired pitch for the hood based on the adjusted robot position */
+    private double getDesiredHoodPitch(){
+        // distance from robot to target
+        Translation2d robotTranslation = adjustedRobotPose.getTranslation();
+        double distance = robotTranslation.getDistance(target.getTranslation());
+        double launchVelocity = getLaunchVelocity();
+        double desiredPitch = 
+            Math.atan((Math.pow(launchVelocity, 2)
+                + Math.sqrt(Math.pow(launchVelocity, 4)
+                        - Math.pow(FieldConstants.g * distance, 2)
+                        - 2 * FieldConstants.g * height
+                                * Math.pow(launchVelocity, 2)))
+                / (FieldConstants.g * distance));
+        SmartDashboard.putNumber("pitch", Units.radiansToDegrees(desiredPitch));
+        return desiredPitch;
     }
 
-    /** @param distance estimated robot distance from target 
-     * @return the estimated time of flight of a fuel launched, using a lookuptable and linear interpolation
-    */
-    private double getTimeOfFlight(double distance){
-        double closestDistance = 0, secondClosestDistance = 0;
-        var lookupTable = Constants.ShooterConstants.timeLookupTable;
-        var keyset = lookupTable.keySet();
-        for(var key : keyset){
-            double currentDistance = key;
-            if(Math.abs(currentDistance - distance) < Math.abs(closestDistance - distance)){
-                secondClosestDistance = closestDistance;
-                closestDistance = currentDistance;
-            }
-            else if(Math.abs(currentDistance - distance) < Math.abs(secondClosestDistance - distance)){
-                secondClosestDistance = currentDistance;
-            }
-        }
-        //linear interpolation
-        double difference = Math.abs(secondClosestDistance - closestDistance);
-        double percentage = Math.abs(closestDistance - distance) / difference;
-        return MathUtil.interpolate(lookupTable.get(closestDistance), lookupTable.get(secondClosestDistance), percentage);
+    /** @return currently returns theoretical max that declines at a rate of 0.1 m/s (to simulate shooter slowing down over time), but when implemented with shooter will return current launch velocity based on shooter angular velocity */
+    private double getLaunchVelocity(){
+        //currently returns theoretical max that declines at a rate of 0.1 m/s
+        return Units.feetToMeters(29) - (MathSharedStore.getTimestamp() - timeOffset) * 0.1;
     }
 
     /** 
