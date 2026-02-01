@@ -4,7 +4,6 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -14,24 +13,21 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.lib.GraphMechanism;
 import frc.robot.Constants;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.generated.TunerConstants;
-import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.Drivetrain;
 
 public class AutoAim extends Command {
     private double maxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
-    private CommandSwerveDrivetrain drivetrain;
+    private Drivetrain drivetrain;
     private SwerveRequest.ApplyFieldSpeeds fieldCentric = new SwerveRequest.ApplyFieldSpeeds();
     private Pose2d target;
-    private CommandXboxController controller;
     private GraphMechanism trajectoryVisual = new GraphMechanism("Shoot Trajectory");
 
-    public AutoAim(CommandSwerveDrivetrain drivetrain, CommandXboxController controller) {
-        this.controller = controller;
+    public AutoAim(Drivetrain drivetrain) {
         this.drivetrain = drivetrain;
         this.target = Constants.FieldConstants.hubLocations
                 .get(DriverStation.getAlliance().orElse(Alliance.Blue));
@@ -57,11 +53,9 @@ public class AutoAim extends Command {
                 drivetrain.getState().Pose.getRotation().getRadians(), desiredAngle,
                 Timer.getFPGATimestamp());
         ChassisSpeeds chassisSpeeds = new ChassisSpeeds(
-                MathUtil.applyDeadband(Math.abs(controller.getLeftY()), 0.1)
-                        * Math.signum(controller.getLeftY())
+                drivetrain.getInputX()
                         * maxSpeed,
-                MathUtil.applyDeadband(Math.abs(controller.getLeftX()), 0.1)
-                        * Math.signum(controller.getLeftX())
+                drivetrain.getInputY()
                         * maxSpeed,
                 omega);
         SmartDashboard.putNumber("omega", omega);
