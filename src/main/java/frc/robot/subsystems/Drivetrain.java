@@ -28,7 +28,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
 
     public double getInputRotation() {
         double rawInput = -controller.getRightX();
-        double filteredInput = MathUtil.applyDeadband(OperatorConstants.kDriverControllerVelocityDeadband, rawInput);
+        double filteredInput = MathUtil.applyDeadband(OperatorConstants.kDriverControllerRotationDeadband, rawInput);
         return Math.abs(Math.pow(filteredInput, 2)) * Math.signum(filteredInput);
     }
 }
