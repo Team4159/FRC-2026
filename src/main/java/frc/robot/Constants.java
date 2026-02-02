@@ -10,6 +10,7 @@ import com.ctre.phoenix6.swerve.utility.PhoenixPIDController;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.Unit;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -26,10 +27,22 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 public final class Constants {
   public static class OperatorConstants {
     public static final int kDriverControllerPort = 0;
+    public static final double kDriverControllerVelocityDeadband = 0.1;
+    public static final double kDriveControllerRotationDeadband = 0.1;
   }
 
   public static class DrivetrainConstants {
-    public static final PhoenixPIDController AutoAimRotationController = new PhoenixPIDController(10, 0.01, 0);
+    public static final PhoenixPIDController AutoAimRotationController = new PhoenixPIDController(15, 0, 0);
+    static {
+      AutoAimRotationController.enableContinuousInput(-Math.PI, Math.PI);
+    }
+  }
+
+  public static class PhotonVisionConstants{
+
+    public static Transform3d leftShooterCamTransform = new Transform3d();
+    public static Transform3d rightShooterCamTransform = new Transform3d();
+
   }
 
   public static class ShooterConstants {

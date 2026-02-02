@@ -22,7 +22,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 
 public class PhotonVision extends SubsystemBase{
-    private CommandSwerveDrivetrain drivetrain;
+    private Drivetrain drivetrain;
     //IDK what the difference between welded and andymark is
     private AprilTagFieldLayout aprilTagFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded);
     //TODO: add other cameras later once we know where they are on the robot
@@ -30,7 +30,7 @@ public class PhotonVision extends SubsystemBase{
     private PhotonPoseEstimator leftShooterEstimator, rightShooterEstimator;
     private double timeOffset;
 
-    public PhotonVision(CommandSwerveDrivetrain drivetrain){
+    public PhotonVision(Drivetrain drivetrain){
         this.drivetrain = drivetrain;
         //cameras
         leftShooterCam = new PhotonCamera("leftShooter");
