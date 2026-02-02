@@ -3,12 +3,11 @@ package frc.robot.commands;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
-import org.opencv.core.Mat;
+import static edu.wpi.first.units.Units.MetersPerSecond;
 
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.MathSharedStore;
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
@@ -18,7 +17,6 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
-import edu.wpi.first.units.Unit;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -27,17 +25,16 @@ import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.Constants.FieldConstants;
-import frc.robot.Constants.ShooterConstants;
 import frc.robot.lib.FuelSimulation;
-import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.Drivetrain;
 
 public class AutoAim extends Command {
-    private CommandSwerveDrivetrain drivetrain;
+    private Drivetrain drivetrain;
     private SwerveRequest.ApplyFieldSpeeds fieldCentric = new SwerveRequest.ApplyFieldSpeeds();
     private Pose2d target;
     
     //suppliers for translation
-    private DoubleSupplier robotXVelocitySupplier, robotYVelocitySupplier;
+    //private DoubleSupplier robotXVelocitySupplier, robotYVelocitySupplier;
 
     //should the robot feed or not
     private BooleanSupplier feedSupplier;
@@ -66,34 +63,14 @@ public class AutoAim extends Command {
     .getStructTopic("adjustedRobotPose", Pose2d.struct).publish();
 
     /**@param drivetrain the CommandSwerveDrivetrain
-     * @param robotXVelocitySupplier a DoubleSupplier for providing the desired field relative robot velocity x component
-     * @param robotYVelocitySupplier a DoubleSupplier for providing the desired field relative robot velocity y component
      * @param autonomousMode if set to true the actual robot swerve control will be disabled and the robot desired omega will be returned by the getDesiredOmega() function
      * it will also no longer require the drivetrain because a different command will be running for the auto path control to work
+     * otherwise this constructor without the doublesuppliers will set the robot translation velocities to 0, it is designed to be used for auto
      */
-    public AutoAim(CommandSwerveDrivetrain drivetrain, DoubleSupplier robotXVelocitySupplier, DoubleSupplier robotYVelocitySupplier, BooleanSupplier feedSupplier, boolean autonomousMode) {
+    public AutoAim(Drivetrain drivetrain, BooleanSupplier feedSupplier, boolean autonomousMode) {
         this.drivetrain = drivetrain;
-        this.robotXVelocitySupplier = robotXVelocitySupplier;
-        this.robotYVelocitySupplier = robotYVelocitySupplier;
         this.autonomousMode = autonomousMode;
         this.feedSupplier = feedSupplier;
-        //only require drivetrain if not in autonomous mode
-        //this is because swerve control is handled separately when in autonomous mode
-        if(!autonomousMode) addRequirements(drivetrain);
-    }
-
-    /**@param drivetrain the CommandSwerveDrivetrain
-     * @param robotXVelocitySupplier a DoubleSupplier for providing the desired field relative robot velocity x component
-     * @param robotYVelocitySupplier a DoubleSupplier for providing the desired field relative robot velocity y component
-     * @param autonomousMode if set to true the actual robot swerve control will be disabled and the robot desired omega will be returned by the getDesiredOmega() function
-     * it will also no longer require the drivetrain because a different command will be running for the auto path control to work
-     */
-    public AutoAim(CommandSwerveDrivetrain drivetrain, DoubleSupplier robotXVelocitySupplier, DoubleSupplier robotYVelocitySupplier, boolean autonomousMode) {
-        this.drivetrain = drivetrain;
-        this.robotXVelocitySupplier = robotXVelocitySupplier;
-        this.robotYVelocitySupplier = robotYVelocitySupplier;
-        this.autonomousMode = autonomousMode;
-        this.feedSupplier = defaultFeedSupplier;
         //only require drivetrain if not in autonomous mode
         //this is because swerve control is handled separately when in autonomous mode
         if(!autonomousMode) addRequirements(drivetrain);
@@ -104,16 +81,11 @@ public class AutoAim extends Command {
      * it will also no longer require the drivetrain because a different command will be running for the auto path control to work
      * otherwise this constructor without the doublesuppliers will set the robot translation velocities to 0, it is designed to be used for auto
      */
-    public AutoAim(CommandSwerveDrivetrain drivetrain, boolean autonomousMode){
-        this(drivetrain, () -> 0, () -> 0, autonomousMode);
-    }
-
-    /**@param drivetrain the CommandSwerveDrivetrain
-     * @param robotXVelocitySupplier a DoubleSupplier for providing the desired field relative robot velocity x component
-     * @param robotYVelocitySupplier a DoubleSupplier for providing the desired field relative robot velocity y component
-     */
-    public AutoAim(CommandSwerveDrivetrain drivetrain, DoubleSupplier robotXVelocitySupplier, DoubleSupplier robotYVelocitySupplier) {
-        this(drivetrain, robotXVelocitySupplier, robotYVelocitySupplier, false);
+    public AutoAim(Drivetrain drivetrain, boolean autonomousMode){
+        this.drivetrain = drivetrain;
+        this.autonomousMode = autonomousMode;
+        this.feedSupplier = defaultFeedSupplier;
+        if(!autonomousMode) addRequirements(drivetrain);
     }
 
     @Override
@@ -188,8 +160,8 @@ public class AutoAim extends Command {
                 drivetrain.getState().Pose.getRotation().getRadians(), desiredAngle, Timer.getFPGATimestamp());
         //set ChassisSpeeds to the current values of the DoubleSuppliers for translation and omega for rotation
         ChassisSpeeds chassisSpeeds = new ChassisSpeeds(
-                robotXVelocitySupplier.getAsDouble(),
-                robotYVelocitySupplier.getAsDouble(),
+                drivetrain.getInputX(),
+                drivetrain.getInputY(),
                 omega);
 
         //only actually control the swerve if not in autonomousMode

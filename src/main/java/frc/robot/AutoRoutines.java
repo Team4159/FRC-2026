@@ -1,18 +1,16 @@
 package frc.robot;
 
-import java.util.Dictionary;
-
 import choreo.auto.AutoFactory;
 import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.Drivetrain;
 
 public class AutoRoutines {
     private final AutoFactory m_factory;
-    private final CommandSwerveDrivetrain drivetrain;
+    private final Drivetrain drivetrain;
 
-    public AutoRoutines(AutoFactory factory, CommandSwerveDrivetrain drivetrain) {
+    public AutoRoutines(AutoFactory factory, Drivetrain drivetrain) {
         m_factory = factory;
         this.drivetrain = drivetrain;
     }
