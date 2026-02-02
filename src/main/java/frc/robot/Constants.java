@@ -48,6 +48,9 @@ public final class Constants {
       2.0, 1.25
     );
 
+    /** units: radians */
+    public static final double maxPitch = Units.degreesToRadians(85);
+
     //robot relative shooter offset
     //TODO implement in the calculation
     public static final Transform2d shooterOffset = new Transform2d(0, 0, new Rotation2d());

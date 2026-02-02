@@ -1,5 +1,6 @@
 package frc.robot.commands;
 
+import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
 import org.opencv.core.Mat;
@@ -17,6 +18,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
+import edu.wpi.first.units.Unit;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -34,7 +36,11 @@ public class AutoAim extends Command {
     private SwerveRequest.ApplyFieldSpeeds fieldCentric = new SwerveRequest.ApplyFieldSpeeds();
     private Pose2d target;
     
+    //suppliers for translation
     private DoubleSupplier robotXVelocitySupplier, robotYVelocitySupplier;
+
+    //should the robot feed or not
+    private BooleanSupplier feedSupplier;
     
     private Pose2d adjustedRobotPose;
 
@@ -47,10 +53,34 @@ public class AutoAim extends Command {
     //sim testing to simulate loss of velocity
     private double timeOffset;
 
+    private boolean canShoot;
+
+    private final BooleanSupplier defaultFeedSupplier = () -> {
+        return 
+            (MathSharedStore.getTimestamp() - timeOffset) > 0.25 
+            && canShoot;};
+
     private final double height = Constants.FieldConstants.hubZ - Constants.ShooterConstants.shootHeight;
 
     private StructPublisher<Pose2d> adjustedRobotPosePublisher = NetworkTableInstance.getDefault()
     .getStructTopic("adjustedRobotPose", Pose2d.struct).publish();
+
+    /**@param drivetrain the CommandSwerveDrivetrain
+     * @param robotXVelocitySupplier a DoubleSupplier for providing the desired field relative robot velocity x component
+     * @param robotYVelocitySupplier a DoubleSupplier for providing the desired field relative robot velocity y component
+     * @param autonomousMode if set to true the actual robot swerve control will be disabled and the robot desired omega will be returned by the getDesiredOmega() function
+     * it will also no longer require the drivetrain because a different command will be running for the auto path control to work
+     */
+    public AutoAim(CommandSwerveDrivetrain drivetrain, DoubleSupplier robotXVelocitySupplier, DoubleSupplier robotYVelocitySupplier, BooleanSupplier feedSupplier, boolean autonomousMode) {
+        this.drivetrain = drivetrain;
+        this.robotXVelocitySupplier = robotXVelocitySupplier;
+        this.robotYVelocitySupplier = robotYVelocitySupplier;
+        this.autonomousMode = autonomousMode;
+        this.feedSupplier = feedSupplier;
+        //only require drivetrain if not in autonomous mode
+        //this is because swerve control is handled separately when in autonomous mode
+        if(!autonomousMode) addRequirements(drivetrain);
+    }
 
     /**@param drivetrain the CommandSwerveDrivetrain
      * @param robotXVelocitySupplier a DoubleSupplier for providing the desired field relative robot velocity x component
@@ -63,6 +93,7 @@ public class AutoAim extends Command {
         this.robotXVelocitySupplier = robotXVelocitySupplier;
         this.robotYVelocitySupplier = robotYVelocitySupplier;
         this.autonomousMode = autonomousMode;
+        this.feedSupplier = defaultFeedSupplier;
         //only require drivetrain if not in autonomous mode
         //this is because swerve control is handled separately when in autonomous mode
         if(!autonomousMode) addRequirements(drivetrain);
@@ -105,6 +136,24 @@ public class AutoAim extends Command {
 
         //TODO implement shooter (hoodAngle, wheelVelocity) -> shooter setpoints
 
+        for(int i = 0; i < 2; i++){
+            //calculate TOF(used for calculating adjusted robot pose)
+            double timeOfFlight = getTimeOfFlight(desiredHoodAngle, getLaunchVelocity());
+            //calculate the distance traveled by the robot during the time of flight
+            Transform2d adjustedRobotPoseTransform = new Transform2d(
+                drivetrain.getState().Speeds.vxMetersPerSecond * timeOfFlight,
+                drivetrain.getState().Speeds.vyMetersPerSecond * timeOfFlight,
+                new Rotation2d());
+            //add the distance traveled during TOF to current robot pose to get the adjusted robot pose
+            //this will be used for shooting while moving adjustment
+            adjustedRobotPose = drivetrain.getState().Pose.plus(adjustedRobotPoseTransform);
+
+            desiredHoodAngle = getDesiredHoodPitch();
+
+            //send adjusted robot pose to advantageScope(for sim testing)
+            adjustedRobotPosePublisher.set(adjustedRobotPose);
+        }
+
         //calculate robot theta based on adjusted robot pose
         //this allows for shooting while moving
         double desiredRobotAngle = target.getTranslation().minus(adjustedRobotPose.getTranslation()).getAngle()
@@ -112,20 +161,6 @@ public class AutoAim extends Command {
 
         //rotate the swerve to the desired angle
         rotateSwerve(desiredRobotAngle);
-
-        //calculate TOF(used for calculating adjusted robot pose)
-        double timeOfFlight = getTimeOfFlight(desiredHoodAngle, getLaunchVelocity());
-        //calculate the distance traveled by the robot during the time of flight
-        Transform2d adjustedRobotPoseTransform = new Transform2d(
-            drivetrain.getState().Speeds.vxMetersPerSecond * timeOfFlight,
-            drivetrain.getState().Speeds.vyMetersPerSecond * timeOfFlight,
-            new Rotation2d());
-        //add the distance traveled during TOF to current robot pose to get the adjusted robot pose
-        //this will be used for shooting while moving adjustment
-        adjustedRobotPose = drivetrain.getState().Pose.plus(adjustedRobotPoseTransform);
-
-        //send adjusted robot pose to advantageScope(for sim testing)
-        adjustedRobotPosePublisher.set(adjustedRobotPose);
 
         //AdvantageScope fuel simulation
         //get the current robot yaw angle
@@ -140,7 +175,8 @@ public class AutoAim extends Command {
 
         double vz = robotRelativeBallVelocityVertical;
 
-        sim_shootFuel(vx, vy, vz);
+        if(feedSupplier.getAsBoolean())
+            sim_shootFuel(vx, vy, vz);
     }
 
     /** @param desiredAngle the desired field relative angle for the drivetrain
@@ -193,6 +229,17 @@ public class AutoAim extends Command {
                         - 2 * FieldConstants.g * height
                                 * Math.pow(launchVelocity, 2)))
                 / (FieldConstants.g * distance));
+        canShoot = true;
+
+        if(Double.isNaN(desiredPitch)){
+            //equation can only return angles from 45-90 deg (in radians of course), anything lower than that will be NaN
+            //the minimum possible hood angle on the physical shooter is 45, so no additional calculation is needed, just set to 45
+            desiredPitch = Units.degreesToRadians(45);
+            canShoot = false;
+        }
+        if(desiredPitch > Constants.ShooterConstants.maxPitch){
+            desiredPitch = Constants.ShooterConstants.maxPitch;
+        }
         SmartDashboard.putNumber("pitch", Units.radiansToDegrees(desiredPitch));
         return desiredPitch;
     }

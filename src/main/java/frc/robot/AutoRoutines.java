@@ -39,6 +39,10 @@ public class AutoRoutines {
             .andThen(leftPath2.cmd())
             .andThen(new InstantCommand(() -> drivetrain.setAutoPathAutoAimMode(false)))
         );
+
+        leftPath1.atTime("enableAutoAim").onTrue(new InstantCommand(() -> drivetrain.setAutoPathAutoAimMode(true)));
+        leftPath1.atTime("disableAutoAim").onTrue(new InstantCommand(() -> drivetrain.setAutoPathAutoAimMode(false)));
+        
         return routine;
     }
 
