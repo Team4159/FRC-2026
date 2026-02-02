@@ -11,17 +11,16 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import choreo.auto.AutoChooser;
 import choreo.auto.AutoFactory;
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.AutoAim;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Drivetrain;
+import frc.robot.subsystems.LEDs;
 
 public class RobotContainer {
     private double MaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -41,7 +40,8 @@ public class RobotContainer {
     private final CommandXboxController primaryController = new CommandXboxController(0);
     private final Trigger AutoAimTrigger = primaryController.rightBumper();
 
-    public final Drivetrain drivetrain = new Drivetrain(primaryController);
+    private final LEDs leds = new LEDs();
+    private final Drivetrain drivetrain = new Drivetrain(primaryController, leds);
 
     /* Path follower */
     private final AutoFactory autoFactory;
@@ -72,7 +72,7 @@ public class RobotContainer {
             )
         );
 
-        AutoAimTrigger.whileTrue(new AutoAim(drivetrain, false));
+        AutoAimTrigger.whileTrue(new AutoAim(drivetrain, leds, false));
         // Idle while the robot is disabled. This ensures the configured
         // neutral mode is applied to the drive motors while disabled.
         final var idle = new SwerveRequest.Idle();

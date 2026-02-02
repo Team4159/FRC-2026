@@ -1,10 +1,5 @@
 package frc.robot.commands;
 
-import java.util.function.BooleanSupplier;
-import java.util.function.DoubleSupplier;
-
-import static edu.wpi.first.units.Units.MetersPerSecond;
-
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.MathSharedStore;
@@ -23,21 +18,23 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Constants;
 import frc.robot.Constants.FieldConstants;
+import frc.robot.Constants.ShooterConstants.AutoAimStatus;
 import frc.robot.lib.FuelSimulation;
 import frc.robot.subsystems.Drivetrain;
+import frc.robot.subsystems.LEDs;
+import frc.robot.subsystems.LEDs.LEDStatusSupplier;
 
 public class AutoAim extends Command {
     private Drivetrain drivetrain;
+    private LEDs leds;
     private SwerveRequest.ApplyFieldSpeeds fieldCentric = new SwerveRequest.ApplyFieldSpeeds();
     private Pose2d target;
     
     //suppliers for translation
     //private DoubleSupplier robotXVelocitySupplier, robotYVelocitySupplier;
-
-    //should the robot feed or not
-    private BooleanSupplier feedSupplier;
     
     private Pose2d adjustedRobotPose;
 
@@ -50,12 +47,15 @@ public class AutoAim extends Command {
     //sim testing to simulate loss of velocity
     private double timeOffset;
 
-    private boolean canShoot;
+    /** stores auto aim statuses (SHOOT, WAITING, OUTOFRANGE) and corresponding LEDStatus*/
+    private AutoAimStatus autoAimStatus;
+    /** LED status supplier used for changing the LED status */
+    private LEDStatusSupplier ledStatusSupplier;
 
-    private final BooleanSupplier defaultFeedSupplier = () -> {
-        return 
-            (MathSharedStore.getTimestamp() - timeOffset) > 0.25 
-            && canShoot;};
+    // private final BooleanSupplier defaultFeedSupplier = () -> {
+    //     return 
+    //         (MathSharedStore.getTimestamp() - timeOffset) > 0.25 
+    //         && canShoot;};
 
     private final double height = Constants.FieldConstants.hubZ - Constants.ShooterConstants.shootHeight;
 
@@ -67,24 +67,12 @@ public class AutoAim extends Command {
      * it will also no longer require the drivetrain because a different command will be running for the auto path control to work
      * otherwise this constructor without the doublesuppliers will set the robot translation velocities to 0, it is designed to be used for auto
      */
-    public AutoAim(Drivetrain drivetrain, BooleanSupplier feedSupplier, boolean autonomousMode) {
+    public AutoAim(Drivetrain drivetrain, LEDs leds, boolean autonomousMode){
         this.drivetrain = drivetrain;
+        this.leds = leds;
+        autoAimStatus = AutoAimStatus.WAITING;
+        ledStatusSupplier = () -> {return autoAimStatus.ledStatus;};
         this.autonomousMode = autonomousMode;
-        this.feedSupplier = feedSupplier;
-        //only require drivetrain if not in autonomous mode
-        //this is because swerve control is handled separately when in autonomous mode
-        if(!autonomousMode) addRequirements(drivetrain);
-    }
-
-    /**@param drivetrain the CommandSwerveDrivetrain
-     * @param autonomousMode if set to true the actual robot swerve control will be disabled and the robot desired omega will be returned by the getDesiredOmega() function
-     * it will also no longer require the drivetrain because a different command will be running for the auto path control to work
-     * otherwise this constructor without the doublesuppliers will set the robot translation velocities to 0, it is designed to be used for auto
-     */
-    public AutoAim(Drivetrain drivetrain, boolean autonomousMode){
-        this.drivetrain = drivetrain;
-        this.autonomousMode = autonomousMode;
-        this.feedSupplier = defaultFeedSupplier;
         if(!autonomousMode) addRequirements(drivetrain);
     }
 
@@ -96,6 +84,8 @@ public class AutoAim extends Command {
         adjustedRobotPose = drivetrain.getState().Pose;
         //used to simulate loss of shooter velocity over time for sim
         timeOffset = MathSharedStore.getTimestamp();
+
+        CommandScheduler.getInstance().schedule(leds.new ChangeLEDStatusSupplier(ledStatusSupplier));
     }
 
     @Override
@@ -120,6 +110,7 @@ public class AutoAim extends Command {
             //this will be used for shooting while moving adjustment
             adjustedRobotPose = drivetrain.getState().Pose.plus(adjustedRobotPoseTransform);
 
+            //recalculate desired hood angle with new adjustedPose (converges)
             desiredHoodAngle = getDesiredHoodPitch();
 
             //send adjusted robot pose to advantageScope(for sim testing)
@@ -134,6 +125,8 @@ public class AutoAim extends Command {
         //rotate the swerve to the desired angle
         rotateSwerve(desiredRobotAngle);
 
+        if(MathSharedStore.getTimestamp() - timeOffset < 0.25) autoAimStatus = AutoAimStatus.WAITING;
+
         //AdvantageScope fuel simulation
         //get the current robot yaw angle
         double robotYaw = drivetrain.getState().Pose.getRotation().getRadians();
@@ -147,7 +140,10 @@ public class AutoAim extends Command {
 
         double vz = robotRelativeBallVelocityVertical;
 
-        if(feedSupplier.getAsBoolean())
+        SmartDashboard.putString("Auto Aim Status", autoAimStatus.name());
+
+        //only feed (shown by shooting fuel in simulation) if the status is "SHOOT"
+        if(autoAimStatus.name() == AutoAimStatus.SHOOT.name())
             sim_shootFuel(vx, vy, vz);
     }
 
@@ -201,13 +197,13 @@ public class AutoAim extends Command {
                         - 2 * FieldConstants.g * height
                                 * Math.pow(launchVelocity, 2)))
                 / (FieldConstants.g * distance));
-        canShoot = true;
+        autoAimStatus = AutoAimStatus.SHOOT;
 
         if(Double.isNaN(desiredPitch)){
             //equation can only return angles from 45-90 deg (in radians of course), anything lower than that will be NaN
             //the minimum possible hood angle on the physical shooter is 45, so no additional calculation is needed, just set to 45
             desiredPitch = Units.degreesToRadians(45);
-            canShoot = false;
+            autoAimStatus = AutoAimStatus.OUTOFRANGE;
         }
         if(desiredPitch > Constants.ShooterConstants.maxPitch){
             desiredPitch = Constants.ShooterConstants.maxPitch;

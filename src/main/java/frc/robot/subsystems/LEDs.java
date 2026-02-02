@@ -3,7 +3,9 @@ package frc.robot.subsystems;
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.LEDPattern;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants.LEDConstants.LEDStatus;
 
 public class LEDs extends SubsystemBase {
     private static final int kPort = 8;
@@ -26,4 +28,42 @@ public class LEDs extends SubsystemBase {
         pattern.applyTo(ledBuffer);
         led.setData(ledBuffer);
     }
+
+    public class ChangeLED extends Command {
+        
+        private LEDPattern pattern;
+        
+        public ChangeLED(LEDStatus ledStatus) {
+            this.pattern = ledStatus.getPattern();
+
+            addRequirements(LEDs.this);
+        }
+        
+        @Override
+        public void execute() {
+            LEDs.this.setBuffer(pattern);
+        }
+        
+    }
+
+    public class ChangeLEDStatusSupplier extends Command{
+
+        private LEDStatusSupplier ledStatusSupplier;
+
+        public ChangeLEDStatusSupplier(LEDStatusSupplier ledStatusSupplier){
+            this.ledStatusSupplier = ledStatusSupplier;
+            addRequirements(LEDs.this);
+        }
+        
+        @Override
+        public void execute() {
+            LEDs.this.setBuffer(ledStatusSupplier.getStatus().getPattern());
+        }
+    }
+
+    @FunctionalInterface
+    public interface LEDStatusSupplier{
+        public LEDStatus getStatus();
+    }
+
 }

@@ -20,11 +20,17 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     private boolean autoPathAutoAimMode = false;
 
     //for auto aim in auto
-    private AutoAim autoAimCommand = new AutoAim(this, true);
+    private AutoAim autoAimCommand ;
 
-    public Drivetrain(CommandXboxController controller) {
+    /**
+     * 
+     * @param controller a CommandXboxController used to control the robot in teleop
+     * @param leds LEDs subsystem for the autoaim command
+     */
+    public Drivetrain(CommandXboxController controller, LEDs leds) {
         super(TunerConstants.DrivetrainConstants, TunerConstants.FrontLeft, TunerConstants.FrontRight, TunerConstants.BackLeft, TunerConstants.BackRight);
         this.controller = controller;
+        autoAimCommand = new AutoAim(this, leds, true);
     }
 
     public double getInputX() {
