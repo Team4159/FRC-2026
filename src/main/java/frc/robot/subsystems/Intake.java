@@ -11,15 +11,15 @@ import frc.robot.Constants;
 import frc.robot.Constants.IntakeConstants.IntakeState;
 
 public class Intake extends SubsystemBase {
-    private TalonFX locationMotor;
-    private TalonFX spinMotor;
+    private final TalonFX locationMotor;
+    private final TalonFX spinMotor;
 
     private final PositionVoltage intakePositionVoltage;
     private final VelocityVoltage intakeVelocityVoltage; 
 
     public Intake() {
         Slot0Configs locationConfig = new Slot0Configs();
-        
+
         locationConfig.kP = Constants.IntakeConstants.kP;
         locationConfig.kI = Constants.IntakeConstants.kI;
         locationConfig.kD = Constants.IntakeConstants.kD;
@@ -29,7 +29,7 @@ public class Intake extends SubsystemBase {
         spinConfig.kP = Constants.IntakeConstants.kP;
         spinConfig.kI = Constants.IntakeConstants.kI;
         spinConfig.kD = Constants.IntakeConstants.kD;  
-        
+
         locationMotor = new TalonFX(Constants.IntakeConstants.kIntakeLocationId);
         spinMotor = new TalonFX(Constants.IntakeConstants.kIntakeSpinId);
 

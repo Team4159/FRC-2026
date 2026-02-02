@@ -47,10 +47,10 @@ public class Climber extends SubsystemBase{
         climbMotorTwo.setControl(climberVelocityVoltage.withVelocity(0));
     }
 
-    public class ChangeClimberState extends Command{
+    public class ChangeState extends Command{
         private ClimberState climberState;
         
-        public ChangeClimberState(ClimberState climberState){
+        public ChangeState(ClimberState climberState){
             this.climberState = climberState;
             addRequirements(Climber.this);
         }

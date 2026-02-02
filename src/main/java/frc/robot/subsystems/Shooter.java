@@ -65,9 +65,10 @@ public class Shooter extends SubsystemBase{
         private double angle;
         
         public ShooterCommand(double velocity, double angle){
-            addRequirements(Shooter.this);
             this.velocity=velocity;
             this.angle=angle;
+            
+            addRequirements(Shooter.this);
         }
         
         @Override
