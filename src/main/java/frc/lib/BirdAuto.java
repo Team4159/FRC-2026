@@ -27,9 +27,9 @@ public class BirdAuto {
         TRENCH_LEFT_FAR(new Pose2d()),
         TRENCH_RIGHT_CLOSE(new Pose2d()),
         TRENCH_RIGHT_FAR(new Pose2d()),
-        CLIMB_RIGHT(new Pose2d()),
         CLIMB_LEFT(new Pose2d()),
         CLIMB_MIDDLE(new Pose2d()),
+        CLIMB_RIGHT(new Pose2d()),
         CLIMB_LEFT_ENTRY(new Pose2d()),
         CLIMB_MIDDLE_ENTRY(new Pose2d()),
         CLIMB_RIGHT_ENTRY(new Pose2d());
