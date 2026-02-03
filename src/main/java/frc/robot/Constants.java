@@ -14,6 +14,7 @@ import com.ctre.phoenix6.swerve.utility.PhoenixPIDController;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.util.Units;
@@ -73,9 +74,8 @@ public final class Constants {
   }
 
   public static class PhotonVisionConstants {
-    //TODO get camera transforms (Why is CAD so hard :( )
-    public static Transform3d leftShooterCamTransform = new Transform3d();
-    public static Transform3d rightShooterCamTransform = new Transform3d();
+    public static Transform3d leftShooterCamTransform = new Transform3d(-0.1647, 8.8160, 20.3287,new Rotation3d(0,-30,-5));
+    public static Transform3d rightShooterCamTransform = new Transform3d(-0.1647, -8.8160, 20.8237, new Rotation3d(0, -30, 5));
   }
 
   public static class FieldConstants {
