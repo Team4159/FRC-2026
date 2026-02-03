@@ -59,6 +59,17 @@ public final class Constants {
       }
     }
   }
+  public static class FeederConstants{
+    public static final int FeederID = 9; //idk if this port is used yet plz check
+
+    public static enum FeederState{
+      FEED(0.5), UNSTUCKFEEDER, (-0.5), STOP(0), 
+      public double percentage;
+      private FeederState(double speed){
+        percentage = speed;
+      }
+    }
+  }
 
   public static class IntakeConstants{
     public static final double kI = 0;

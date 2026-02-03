@@ -13,6 +13,7 @@ import frc.robot.Constants;
 
 public class Shooter extends SubsystemBase{
     private TalonFX hoodMotor;
+    private TalonFX feederMotor;
     private TalonFX motorOne;
     private TalonFX motorTwo;
     private TalonFX motorThree;
@@ -33,6 +34,7 @@ public class Shooter extends SubsystemBase{
 
 
         hoodMotor = new TalonFX(Constants.HoodConstants.HoodId);
+        feederMotor = new TalonFX(Constants.FeederConstants.FeederID);
         motorOne = new TalonFX(Constants.ShooterConstants.ShooterIDOne);
         motorTwo = new TalonFX(Constants.ShooterConstants.ShooterIDTwo);
         motorThree = new TalonFX(Constants.ShooterConstants.ShooterIDThree);
@@ -53,6 +55,12 @@ public class Shooter extends SubsystemBase{
         motorOne.setControl(shooterVelocityVoltage);
         motorTwo.setControl(shooterVelocityVoltage);
         motorThree.setControl(shooterVelocityVoltage);
+    }
+    public void setFeederSpeed(double speed){
+        feederMotor.set(speed);
+    }
+    public void stopFeeder(){
+        feederMotor.set(0);
     }
     // adjust hood
     public void adjustHood(double angle) {
@@ -81,5 +89,20 @@ public class Shooter extends SubsystemBase{
         public void end(boolean interrupt) {
             Shooter.this.setSpeed(0);
         }
+    }
+
+    public ChangeState extends Command{
+        private FeederState feederState;
+        
+        public ChangeState(FeederState feederState){
+            this.feederState = feederState
+            addRequirements(Feeder.this);
+        }
+
+        @Override
+        public void initialize(){
+            Feeder.this.setFeeder
+        }
+        
     }
 }
