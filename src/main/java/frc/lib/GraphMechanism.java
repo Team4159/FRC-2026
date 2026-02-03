@@ -1,6 +1,7 @@
 package frc.lib;
 
 import java.util.ArrayList;
+import java.util.function.Function;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.RobotBase;
@@ -37,7 +38,7 @@ public class GraphMechanism {
         SmartDashboard.putData(name, mechanism);
     }
 
-    public void update(Function<double, Translation2d> graphFunction) {
+    public void update(Function<Double, Translation2d> graphFunction) {
         if (!RobotBase.isSimulation()) { return; }
         double lastAngle = 0;
         for (int i = 0; i < ligaments.size(); i++) {
