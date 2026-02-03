@@ -14,21 +14,24 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         this.controller = controller;
     }
 
+    /** @return the field relative x input (-left joystick y input), from range -1 to 1. a deadzone and quadratic are applied for better control.*/
     public double getInputX() {
         double rawInput = -controller.getLeftY();
-        double filteredInput = MathUtil.applyDeadband(OperatorConstants.kDriverControllerVelocityDeadband, rawInput);
-        return Math.abs(Math.pow(filteredInput, 2)) * Math.signum(filteredInput);
+        double filteredInput = MathUtil.applyDeadband(Math.abs(rawInput), OperatorConstants.kDriverControllerVelocityDeadband);
+        return Math.abs(Math.pow(filteredInput, 2)) * Math.signum(rawInput);
     }
 
+    /** @return the field relative y input (-left joystick x input), from range -1 to 1. a deadzone and quadratic are applied for better control.*/
     public double getInputY() {
         double rawInput = -controller.getLeftX();
-        double filteredInput = MathUtil.applyDeadband(OperatorConstants.kDriverControllerVelocityDeadband, rawInput);
-        return Math.abs(Math.pow(filteredInput, 2)) * Math.signum(filteredInput);
+        double filteredInput = MathUtil.applyDeadband(Math.abs(rawInput), OperatorConstants.kDriverControllerVelocityDeadband);
+        return Math.abs(Math.pow(filteredInput, 2)) * Math.signum(rawInput);
     }
 
+    /** @return the field relative rotation input (-right joystick x), from range -1 to 1. a deadzone and quadratic are applied for better control.*/
     public double getInputRotation() {
         double rawInput = -controller.getRightX();
-        double filteredInput = MathUtil.applyDeadband(OperatorConstants.kDriverControllerRotationDeadband, rawInput);
-        return Math.abs(Math.pow(filteredInput, 2)) * Math.signum(filteredInput);
+        double filteredInput = MathUtil.applyDeadband(Math.abs(rawInput), OperatorConstants.kDriverControllerVelocityDeadband);
+        return Math.abs(Math.pow(filteredInput, 2)) * Math.signum(rawInput);
     }
 }
