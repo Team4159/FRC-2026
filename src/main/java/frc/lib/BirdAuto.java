@@ -1,21 +1,32 @@
 package frc.lib;
 
+import static edu.wpi.first.units.Units.Meters;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.stream.Stream;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 
 public class BirdAuto {
     private static class FieldSetpointConstants {
-
+        private static final Distance kDepotX = Meters.of(0.0);
+        private static final Distance kDepotEntryX = Meters.of(0.0);
+        private static final Distance kTrenchAllianceX = Meters.of(0.0);
+        private static final Distance kTrenchNeutralX = Meters.of(0.0);
+        private static final Distance kClimbX = Meters.of(0.0);
+        private static final Distance kClimbEntryX = Meters.of(0.0);
     }
 
     private static enum FieldSetpoint {
         OUTPOST(new Pose2d()),
-        DEPOT_LEFT(new Pose2d()),
-        DEPOT_RIGHT(new Pose2d()),
+        DEPOT_LEFT(new Pose2d(FieldSetpointConstants.kDepotX, Meters.of(0.0), new Rotation2d())),
+        DEPOT_RIGHT(new Pose2d(FieldSetpointConstants.kDepotX, Meters.of(0.0), new Rotation2d())),
+        DEPOT_LEFT_ENTRY(new Pose2d(FieldSetpointConstants.kDepotEntryX, Meters.of(0.0), new Rotation2d())),
+        DEPOT_RIGHT_ENTRY(new Pose2d(FieldSetpointConstants.kDepotEntryX, Meters.of(0.0), new Rotation2d())),
         ALLIANCE_LEFT(new Pose2d()),
         ALLIANCE_MIDDLE(new Pose2d()),
         ALLIANCE_RIGHT(new Pose2d()),
@@ -23,16 +34,16 @@ public class BirdAuto {
         NEUTRAL_LEFT_INNER(new Pose2d()),
         NEUTRAL_RIGHT_OUTER(new Pose2d()),
         NEUTRAL_RIGHT_INNER(new Pose2d()),
-        TRENCH_LEFT_CLOSE(new Pose2d()),
-        TRENCH_LEFT_FAR(new Pose2d()),
-        TRENCH_RIGHT_CLOSE(new Pose2d()),
-        TRENCH_RIGHT_FAR(new Pose2d()),
-        CLIMB_LEFT(new Pose2d()),
-        CLIMB_MIDDLE(new Pose2d()),
-        CLIMB_RIGHT(new Pose2d()),
-        CLIMB_LEFT_ENTRY(new Pose2d()),
-        CLIMB_MIDDLE_ENTRY(new Pose2d()),
-        CLIMB_RIGHT_ENTRY(new Pose2d());
+        TRENCH_LEFT_ALLIANCE(new Pose2d(FieldSetpointConstants.kTrenchAllianceX, Meters.of(0.0), new Rotation2d())),
+        TRENCH_LEFT_NEUTRAL(new Pose2d(FieldSetpointConstants.kTrenchNeutralX, Meters.of(0.0), new Rotation2d())),
+        TRENCH_RIGHT_ALLIANCE(new Pose2d(FieldSetpointConstants.kTrenchAllianceX, Meters.of(0.0), new Rotation2d())),
+        TRENCH_RIGHT_NEUTRAL(new Pose2d(FieldSetpointConstants.kTrenchNeutralX, Meters.of(0.0), new Rotation2d())),
+        CLIMB_LEFT(new Pose2d(FieldSetpointConstants.kClimbX, Meters.of(0.0), new Rotation2d())),
+        CLIMB_MIDDLE(new Pose2d(FieldSetpointConstants.kClimbX, Meters.of(0.0), new Rotation2d())),
+        CLIMB_RIGHT(new Pose2d(FieldSetpointConstants.kClimbX, Meters.of(0.0), new Rotation2d())),
+        CLIMB_LEFT_ENTRY(new Pose2d(FieldSetpointConstants.kClimbEntryX, Meters.of(0.0), new Rotation2d())),
+        CLIMB_MIDDLE_ENTRY(new Pose2d(FieldSetpointConstants.kClimbEntryX, Meters.of(0.0), new Rotation2d())),
+        CLIMB_RIGHT_ENTRY(new Pose2d(FieldSetpointConstants.kClimbEntryX, Meters.of(0.0), new Rotation2d()));
 
         public final Pose2d setpoint;
 
@@ -42,17 +53,37 @@ public class BirdAuto {
     }
 
     public static enum FieldGoal {
-        CLIMB_LEFT(new Goal(new Pose2d(),
-                (previousSet) -> goalSetpointBuilder(FieldSetpoint.CLIMB_LEFT_ENTRY, FieldSetpoint.CLIMB_LEFT))),
-        CLIMB_MIDDLE(new Goal(new Pose2d(),
-                (lastSetpoint) -> goalSetpointBuilder(FieldSetpoint.CLIMB_RIGHT_ENTRY, FieldSetpoint.CLIMB_MIDDLE))),
-        CLIMB_RIGHT(new Goal(new Pose2d(),
-                (lastSetpoint) -> goalSetpointBuilder(FieldSetpoint.CLIMB_RIGHT_ENTRY, FieldSetpoint.CLIMB_RIGHT)));
+        OUTPOST((lastSetpoint) -> goalSetpointBuilder(FieldSetpoint.OUTPOST)),
+        DEPOT_LEFT((lastSetpoint) -> goalSetpointBuilder(FieldSetpoint.DEPOT_LEFT)),
+        DEPOT_RIGHT((lastSetpoint) -> goalSetpointBuilder(FieldSetpoint.DEPOT_RIGHT)),
+        DEPOT_LEFT_ENTRY((lastSetpoint) -> goalSetpointBuilder(FieldSetpoint.DEPOT_LEFT_ENTRY)),
+        DEPOT_RIGHT_ENTRY((lastSetpoint) -> goalSetpointBuilder(FieldSetpoint.DEPOT_RIGHT_ENTRY)),
+        ALLIANCE_LEFT((lastSetpoint) -> goalSetpointBuilder(FieldSetpoint.ALLIANCE_LEFT)),
+        ALLIANCE_MIDDLE((lastSetpoint) -> goalSetpointBuilder(FieldSetpoint.ALLIANCE_MIDDLE)),
+        ALLIANCE_RIGHT((lastSetpoint) -> goalSetpointBuilder(FieldSetpoint.ALLIANCE_RIGHT)),
+        NEUTRAL_LEFT_OUTER((lastSetpoint) -> goalSetpointBuilder(FieldSetpoint.NEUTRAL_LEFT_OUTER)),
+        NEUTRAL_LEFT_INNER((lastSetpoint) -> goalSetpointBuilder(FieldSetpoint.NEUTRAL_LEFT_INNER)),
+        NEUTRAL_RIGHT_OUTER((lastSetpoint) -> goalSetpointBuilder(FieldSetpoint.NEUTRAL_RIGHT_OUTER)),
+        NEUTRAL_RIGHT_INNER((lastSetpoint) -> goalSetpointBuilder(FieldSetpoint.NEUTRAL_RIGHT_INNER)),
+        TRENCH_LEFT(
+                (lastSetpoint) -> PoseUtil.isPoseInAllianceZone(Alliance.Blue, lastSetpoint)
+                        ? goalSetpointBuilder(FieldSetpoint.TRENCH_LEFT_ALLIANCE, FieldSetpoint.TRENCH_LEFT_NEUTRAL)
+                        : goalSetpointBuilder(FieldSetpoint.TRENCH_LEFT_NEUTRAL, FieldSetpoint.TRENCH_LEFT_ALLIANCE)),
+        TRENCH_RIGHT(
+                (lastSetpoint) -> PoseUtil.isPoseInAllianceZone(Alliance.Blue, lastSetpoint)
+                        ? goalSetpointBuilder(FieldSetpoint.TRENCH_RIGHT_ALLIANCE, FieldSetpoint.TRENCH_RIGHT_NEUTRAL)
+                        : goalSetpointBuilder(FieldSetpoint.TRENCH_RIGHT_NEUTRAL, FieldSetpoint.TRENCH_RIGHT_ALLIANCE)),
+        CLIMB_LEFT(
+                (lastSetpoint) -> goalSetpointBuilder(FieldSetpoint.CLIMB_LEFT_ENTRY, FieldSetpoint.CLIMB_LEFT)),
+        CLIMB_MIDDLE(
+                (lastSetpoint) -> goalSetpointBuilder(FieldSetpoint.CLIMB_RIGHT_ENTRY, FieldSetpoint.CLIMB_MIDDLE)),
+        CLIMB_RIGHT(
+                (lastSetpoint) -> goalSetpointBuilder(FieldSetpoint.CLIMB_RIGHT_ENTRY, FieldSetpoint.CLIMB_RIGHT));
 
         public final Goal goal;
 
-        private FieldGoal(Goal goal) {
-            this.goal = goal;
+        private FieldGoal(SetpointGenerator setpointGenerator) {
+            this.goal = new Goal(setpointGenerator);
         }
     }
 
@@ -66,7 +97,7 @@ public class BirdAuto {
         Pose2d[] generate(Pose2d previousSetpoint);
     }
 
-    private static record Goal(Pose2d pose, SetpointGenerator setpointGenerator) {
+    private static record Goal(SetpointGenerator setpointGenerator) {
     }
 
     private final Pose2d initialSetpoint;

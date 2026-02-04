@@ -1,18 +1,20 @@
 package frc.lib;
 
+import static edu.wpi.first.units.Units.Inches;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 
 public final class PoseUtil {
     private static enum FieldZones {
-        FIELD(Units.inchesToMeters(651.22), Units.inchesToMeters(317.69)),
-        ALLIANCE(Units.inchesToMeters(156.61), Units.inchesToMeters(317.69));
+        FIELD(Inches.of(651.22), Inches.of(317.69)),
+        ALLIANCE(Inches.of(156.61), Inches.of(317.69));
 
-        public final double width, height;
+        public final Distance width, height;
 
-        private FieldZones(double width, double height) {
+        private FieldZones(Distance width, Distance height) {
             this.width = width;
             this.height = height;
         }
@@ -20,8 +22,8 @@ public final class PoseUtil {
 
     public static final Pose2d flipPoseToOtherAlliance(Pose2d pose) {
         return new Pose2d(
-                FieldZones.FIELD.width - pose.getX(),
-                FieldZones.FIELD.height - pose.getY(),
+                FieldZones.FIELD.width.baseUnitMagnitude() - pose.getX(),
+                FieldZones.FIELD.height.baseUnitMagnitude() - pose.getY(),
                 pose.getRotation().plus(new Rotation2d(Math.PI))
         );
     }
@@ -30,6 +32,6 @@ public final class PoseUtil {
         if (alliance == Alliance.Red) {
             pose = flipPoseToOtherAlliance(pose);
         }
-        return pose.getX() <= FieldZones.ALLIANCE.width;
+        return pose.getX() <= FieldZones.ALLIANCE.width.baseUnitMagnitude();
     }
 }
