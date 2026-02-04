@@ -10,6 +10,7 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.Constants.FeederConstants.FeederState;
 
 public class Shooter extends SubsystemBase{
     private TalonFX hoodMotor;
@@ -91,17 +92,17 @@ public class Shooter extends SubsystemBase{
         }
     }
 
-    public ChangeState extends Command{
+    public class ChangeState extends Command{
         private FeederState feederState;
         
         public ChangeState(FeederState feederState){
-            this.feederState = feederState
-            addRequirements(Feeder.this);
+            this.feederState = feederState;
+            addRequirements(Shooter.this);
         }
 
         @Override
         public void initialize(){
-            Feeder.this.setFeeder
+            Shooter.this.setFeederSpeed(feederState.percentage);
         }
         
     }
