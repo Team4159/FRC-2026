@@ -6,28 +6,27 @@ import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants;
+import frc.robot.Constants.ClimberConstants;
 import frc.robot.Constants.ClimberConstants.ClimberState;
 
 public class Climber extends SubsystemBase{
-    private TalonFX climbMotorOne;
-    private TalonFX climbMotorTwo;
+    private TalonFX climbMotorOne, climbMotorTwo;
     
     private final VelocityVoltage climberVelocityVoltage;
 
     public Climber(){
         Slot0Configs climberConfigOne = new Slot0Configs();
-        climberConfigOne.kP = Constants.ClimberConstants.kP;
-        climberConfigOne.kI = Constants.ClimberConstants.kI;
-        climberConfigOne.kD = Constants.ClimberConstants.kD;
+        climberConfigOne.kP = ClimberConstants.kP;
+        climberConfigOne.kI = ClimberConstants.kI;
+        climberConfigOne.kD = ClimberConstants.kD;
 
         Slot0Configs climberConfigTwo = new Slot0Configs();
-        climberConfigTwo.kP = Constants.ClimberConstants.kP;
-        climberConfigTwo.kI = Constants.ClimberConstants.kI;
-        climberConfigTwo.kD = Constants.ClimberConstants.kD;
+        climberConfigTwo.kP = ClimberConstants.kP;
+        climberConfigTwo.kI = ClimberConstants.kI;
+        climberConfigTwo.kD = ClimberConstants.kD;
 
-        climbMotorOne = new TalonFX(Constants.ClimberConstants.idClimberOne);
-        climbMotorTwo = new TalonFX(Constants.ClimberConstants.idClimberTwo);
+        climbMotorOne = new TalonFX(ClimberConstants.idClimberOne);
+        climbMotorTwo = new TalonFX(ClimberConstants.idClimberTwo);
 
         climbMotorOne.getConfigurator().apply(climberConfigOne);
         climbMotorTwo.getConfigurator().apply(climberConfigTwo);
@@ -36,8 +35,8 @@ public class Climber extends SubsystemBase{
 
     }
 
-    public void setClimberSpeed(double climberSpeed){
-        climberVelocityVoltage.withVelocity(climberSpeed);
+    public void setClimberSpeed(double speed){
+        climberVelocityVoltage.withVelocity(speed);
         climbMotorOne.setControl(climberVelocityVoltage);
         climbMotorTwo.setControl(climberVelocityVoltage);
     }

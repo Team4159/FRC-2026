@@ -9,36 +9,34 @@ import com.ctre.phoenix6.signals.InvertedValue;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants;
+import frc.robot.Constants.FeederConstants;
 import frc.robot.Constants.FeederConstants.FeederState;
+import frc.robot.Constants.HoodConstants;
+import frc.robot.Constants.ShooterConstants;
 
 public class Shooter extends SubsystemBase{
-    private TalonFX hoodMotor;
-    private TalonFX feederMotor;
-    private TalonFX motorOne;
-    private TalonFX motorTwo;
-    private TalonFX motorThree;
+    private TalonFX hoodMotor, feederMotor, motorOne, motorTwo, motorThree;
 
     private final PositionVoltage hoodPositionVoltage;
     private final VelocityVoltage shooterVelocityVoltage;
 
     public Shooter() {
         Slot0Configs hoodConfig = new Slot0Configs();
-        hoodConfig.kP = Constants.HoodConstants.kP;
-        hoodConfig.kI = Constants.HoodConstants.kI;
-        hoodConfig.kD = Constants.HoodConstants.kD;
+        hoodConfig.kP = HoodConstants.kP;
+        hoodConfig.kI = HoodConstants.kI;
+        hoodConfig.kD = HoodConstants.kD;
 
         Slot0Configs shooterConfig = new Slot0Configs();
-        shooterConfig.kP = Constants.ShooterConstants.kP;
-        shooterConfig.kI = Constants.ShooterConstants.kI;
-        shooterConfig.kD = Constants.ShooterConstants.kD;
+        shooterConfig.kP = ShooterConstants.kP;
+        shooterConfig.kI = ShooterConstants.kI;
+        shooterConfig.kD = ShooterConstants.kD;
 
 
-        hoodMotor = new TalonFX(Constants.HoodConstants.HoodId);
-        feederMotor = new TalonFX(Constants.FeederConstants.FeederID);
-        motorOne = new TalonFX(Constants.ShooterConstants.ShooterIDOne);
-        motorTwo = new TalonFX(Constants.ShooterConstants.ShooterIDTwo);
-        motorThree = new TalonFX(Constants.ShooterConstants.ShooterIDThree);
+        hoodMotor = new TalonFX(HoodConstants.HoodId);
+        feederMotor = new TalonFX(FeederConstants.FeederID);
+        motorOne = new TalonFX(ShooterConstants.ShooterIDOne);
+        motorTwo = new TalonFX(ShooterConstants.ShooterIDTwo);
+        motorThree = new TalonFX(ShooterConstants.ShooterIDThree);
         
         motorOne.getConfigurator().apply(new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive));
         
