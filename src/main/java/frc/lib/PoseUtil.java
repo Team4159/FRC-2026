@@ -8,13 +8,13 @@ import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 
 public final class PoseUtil {
-    private static enum FieldZones {
+    public static enum FieldZone {
         FIELD(Inches.of(651.22), Inches.of(317.69)),
         ALLIANCE(Inches.of(156.61), Inches.of(317.69));
 
         public final Distance width, height;
 
-        private FieldZones(Distance width, Distance height) {
+        private FieldZone(Distance width, Distance height) {
             this.width = width;
             this.height = height;
         }
@@ -22,8 +22,8 @@ public final class PoseUtil {
 
     public static final Pose2d flipPoseToOtherAlliance(Pose2d pose) {
         return new Pose2d(
-                FieldZones.FIELD.width.baseUnitMagnitude() - pose.getX(),
-                FieldZones.FIELD.height.baseUnitMagnitude() - pose.getY(),
+                FieldZone.FIELD.width.baseUnitMagnitude() - pose.getX(),
+                FieldZone.FIELD.height.baseUnitMagnitude() - pose.getY(),
                 pose.getRotation().plus(new Rotation2d(Math.PI))
         );
     }
@@ -32,6 +32,6 @@ public final class PoseUtil {
         if (alliance == Alliance.Red) {
             pose = flipPoseToOtherAlliance(pose);
         }
-        return pose.getX() <= FieldZones.ALLIANCE.width.baseUnitMagnitude();
+        return pose.getX() <= FieldZone.ALLIANCE.width.baseUnitMagnitude();
     }
 }

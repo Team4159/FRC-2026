@@ -1,6 +1,6 @@
 package frc.lib;
 
-import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.Inches;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,21 +12,32 @@ import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 
 public class BirdAuto {
+    // TODO: finish populating setpoints
     private static class FieldSetpointConstants {
-        private static final Distance kDepotX = Meters.of(0.0);
-        private static final Distance kDepotEntryX = Meters.of(0.0);
-        private static final Distance kTrenchAllianceX = Meters.of(0.0);
-        private static final Distance kTrenchNeutralX = Meters.of(0.0);
-        private static final Distance kClimbX = Meters.of(0.0);
-        private static final Distance kClimbEntryX = Meters.of(0.0);
+        private static final Distance kFieldHeight = Inches.of(317.69);
+        private static final Distance kFieldMiddleY = kFieldHeight.div(2);
+        private static final Distance kDepotX = Inches.of(15.0);
+        private static final Distance kDepotEntryX = kDepotX.plus(Inches.of(30.0));
+        private static final Distance kDepotLeftY = Inches.of(0.0);
+        private static final Distance kDepotRightY = Inches.of(0.0);
+        private static final Distance kTrenchX = Inches.of(182.11);
+        private static final Distance kTrenchAllianceX = kTrenchX.minus(Inches.of(45.0));
+        private static final Distance kTrenchNeutralX = kTrenchX.plus(Inches.of(45.0));
+        private static final Distance kTrenchLeftY = Inches.of(292.69);
+        private static final Distance kTrenchRightY = Inches.of(25);
+        private static final Distance kClimbX = Inches.of(72.0);
+        private static final Distance kClimbEntryX = kClimbX.plus(Inches.of(60.0));
+        private static final Distance kClimbLeftY = kFieldMiddleY.minus(Inches.of(5));
+        private static final Distance kClimbMiddleY = kFieldMiddleY;
+        private static final Distance kClimbRightY = kFieldMiddleY.plus(Inches.of(5));
     }
 
     private static enum FieldSetpoint {
         OUTPOST(new Pose2d()),
-        DEPOT_LEFT(new Pose2d(FieldSetpointConstants.kDepotX, Meters.of(0.0), new Rotation2d())),
-        DEPOT_RIGHT(new Pose2d(FieldSetpointConstants.kDepotX, Meters.of(0.0), new Rotation2d())),
-        DEPOT_LEFT_ENTRY(new Pose2d(FieldSetpointConstants.kDepotEntryX, Meters.of(0.0), new Rotation2d())),
-        DEPOT_RIGHT_ENTRY(new Pose2d(FieldSetpointConstants.kDepotEntryX, Meters.of(0.0), new Rotation2d())),
+        DEPOT_LEFT(new Pose2d(FieldSetpointConstants.kDepotX, FieldSetpointConstants.kDepotLeftY, new Rotation2d())),
+        DEPOT_RIGHT(new Pose2d(FieldSetpointConstants.kDepotX, FieldSetpointConstants.kDepotRightY, new Rotation2d())),
+        DEPOT_LEFT_ENTRY(new Pose2d(FieldSetpointConstants.kDepotEntryX, FieldSetpointConstants.kDepotLeftY, new Rotation2d())),
+        DEPOT_RIGHT_ENTRY(new Pose2d(FieldSetpointConstants.kDepotEntryX, FieldSetpointConstants.kDepotRightY, new Rotation2d())),
         ALLIANCE_LEFT(new Pose2d()),
         ALLIANCE_MIDDLE(new Pose2d()),
         ALLIANCE_RIGHT(new Pose2d()),
@@ -34,16 +45,16 @@ public class BirdAuto {
         NEUTRAL_LEFT_INNER(new Pose2d()),
         NEUTRAL_RIGHT_OUTER(new Pose2d()),
         NEUTRAL_RIGHT_INNER(new Pose2d()),
-        TRENCH_LEFT_ALLIANCE(new Pose2d(FieldSetpointConstants.kTrenchAllianceX, Meters.of(0.0), new Rotation2d())),
-        TRENCH_LEFT_NEUTRAL(new Pose2d(FieldSetpointConstants.kTrenchNeutralX, Meters.of(0.0), new Rotation2d())),
-        TRENCH_RIGHT_ALLIANCE(new Pose2d(FieldSetpointConstants.kTrenchAllianceX, Meters.of(0.0), new Rotation2d())),
-        TRENCH_RIGHT_NEUTRAL(new Pose2d(FieldSetpointConstants.kTrenchNeutralX, Meters.of(0.0), new Rotation2d())),
-        CLIMB_LEFT(new Pose2d(FieldSetpointConstants.kClimbX, Meters.of(0.0), new Rotation2d())),
-        CLIMB_MIDDLE(new Pose2d(FieldSetpointConstants.kClimbX, Meters.of(0.0), new Rotation2d())),
-        CLIMB_RIGHT(new Pose2d(FieldSetpointConstants.kClimbX, Meters.of(0.0), new Rotation2d())),
-        CLIMB_LEFT_ENTRY(new Pose2d(FieldSetpointConstants.kClimbEntryX, Meters.of(0.0), new Rotation2d())),
-        CLIMB_MIDDLE_ENTRY(new Pose2d(FieldSetpointConstants.kClimbEntryX, Meters.of(0.0), new Rotation2d())),
-        CLIMB_RIGHT_ENTRY(new Pose2d(FieldSetpointConstants.kClimbEntryX, Meters.of(0.0), new Rotation2d()));
+        TRENCH_LEFT_ALLIANCE(new Pose2d(FieldSetpointConstants.kTrenchAllianceX, FieldSetpointConstants.kTrenchLeftY, new Rotation2d())),
+        TRENCH_LEFT_NEUTRAL(new Pose2d(FieldSetpointConstants.kTrenchNeutralX, FieldSetpointConstants.kTrenchLeftY, new Rotation2d())),
+        TRENCH_RIGHT_ALLIANCE(new Pose2d(FieldSetpointConstants.kTrenchAllianceX, FieldSetpointConstants.kTrenchRightY, new Rotation2d())),
+        TRENCH_RIGHT_NEUTRAL(new Pose2d(FieldSetpointConstants.kTrenchNeutralX, FieldSetpointConstants.kTrenchRightY, new Rotation2d())),
+        CLIMB_LEFT(new Pose2d(FieldSetpointConstants.kClimbX, FieldSetpointConstants.kClimbLeftY, new Rotation2d())),
+        CLIMB_MIDDLE(new Pose2d(FieldSetpointConstants.kClimbX, FieldSetpointConstants.kClimbMiddleY, new Rotation2d())),
+        CLIMB_RIGHT(new Pose2d(FieldSetpointConstants.kClimbX, FieldSetpointConstants.kClimbRightY, new Rotation2d())),
+        CLIMB_LEFT_ENTRY(new Pose2d(FieldSetpointConstants.kClimbEntryX, FieldSetpointConstants.kClimbLeftY, new Rotation2d())),
+        CLIMB_MIDDLE_ENTRY(new Pose2d(FieldSetpointConstants.kClimbEntryX, FieldSetpointConstants.kClimbMiddleY, new Rotation2d())),
+        CLIMB_RIGHT_ENTRY(new Pose2d(FieldSetpointConstants.kClimbEntryX, FieldSetpointConstants.kClimbRightY, new Rotation2d()));
 
         public final Pose2d setpoint;
 
