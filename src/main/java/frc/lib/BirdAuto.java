@@ -1,6 +1,7 @@
 package frc.lib;
 
 import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.MetersPerSecond;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -9,11 +10,12 @@ import java.util.stream.Stream;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 
 public class BirdAuto {
     // TODO: finish populating setpoints
-    private static class FieldSetpointConstants {
+    private static class FieldMeasurementConstants {
         private static final Distance kFieldHeight = Inches.of(317.69);
         private static final Distance kFieldMiddleY = kFieldHeight.div(2);
         private static final Distance kDepotX = Inches.of(15.0);
@@ -33,32 +35,78 @@ public class BirdAuto {
     }
 
     private static enum FieldSetpoint {
-        OUTPOST(new Pose2d()),
-        DEPOT_LEFT(new Pose2d(FieldSetpointConstants.kDepotX, FieldSetpointConstants.kDepotLeftY, new Rotation2d())),
-        DEPOT_RIGHT(new Pose2d(FieldSetpointConstants.kDepotX, FieldSetpointConstants.kDepotRightY, new Rotation2d())),
-        DEPOT_LEFT_ENTRY(new Pose2d(FieldSetpointConstants.kDepotEntryX, FieldSetpointConstants.kDepotLeftY, new Rotation2d())),
-        DEPOT_RIGHT_ENTRY(new Pose2d(FieldSetpointConstants.kDepotEntryX, FieldSetpointConstants.kDepotRightY, new Rotation2d())),
-        ALLIANCE_LEFT(new Pose2d()),
-        ALLIANCE_MIDDLE(new Pose2d()),
-        ALLIANCE_RIGHT(new Pose2d()),
-        NEUTRAL_LEFT_OUTER(new Pose2d()),
-        NEUTRAL_LEFT_INNER(new Pose2d()),
-        NEUTRAL_RIGHT_OUTER(new Pose2d()),
-        NEUTRAL_RIGHT_INNER(new Pose2d()),
-        TRENCH_LEFT_ALLIANCE(new Pose2d(FieldSetpointConstants.kTrenchAllianceX, FieldSetpointConstants.kTrenchLeftY, new Rotation2d())),
-        TRENCH_LEFT_NEUTRAL(new Pose2d(FieldSetpointConstants.kTrenchNeutralX, FieldSetpointConstants.kTrenchLeftY, new Rotation2d())),
-        TRENCH_RIGHT_ALLIANCE(new Pose2d(FieldSetpointConstants.kTrenchAllianceX, FieldSetpointConstants.kTrenchRightY, new Rotation2d())),
-        TRENCH_RIGHT_NEUTRAL(new Pose2d(FieldSetpointConstants.kTrenchNeutralX, FieldSetpointConstants.kTrenchRightY, new Rotation2d())),
-        CLIMB_LEFT(new Pose2d(FieldSetpointConstants.kClimbX, FieldSetpointConstants.kClimbLeftY, new Rotation2d())),
-        CLIMB_MIDDLE(new Pose2d(FieldSetpointConstants.kClimbX, FieldSetpointConstants.kClimbMiddleY, new Rotation2d())),
-        CLIMB_RIGHT(new Pose2d(FieldSetpointConstants.kClimbX, FieldSetpointConstants.kClimbRightY, new Rotation2d())),
-        CLIMB_LEFT_ENTRY(new Pose2d(FieldSetpointConstants.kClimbEntryX, FieldSetpointConstants.kClimbLeftY, new Rotation2d())),
-        CLIMB_MIDDLE_ENTRY(new Pose2d(FieldSetpointConstants.kClimbEntryX, FieldSetpointConstants.kClimbMiddleY, new Rotation2d())),
-        CLIMB_RIGHT_ENTRY(new Pose2d(FieldSetpointConstants.kClimbEntryX, FieldSetpointConstants.kClimbRightY, new Rotation2d()));
+        OUTPOST(new Setpoint(new Pose2d(), new Rotation2d(), LinearVelocity.ofRelativeUnits(0.0, MetersPerSecond),
+                false)),
+        DEPOT_LEFT(new Setpoint(
+                new Pose2d(FieldMeasurementConstants.kDepotX, FieldMeasurementConstants.kDepotLeftY, new Rotation2d()),
+                new Rotation2d(), LinearVelocity.ofRelativeUnits(0.0, MetersPerSecond), false)),
+        DEPOT_RIGHT(new Setpoint(
+                new Pose2d(FieldMeasurementConstants.kDepotX, FieldMeasurementConstants.kDepotRightY, new Rotation2d()),
+                new Rotation2d(), LinearVelocity.ofRelativeUnits(0.0, MetersPerSecond), false)),
+        DEPOT_LEFT_ENTRY(new Setpoint(
+                new Pose2d(FieldMeasurementConstants.kDepotEntryX, FieldMeasurementConstants.kDepotLeftY,
+                        new Rotation2d()),
+                new Rotation2d(), LinearVelocity.ofRelativeUnits(0.0, MetersPerSecond), false)),
+        DEPOT_RIGHT_ENTRY(new Setpoint(
+                new Pose2d(FieldMeasurementConstants.kDepotEntryX, FieldMeasurementConstants.kDepotRightY,
+                        new Rotation2d()),
+                new Rotation2d(), LinearVelocity.ofRelativeUnits(0.0, MetersPerSecond), false)),
+        ALLIANCE_LEFT(new Setpoint(new Pose2d(), new Rotation2d(), LinearVelocity.ofRelativeUnits(0.0, MetersPerSecond),
+                true)),
+        ALLIANCE_MIDDLE(new Setpoint(new Pose2d(), new Rotation2d(),
+                LinearVelocity.ofRelativeUnits(0.0, MetersPerSecond), true)),
+        ALLIANCE_RIGHT(new Setpoint(new Pose2d(), new Rotation2d(),
+                LinearVelocity.ofRelativeUnits(0.0, MetersPerSecond), true)),
+        NEUTRAL_LEFT_OUTER(new Setpoint(new Pose2d(), new Rotation2d(),
+                LinearVelocity.ofRelativeUnits(0.0, MetersPerSecond), false)),
+        NEUTRAL_LEFT_INNER(new Setpoint(new Pose2d(), new Rotation2d(),
+                LinearVelocity.ofRelativeUnits(0.0, MetersPerSecond), false)),
+        NEUTRAL_RIGHT_OUTER(new Setpoint(new Pose2d(), new Rotation2d(),
+                LinearVelocity.ofRelativeUnits(0.0, MetersPerSecond), false)),
+        NEUTRAL_RIGHT_INNER(new Setpoint(new Pose2d(), new Rotation2d(),
+                LinearVelocity.ofRelativeUnits(0.0, MetersPerSecond), false)),
+        TRENCH_LEFT_ALLIANCE(new Setpoint(
+                new Pose2d(FieldMeasurementConstants.kTrenchAllianceX, FieldMeasurementConstants.kTrenchLeftY,
+                        new Rotation2d()),
+                new Rotation2d(), LinearVelocity.ofRelativeUnits(0.0, MetersPerSecond), true)),
+        TRENCH_LEFT_NEUTRAL(new Setpoint(
+                new Pose2d(FieldMeasurementConstants.kTrenchNeutralX, FieldMeasurementConstants.kTrenchLeftY,
+                        new Rotation2d()),
+                new Rotation2d(), LinearVelocity.ofRelativeUnits(0.0, MetersPerSecond), true)),
+        TRENCH_RIGHT_ALLIANCE(new Setpoint(
+                new Pose2d(FieldMeasurementConstants.kTrenchAllianceX, FieldMeasurementConstants.kTrenchRightY,
+                        new Rotation2d()),
+                new Rotation2d(), LinearVelocity.ofRelativeUnits(0.0, MetersPerSecond), true)),
+        TRENCH_RIGHT_NEUTRAL(new Setpoint(
+                new Pose2d(FieldMeasurementConstants.kTrenchNeutralX, FieldMeasurementConstants.kTrenchRightY,
+                        new Rotation2d()),
+                new Rotation2d(), LinearVelocity.ofRelativeUnits(0.0, MetersPerSecond), true)),
+        CLIMB_LEFT(new Setpoint(
+                new Pose2d(FieldMeasurementConstants.kClimbX, FieldMeasurementConstants.kClimbLeftY, new Rotation2d()),
+                new Rotation2d(), LinearVelocity.ofRelativeUnits(0.0, MetersPerSecond), false)),
+        CLIMB_MIDDLE(new Setpoint(
+                new Pose2d(FieldMeasurementConstants.kClimbX, FieldMeasurementConstants.kClimbMiddleY,
+                        new Rotation2d()),
+                new Rotation2d(), LinearVelocity.ofRelativeUnits(0.0, MetersPerSecond), false)),
+        CLIMB_RIGHT(new Setpoint(
+                new Pose2d(FieldMeasurementConstants.kClimbX, FieldMeasurementConstants.kClimbRightY, new Rotation2d()),
+                new Rotation2d(), LinearVelocity.ofRelativeUnits(0.0, MetersPerSecond), false)),
+        CLIMB_LEFT_ENTRY(new Setpoint(
+                new Pose2d(FieldMeasurementConstants.kClimbEntryX, FieldMeasurementConstants.kClimbLeftY,
+                        new Rotation2d()),
+                new Rotation2d(), LinearVelocity.ofRelativeUnits(0.0, MetersPerSecond), false)),
+        CLIMB_MIDDLE_ENTRY(new Setpoint(
+                new Pose2d(FieldMeasurementConstants.kClimbEntryX, FieldMeasurementConstants.kClimbMiddleY,
+                        new Rotation2d()),
+                new Rotation2d(), LinearVelocity.ofRelativeUnits(0.0, MetersPerSecond), false)),
+        CLIMB_RIGHT_ENTRY(new Setpoint(
+                new Pose2d(FieldMeasurementConstants.kClimbEntryX, FieldMeasurementConstants.kClimbRightY,
+                        new Rotation2d()),
+                new Rotation2d(), LinearVelocity.ofRelativeUnits(0.0, MetersPerSecond), false));
 
-        public final Pose2d setpoint;
+        public final Setpoint setpoint;
 
-        private FieldSetpoint(Pose2d setpoint) {
+        private FieldSetpoint(Setpoint setpoint) {
             this.setpoint = setpoint;
         }
     }
@@ -77,11 +125,11 @@ public class BirdAuto {
         NEUTRAL_RIGHT_OUTER((lastSetpoint) -> goalSetpointBuilder(FieldSetpoint.NEUTRAL_RIGHT_OUTER)),
         NEUTRAL_RIGHT_INNER((lastSetpoint) -> goalSetpointBuilder(FieldSetpoint.NEUTRAL_RIGHT_INNER)),
         TRENCH_LEFT(
-                (lastSetpoint) -> PoseUtil.isPoseInAllianceZone(Alliance.Blue, lastSetpoint)
+                (lastSetpoint) -> PoseUtil.isPoseInAllianceZone(Alliance.Blue, lastSetpoint.pose)
                         ? goalSetpointBuilder(FieldSetpoint.TRENCH_LEFT_ALLIANCE, FieldSetpoint.TRENCH_LEFT_NEUTRAL)
                         : goalSetpointBuilder(FieldSetpoint.TRENCH_LEFT_NEUTRAL, FieldSetpoint.TRENCH_LEFT_ALLIANCE)),
         TRENCH_RIGHT(
-                (lastSetpoint) -> PoseUtil.isPoseInAllianceZone(Alliance.Blue, lastSetpoint)
+                (lastSetpoint) -> PoseUtil.isPoseInAllianceZone(Alliance.Blue, lastSetpoint.pose)
                         ? goalSetpointBuilder(FieldSetpoint.TRENCH_RIGHT_ALLIANCE, FieldSetpoint.TRENCH_RIGHT_NEUTRAL)
                         : goalSetpointBuilder(FieldSetpoint.TRENCH_RIGHT_NEUTRAL, FieldSetpoint.TRENCH_RIGHT_ALLIANCE)),
         CLIMB_LEFT(
@@ -98,25 +146,29 @@ public class BirdAuto {
         }
     }
 
-    private static Pose2d[] goalSetpointBuilder(FieldSetpoint... fieldSetpoints) {
-        return Stream.of(fieldSetpoints).map((fieldSetpoint) -> fieldSetpoint.setpoint).toArray(Pose2d[]::new);
+    private static Setpoint[] goalSetpointBuilder(FieldSetpoint... fieldSetpoints) {
+        return Stream.of(fieldSetpoints).map((fieldSetpoint) -> fieldSetpoint.setpoint).toArray(Setpoint[]::new);
     }
 
     @FunctionalInterface
     // for autofilling
     private interface SetpointGenerator {
-        Pose2d[] generate(Pose2d previousSetpoint);
+        Setpoint[] generate(Setpoint previousSetpoint);
     }
 
     private static record Goal(SetpointGenerator setpointGenerator) {
     }
 
-    private final Pose2d initialSetpoint;
-    private final ArrayList<Pose2d> setpoints;
+    private static record Setpoint(Pose2d pose, Rotation2d entryAngle, LinearVelocity targetVelocity,
+            boolean translationOnly) {
+    }
+
+    private final Setpoint initialSetpoint;
+    private final ArrayList<Setpoint> setpoints;
     private int pathProgress;
     private boolean pathFinished;
 
-    public BirdAuto(Pose2d initialSetpoint, ArrayList<Goal> goals) {
+    public BirdAuto(Setpoint initialSetpoint, ArrayList<Goal> goals) {
         this.initialSetpoint = initialSetpoint;
         this.setpoints = getSetpointsFromGoals(goals);
         reset();
@@ -135,10 +187,11 @@ public class BirdAuto {
             }
         }
         // follow
-        Pose2d setpoint = setpoints.get(pathProgress);
-        if (alliance == Alliance.Red) {
-            setpoint = PoseUtil.flipPoseToOtherAlliance(setpoint);
-        }
+        Setpoint setpoint = setpoints.get(pathProgress);
+        Pose2d pose = alliance == Alliance.Blue ? setpoint.pose : PoseUtil.flipPoseToOtherAlliance(setpoint.pose); 
+        Rotation2d entryAngle = setpoint.entryAngle;
+        LinearVelocity targetVelocity = setpoint.targetVelocity;
+        boolean translationOnly = setpoint.translationOnly;
     }
 
     public void reset() {
@@ -146,11 +199,11 @@ public class BirdAuto {
         pathFinished = false;
     }
 
-    private ArrayList<Pose2d> getSetpointsFromGoals(ArrayList<Goal> goals) {
-        ArrayList<Pose2d> setpoints = new ArrayList<>();
-        Pose2d lastSetpoint = null;
+    private ArrayList<Setpoint> getSetpointsFromGoals(ArrayList<Goal> goals) {
+        ArrayList<Setpoint> setpoints = new ArrayList<>();
+        Setpoint lastSetpoint = null;
         for (Goal goal : goals) {
-            Pose2d[] generatedSetpoints = goal.setpointGenerator
+            Setpoint[] generatedSetpoints = goal.setpointGenerator
                     .generate(lastSetpoint != null ? lastSetpoint : initialSetpoint);
             lastSetpoint = generatedSetpoints[generatedSetpoints.length - 1];
             Collections.addAll(setpoints, generatedSetpoints);

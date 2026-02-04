@@ -24,7 +24,7 @@ public final class PoseUtil {
         return new Pose2d(
                 FieldZone.FIELD.width.baseUnitMagnitude() - pose.getX(),
                 FieldZone.FIELD.height.baseUnitMagnitude() - pose.getY(),
-                pose.getRotation().plus(new Rotation2d(Math.PI))
+                pose.getRotation().plus(Rotation2d.k180deg)
         );
     }
 
