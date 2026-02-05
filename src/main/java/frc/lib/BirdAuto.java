@@ -6,11 +6,17 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import com.therekrab.autopilot.APTarget;
+import com.therekrab.autopilot.Autopilot;
+import com.therekrab.autopilot.Autopilot.APResult;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import frc.robot.generated.CommandSwerveDrivetrain;
 
 public class BirdAuto {
     // TODO: finish populating setpoints
@@ -111,44 +117,53 @@ public class BirdAuto {
         CLIMB_RIGHT;
     }
 
-    @FunctionalInterface
-    // for autofilling
-    private interface SetpointGenerator {
-        Setpoint[] generate(Setpoint previousSetpoint);
-    }
-
     private static record Setpoint(FieldGoal goal, Pose2d pose, Rotation2d entryAngle, LinearVelocity targetVelocity,
             boolean translationOnly) {
     }
 
+    private static record AlignmentResult(LinearVelocity vx, LinearVelocity vy, Rotation2d heading, boolean translationOnly) {
+    }
+
+    private static final AlignmentResult kIdleAlignmentResult = new AlignmentResult(MetersPerSecond.of(0.0), MetersPerSecond.of(0.0), Rotation2d.kZero, true);
+
+    private final Autopilot autopilot;
     private final Setpoint[] setpoints;
+
     private int pathProgress;
     private boolean pathFinished;
 
-    public BirdAuto(FieldGoal[] goals) {
+    public BirdAuto(Autopilot autopilot, FieldGoal[] goals) {
+        this.autopilot = autopilot;
         this.setpoints = getSetpointsFromGoals(goals);
         reset();
     }
 
-    public void followPath(Alliance alliance) {
+    public AlignmentResult calculateAlign(Pose2d currentPose, ChassisSpeeds drivetrainRelativeSpeeds, Alliance alliance) {
         if (pathFinished) {
-            return;
+            return kIdleAlignmentResult;
         }
         boolean reachedLastSetpoint = false;
         if (reachedLastSetpoint) {
             pathProgress++;
             if (pathProgress >= setpoints.length) {
                 pathFinished = true;
-                return;
+                return kIdleAlignmentResult;
             }
         }
-        // follow
         Setpoint setpoint = setpoints[pathProgress];
-        Pose2d pose = alliance == Alliance.Blue ? setpoint.pose
+        Pose2d desiredPose = alliance == Alliance.Blue ? setpoint.pose
                 : PoseUtil.flipPoseToOtherAlliance(setpoint.pose);
         Rotation2d entryAngle = setpoint.entryAngle;
         LinearVelocity targetVelocity = setpoint.targetVelocity;
         boolean translationOnly = setpoint.translationOnly;
+
+        APTarget target = new APTarget(desiredPose).withEntryAngle(entryAngle).withVelocity(targetVelocity.in(MetersPerSecond));
+        APResult result = autopilot.calculate(currentPose, drivetrainRelativeSpeeds, target);
+        return new AlignmentResult(result.vx(), result.vy(), result.targetAngle(), translationOnly);
+    }
+
+    public void followPath(CommandSwerveDrivetrain drivetrain, AlignmentResult alignment) {
+
     }
 
     public void reset() {
