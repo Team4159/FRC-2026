@@ -14,13 +14,18 @@ import choreo.auto.AutoFactory;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.Constants.FeederConstants.FeederState;
+import frc.robot.Constants.HopperConstants.HopperState;
 import frc.robot.commands.AutoAim;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.LEDs;
+import frc.robot.subsystems.Hopper;
+import frc.robot.subsystems.Shooter;
 
 public class RobotContainer {
     private double MaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -37,11 +42,22 @@ public class RobotContainer {
 
     private final Telemetry logger = new Telemetry(MaxSpeed);
 
+    //Controllers
     private final CommandXboxController primaryController = new CommandXboxController(0);
+    private final CommandXboxController secondary = new CommandXboxController(1);
+
+    //Primary Triggers
     private final Trigger AutoAimTrigger = primaryController.rightBumper();
 
+    //Secondary Triggers
+    private final Trigger feedHopper = secondary.x();
+    private final Trigger reverseFeederHopper = secondary.y();
+
+    //Subsystems
+    private final Shooter shooter = new Shooter();
+    private final Hopper hopper = new Hopper();
     private final LEDs leds = new LEDs();
-    private final Drivetrain drivetrain = new Drivetrain(primaryController, leds);
+    private final Drivetrain drivetrain = new Drivetrain(primaryController);
 
     /* Path follower */
     private final AutoFactory autoFactory;
@@ -49,6 +65,9 @@ public class RobotContainer {
     private final AutoChooser autoChooser = new AutoChooser();
 
     public RobotContainer() {
+        //set auto command for drivetrain
+        drivetrain.setAutonomousAutoAimCommand(new AutoAim(drivetrain, shooter, hopper, leds, true));
+        //Choreo Auto
         autoFactory = drivetrain.createAutoFactory();
         autoRoutines = new AutoRoutines(autoFactory, drivetrain);
 
@@ -72,7 +91,7 @@ public class RobotContainer {
             )
         );
 
-        AutoAimTrigger.whileTrue(new AutoAim(drivetrain, leds, false));
+        AutoAimTrigger.whileTrue(new AutoAim(drivetrain, shooter, hopper, leds, false));
         // Idle while the robot is disabled. This ensures the configured
         // neutral mode is applied to the drive motors while disabled.
         final var idle = new SwerveRequest.Idle();
@@ -104,6 +123,9 @@ public class RobotContainer {
         primaryController.leftBumper().onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
 
         drivetrain.registerTelemetry(logger::telemeterize);
+
+        feedHopper.onTrue(new ParallelCommandGroup(shooter.new ChangeState(FeederState.FEED), hopper.new ChangeState(HopperState.FEED)));
+        reverseFeederHopper.onTrue(new ParallelCommandGroup(shooter.new ChangeState(FeederState.UNSTUCKFEEDER), hopper.new ChangeState(HopperState.REVERSE)));
     }
 
     public Command getAutonomousCommand() {

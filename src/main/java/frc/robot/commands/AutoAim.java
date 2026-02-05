@@ -21,44 +21,54 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Constants;
 import frc.robot.Constants.FieldConstants;
+import frc.robot.Constants.FeederConstants.FeederState;
+import frc.robot.Constants.HopperConstants.HopperState;
 import frc.robot.Constants.ShooterConstants.AutoAimStatus;
 import frc.robot.lib.FuelSimulation;
 import frc.robot.subsystems.Drivetrain;
+import frc.robot.subsystems.Hopper;
 import frc.robot.subsystems.LEDs;
 import frc.robot.subsystems.LEDs.LEDStatusSupplier;
+import frc.robot.subsystems.Shooter;
 
 public class AutoAim extends Command {
-    private Drivetrain drivetrain;
-    private LEDs leds;
+    //Subsystems
+    private final Drivetrain drivetrain;
+    private final LEDs leds;
+    private final Shooter shooter;
+    private final Hopper hopper;
+
+    /** Field relative swerve request used to drive the drivetrain with primary controller if not in autonomous mode.*/
     private SwerveRequest.ApplyFieldSpeeds fieldCentric = new SwerveRequest.ApplyFieldSpeeds();
+    
+    /** target pose2d (the hub based on alliance) */
     private Pose2d target;
     
-    //suppliers for translation
-    //private DoubleSupplier robotXVelocitySupplier, robotYVelocitySupplier;
-    
+    /** Robot pose when adjusted for distance traveled at current velocity during fuel TOF. Used for shooting while moving calculations. */
     private Pose2d adjustedRobotPose;
 
-    private double lastShoot = MathSharedStore.getTimestamp();
-
-    //used to send the angle to the auto path controller for use in auto period
+    /** used to send the angle to the auto path controller for use in auto period */
     private double desiredOmega;
-    private boolean autonomousMode;
 
-    //sim testing to simulate loss of velocity
-    private double timeOffset;
+    /** if the robot is in autonomous mode it will not apply speeds or require the drivetrain so different drive logic (ex. Choreo) can be used. */
+    private boolean autonomousMode;
 
     /** stores auto aim statuses (SHOOT, WAITING, OUTOFRANGE) and corresponding LEDStatus*/
     private AutoAimStatus autoAimStatus;
     /** LED status supplier used for changing the LED status */
     private LEDStatusSupplier ledStatusSupplier;
 
-    // private final BooleanSupplier defaultFeedSupplier = () -> {
-    //     return 
-    //         (MathSharedStore.getTimestamp() - timeOffset) > 0.25 
-    //         && canShoot;};
-
+    /** The height difference between the robot and hub. Currently it is a constant (final) but may change later to allow for shooting while climbing.*/
     private final double height = Constants.FieldConstants.hubZ - Constants.ShooterConstants.shootHeight;
 
+    //advantagescope sim
+    /** for sim testing to simulate loss of velocity */
+    private double timeOffset;
+    
+    /** keeps track of when the last fuel was shot during sim */
+    private double lastShoot = MathSharedStore.getTimestamp();
+
+    /** used to push adjusted robot pose to advantagescope robot sim */
     private StructPublisher<Pose2d> adjustedRobotPosePublisher = NetworkTableInstance.getDefault()
     .getStructTopic("adjustedRobotPose", Pose2d.struct).publish();
 
@@ -67,9 +77,12 @@ public class AutoAim extends Command {
      * it will also no longer require the drivetrain because a different command will be running for the auto path control to work
      * otherwise this constructor without the doublesuppliers will set the robot translation velocities to 0, it is designed to be used for auto
      */
-    public AutoAim(Drivetrain drivetrain, LEDs leds, boolean autonomousMode){
+    public AutoAim(Drivetrain drivetrain, Shooter shooter, Hopper hopper, LEDs leds, boolean autonomousMode){
         this.drivetrain = drivetrain;
+        this.shooter = shooter;
+        this.hopper = hopper;
         this.leds = leds;
+
         autoAimStatus = AutoAimStatus.WAITING;
         ledStatusSupplier = () -> {return autoAimStatus.ledStatus;};
         this.autonomousMode = autonomousMode;
@@ -96,8 +109,6 @@ public class AutoAim extends Command {
         double robotRelativeBallVelocityHorizontal = getLaunchVelocity() * Math.cos(desiredHoodAngle);
         double robotRelativeBallVelocityVertical = getLaunchVelocity() * Math.sin(desiredHoodAngle);
 
-        //TODO implement shooter (hoodAngle, wheelVelocity) -> shooter setpoints
-
         for(int i = 0; i < 2; i++){
             //calculate TOF(used for calculating adjusted robot pose)
             double timeOfFlight = getTimeOfFlight(desiredHoodAngle, getLaunchVelocity());
@@ -117,6 +128,8 @@ public class AutoAim extends Command {
             adjustedRobotPosePublisher.set(adjustedRobotPose);
         }
 
+        if(MathSharedStore.getTimestamp() - timeOffset < 0.25) autoAimStatus = AutoAimStatus.WAITING;
+
         //calculate robot theta based on adjusted robot pose
         //this allows for shooting while moving
         double desiredRobotAngle = target.getTranslation().minus(adjustedRobotPose.getTranslation()).getAngle()
@@ -125,7 +138,13 @@ public class AutoAim extends Command {
         //rotate the swerve to the desired angle
         rotateSwerve(desiredRobotAngle);
 
-        if(MathSharedStore.getTimestamp() - timeOffset < 0.25) autoAimStatus = AutoAimStatus.WAITING;
+        //set the desired hood angle
+        shooter.adjustHood(desiredHoodAngle);
+
+        if(autoAimStatus == AutoAimStatus.SHOOT){
+            shooter.setFeederSpeed(FeederState.FEED.percentage);
+            hopper.setHopperSpeed(HopperState.FEED.percentage);
+        }
 
         //AdvantageScope fuel simulation
         //get the current robot yaw angle
@@ -148,13 +167,13 @@ public class AutoAim extends Command {
     }
 
     /** @param desiredAngle the desired field relative angle for the drivetrain
-     * This also translates the robot using the DoubleSuppliers as well
+     * This also translates the robot using the getInputX() and getInputY() functions in the Drivetrain class
      */
     private void rotateSwerve(double desiredAngle){
         //PID controller to calculate omega
         double omega = Constants.DrivetrainConstants.AutoAimRotationController.calculate(
                 drivetrain.getState().Pose.getRotation().getRadians(), desiredAngle, Timer.getFPGATimestamp());
-        //set ChassisSpeeds to the current values of the DoubleSuppliers for translation and omega for rotation
+        //set ChassisSpeeds
         ChassisSpeeds chassisSpeeds = new ChassisSpeeds(
                 drivetrain.getInputX(),
                 drivetrain.getInputY(),

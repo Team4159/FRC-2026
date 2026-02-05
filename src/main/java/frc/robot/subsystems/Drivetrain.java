@@ -14,23 +14,25 @@ import frc.robot.generated.TunerConstants;
 public class Drivetrain extends CommandSwerveDrivetrain {
     private final CommandXboxController controller;
 
-    //I hate this implementation but I am stupid
-    //false = regular auto path mode
-    //true = auto aim auto path mode
+    /** I hate this implementation but I am stupid
+    false = regular auto path mode
+    true = auto aim auto path mode*/
     private boolean autoPathAutoAimMode = false;
 
-    //for auto aim in auto
-    private AutoAim autoAimCommand ;
+    /** AutoAim command used during autonomous if autoPathAutoAimMode is true. Must use the setAutonomousAutoAimCommand() method for it to be used in auto.*/
+    private AutoAim autoAimCommand;
 
     /**
-     * 
      * @param controller a CommandXboxController used to control the robot in teleop
-     * @param leds LEDs subsystem for the autoaim command
      */
-    public Drivetrain(CommandXboxController controller, LEDs leds) {
+    public Drivetrain(CommandXboxController controller) {
         super(TunerConstants.DrivetrainConstants, TunerConstants.FrontLeft, TunerConstants.FrontRight, TunerConstants.BackLeft, TunerConstants.BackRight);
         this.controller = controller;
-        autoAimCommand = new AutoAim(this, leds, true);
+    }
+
+    /** @param autoAimCommand set the auto aim command that will be used during auto */
+    public void setAutonomousAutoAimCommand(AutoAim autoAimCommand){
+        this.autoAimCommand = autoAimCommand;
     }
 
     /** @return the field relative x input (-left joystick y input), from range -1 to 1. a deadzone and quadratic are applied for better control.*/
@@ -84,7 +86,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     /**
      * Follows the given field-centric path sample with PID.
      * 
-     * omega is calculated differently depending on the mode. if autoPathAutoAimMode is true it will use the omega from the auto aim command to aim at the hub, otherwise it will use target speeds and PID
+     * if autoPathAutoAimMode is true and the setAutonomousAutoAimCommand() method was used to set the autoAimCommand, it will use the omega from the auto aim command to aim at the hub
      *
      * @param sample Sample along the path to follow
      */
@@ -102,9 +104,9 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         );
 
         //omega is calculated differently depending on the mode
-        //if autoPathAutoAimMode is true it will use the omega from the auto aim command to aim at the hub
+        //if autoPathAutoAimMode is true and the setAutonomousAutoAimCommand() method was used to set the autoAimCommand, it will use the omega from the auto aim command to aim at the hub
         //otherwise it will use target speeds and PID
-        if(autoPathAutoAimMode){
+        if(autoPathAutoAimMode && autoAimCommand != null){
             //get the desired omega directly from the auto aim controller(instead of calculated speeds and PID)
             targetSpeeds.omegaRadiansPerSecond = autoAimCommand.getDesiredOmega();
         }
