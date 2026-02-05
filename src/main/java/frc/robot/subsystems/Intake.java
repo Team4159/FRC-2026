@@ -1,14 +1,14 @@
 package frc.robot.subsystems;
 
-import com.ctre.phoenix6.configs.Slot0Configs;
-import com.ctre.phoenix6.controls.PositionVoltage;
-import com.ctre.phoenix6.controls.VelocityVoltage;
-import com.ctre.phoenix6.hardware.TalonFX;
-
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants.IntakeConstants;
-import frc.robot.Constants.IntakeConstants.IntakeState;
+import com.ctre.phoenix6.configs.Slot0Configs;//                :::::::::       :::    ::       ::  ::::::::::  :::::::::
+import com.ctre.phoenix6.controls.PositionVoltage;//            ::      ::     :: ::   ::       ::      ::      ::      ::
+import com.ctre.phoenix6.controls.VelocityVoltage;//            ::       ::    :: ::    ::     ::       ::      ::       ::
+import com.ctre.phoenix6.hardware.TalonFX;//                    ::       ::   ::   ::   ::     ::       ;;      ::       ::
+//                                                              ::       ::   ::::::::   ::   ::        ::      ::       ::
+import edu.wpi.first.wpilibj2.command.Command;//                ::       ::  ::     ::   ::   ::        ::      ::       ::
+import edu.wpi.first.wpilibj2.command.SubsystemBase;//          ::       ::  ::     ::    :: ::         ::      ::       ::
+import frc.robot.Constants.IntakeConstants;//                   ::      ::  ::       ::   :: ::         ::      ::      ::  
+import frc.robot.Constants.IntakeConstants.IntakeState;//       :::::::::   ::       ::    :::      ::::::::::  :::::::::    
 
 public class Intake extends SubsystemBase {
     private final TalonFX locationMotor, spinMotor;
@@ -47,13 +47,13 @@ public class Intake extends SubsystemBase {
         locationMotor.setControl(intakePositionVoltage.withPosition(angleWithGearRatio)); //here too
     }
 
-    public class ChangeStates extends Command {
-        private IntakeState intakeState;
-
+    public class IntakeCommand extends Command {
+        private double angle;
+        private double speed;
         private double currentLocation;
 
-        public ChangeStates(IntakeState state) {
-            this.intakeState = state;
+        public IntakeCommand(double angle, double speed) {
+            this.angle = angle;
 
             currentLocation = 0;
 
@@ -62,12 +62,36 @@ public class Intake extends SubsystemBase {
 
         @Override
         public void initialize() {
-            if (intakeState.rotationLocation != currentLocation) { 
-                Intake.this.setLocation(intakeState.rotationLocation);
-            }
-            Intake.this.setSpinSpeed(intakeState.spinSpeed);
+            Intake.this.setLocation(angle);
 
-            currentLocation = intakeState.rotationLocation;
+
+            if (angle != currentLocation) { 
+                Intake.this.setLocation(angle);
+            }
+            Intake.this.setSpinSpeed(speed);
+
+            currentLocation = angle;
+        }
+
+        @Override
+        public void end(boolean interrupt) {
+            Intake.this.setLocation(0);
+            currentLocation = 0;
+        }
+    }
+
+    public class ChangeStates extends Command {
+        private IntakeState intakeState;
+
+        public ChangeStates(IntakeState state) {
+            this.intakeState = state;
+
+            addRequirements(Intake.this);
+        }
+
+        @Override
+        public void initialize() {
+            Intake.this.setSpinSpeed(intakeState.spinSpeed);
         }
 
         @Override
@@ -80,3 +104,6 @@ public class Intake extends SubsystemBase {
         }
     }
 }
+
+
+
