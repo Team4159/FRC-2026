@@ -1,7 +1,6 @@
 package frc.lib;
 
 import static edu.wpi.first.units.Units.Inches;
-import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 
 import java.util.ArrayList;
@@ -11,7 +10,6 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
-import edu.wpi.first.wpilibj.PS4Controller;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 
 public class BirdAuto {
@@ -123,13 +121,11 @@ public class BirdAuto {
             boolean translationOnly) {
     }
 
-    private final Setpoint initialSetpoint;
     private final Setpoint[] setpoints;
     private int pathProgress;
     private boolean pathFinished;
 
-    public BirdAuto(Setpoint initialSetpoint, FieldGoal[] goals) {
-        this.initialSetpoint = initialSetpoint;
+    public BirdAuto(FieldGoal[] goals) {
         this.setpoints = getSetpointsFromGoals(goals);
         reset();
     }
@@ -162,7 +158,7 @@ public class BirdAuto {
 
     private Setpoint[] getSetpointsFromGoals(FieldGoal[] goals) {
         ArrayList<Setpoint> setpoints = new ArrayList<>();
-        Setpoint lastSetpoint = initialSetpoint;
+        Setpoint lastSetpoint = null;
         for (FieldGoal goal : goals) {
             Setpoint[] nextSetpoints = setpointFactory(goal, lastSetpoint);
             if (nextSetpoints.length > 0) {
