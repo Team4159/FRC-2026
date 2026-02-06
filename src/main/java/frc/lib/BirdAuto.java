@@ -16,7 +16,6 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import frc.robot.generated.CommandSwerveDrivetrain;
 
 public class BirdAuto {
     // TODO: finish populating setpoints
@@ -121,7 +120,7 @@ public class BirdAuto {
             boolean translationOnly) {
     }
 
-    private static record AlignmentResult(LinearVelocity vx, LinearVelocity vy, Rotation2d heading, boolean translationOnly) {
+    private static record AlignmentResult(LinearVelocity velocityX, LinearVelocity velocityY, Rotation2d rotationHeading, boolean translationOnly) {
     }
 
     private static final AlignmentResult kIdleAlignmentResult = new AlignmentResult(MetersPerSecond.of(0.0), MetersPerSecond.of(0.0), Rotation2d.kZero, true);
@@ -160,10 +159,6 @@ public class BirdAuto {
         APTarget target = new APTarget(desiredPose).withEntryAngle(entryAngle).withVelocity(targetVelocity.in(MetersPerSecond));
         APResult result = autopilot.calculate(currentPose, drivetrainRelativeSpeeds, target);
         return new AlignmentResult(result.vx(), result.vy(), result.targetAngle(), translationOnly);
-    }
-
-    public void followPath(CommandSwerveDrivetrain drivetrain, AlignmentResult alignment) {
-
     }
 
     public void reset() {
