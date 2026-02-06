@@ -131,19 +131,19 @@ public class RobotContainer {
 
             @Override
             public void initialize() {
-                APConstraints constraints = new APConstraints().withJerk(5).withAcceleration(3);
+                APConstraints constraints = new APConstraints().withJerk(2).withAcceleration(5);
                 APProfile profile = new APProfile(constraints)
                     .withErrorXY(Centimeters.of(15.0))
                     .withErrorTheta(Degrees.of(1))
                     .withBeelineRadius(Centimeters.of(18.0));
                 Autopilot autopilot = new Autopilot(profile);
-                bird = new BirdAuto(autopilot, MetersPerSecond.of(maxSpeed), new FieldGoal[] {FieldGoal.ALLIANCE_MIDDLE, FieldGoal.TRENCH_LEFT, FieldGoal.TRENCH_RIGHT, FieldGoal.TRENCH_LEFT, FieldGoal.TRENCH_RIGHT, FieldGoal.OUTPOST, FieldGoal.CLIMB_RIGHT});
+                bird = new BirdAuto(autopilot, MetersPerSecond.of(maxSpeed), new FieldGoal[] {FieldGoal.TRENCH_RIGHT, FieldGoal.TRENCH_LEFT, FieldGoal.TRENCH_LEFT, FieldGoal.TRENCH_RIGHT, FieldGoal.OUTPOST, FieldGoal.CLIMB_RIGHT});
             }
 
             @Override
             public void execute() {
                 AlignmentResult result = bird.calculateAlignment(drivetrain.getState().Pose, drivetrain.getState().Speeds, Alliance.Blue);
-                drivetrain.setControl(path.withVelocityX(result.velocityX()).withVelocityY(result.velocityY()));
+                drivetrain.setControl(path.withVelocityX(result.velocityX()).withVelocityY(result.velocityY()).withTargetDirection(result.rotationHeading()));
             }
         };
     }

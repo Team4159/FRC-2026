@@ -1,5 +1,6 @@
 package frc.lib;
 
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 
@@ -30,10 +31,10 @@ public class BirdAuto {
         private static final Distance kAllianceMiddleX = Inches.of(100);
         private static final Distance kAllianceMiddleY = kFieldMiddleY;
         private static final Distance kTrenchX = Inches.of(182.11);
-        private static final Distance kTrenchAllianceX = kTrenchX.minus(Inches.of(30.0));
-        private static final Distance kTrenchNeutralX = kTrenchX.plus(Inches.of(30.0));
-        private static final Distance kTrenchLeftY = Inches.of(292.69);
-        private static final Distance kTrenchRightY = Inches.of(25);
+        private static final Distance kTrenchAllianceX = kTrenchX.minus(Inches.of(45.0));
+        private static final Distance kTrenchNeutralX = kTrenchX.plus(Inches.of(45.0));
+        private static final Distance kTrenchLeftY = Inches.of(292.69 - 3);
+        private static final Distance kTrenchRightY = Inches.of(25 + 3);
         private static final Distance kClimbX = Inches.of(58.0);
         private static final Distance kClimbEntryX = kClimbX.plus(Inches.of(24.0));
         private static final Distance kClimbLeftY = kFieldMiddleY.minus(Inches.of(2));
@@ -42,7 +43,7 @@ public class BirdAuto {
     }
 
     private static enum FieldSetpoint {
-        OUTPOST(),
+        OUTPOST(Inches.of(15), Inches.of(25), new Rotation2d()),
         DEPOT_LEFT(FieldMeasurementConstants.kDepotX, FieldMeasurementConstants.kDepotLeftY,
                 new Rotation2d()),
         DEPOT_RIGHT(FieldMeasurementConstants.kDepotX, FieldMeasurementConstants.kDepotRightY,
@@ -139,6 +140,7 @@ public class BirdAuto {
     private boolean pathFinished;
     private APTarget target;
 
+    // TODO: have separate profiles for cruise and alignment
     public BirdAuto(Autopilot autopilot, LinearVelocity cruiseSpeed, FieldGoal[] goals) {
         this.autopilot = autopilot;
         this.setpoints = getSetpointsFromGoals(goals, cruiseSpeed);
@@ -198,12 +200,13 @@ public class BirdAuto {
         return setpoints.toArray(Setpoint[]::new);
     }
 
+    // TODO: add dyanmic entry angles to smooth paths
     private Setpoint[] setpointFactory(FieldGoal goal, Optional<Setpoint> lastSetpoint, LinearVelocity cruiseSpeed) {
         return switch (goal) {
             case OUTPOST: {
                 yield new Setpoint[] {
                         new Setpoint(goal, FieldSetpoint.OUTPOST.pose,
-                                Optional.of(Rotation2d.k180deg),
+                                Optional.of(new Rotation2d(Degrees.of(180 + 30))),
                                 MetersPerSecond.of(0.0),
                                 false)
                 };
@@ -305,22 +308,22 @@ public class BirdAuto {
                 if (lastSetpoint.isPresent() && PoseUtil.isPoseInAllianceZone(Alliance.Blue, lastSetpoint.get().pose)) {
                     yield new Setpoint[] {
                             new Setpoint(goal, FieldSetpoint.TRENCH_LEFT_ALLIANCE.pose,
-                                    Optional.of(Rotation2d.kZero),
+                                    Optional.of(new Rotation2d(Degrees.of(30))),
                                     cruiseSpeed,
                                     true),
                             new Setpoint(goal, FieldSetpoint.TRENCH_LEFT_NEUTRAL.pose,
-                                    Optional.empty(),
+                                    Optional.of(new Rotation2d(Degrees.of(-30))),
                                     cruiseSpeed,
                                     true)
                     };
                 }
                 yield new Setpoint[] {
                         new Setpoint(goal, FieldSetpoint.TRENCH_LEFT_NEUTRAL.pose,
-                                Optional.of(Rotation2d.k180deg),
+                                Optional.of(new Rotation2d(Degrees.of(180 - 30))),
                                 cruiseSpeed,
                                 true),
                         new Setpoint(goal, FieldSetpoint.TRENCH_LEFT_ALLIANCE.pose,
-                                Optional.empty(),
+                                Optional.of(new Rotation2d(Degrees.of(180 + 30))),
                                 cruiseSpeed,
                                 true)
                 };
@@ -329,22 +332,22 @@ public class BirdAuto {
                 if (lastSetpoint.isPresent() && PoseUtil.isPoseInAllianceZone(Alliance.Blue, lastSetpoint.get().pose)) {
                     yield new Setpoint[] {
                             new Setpoint(goal, FieldSetpoint.TRENCH_RIGHT_ALLIANCE.pose,
-                                    Optional.of(Rotation2d.kZero),
+                                    Optional.of(new Rotation2d(Degrees.of(-30))),
                                     cruiseSpeed,
                                     true),
                             new Setpoint(goal, FieldSetpoint.TRENCH_RIGHT_NEUTRAL.pose,
-                                    Optional.empty(),
+                                    Optional.of(new Rotation2d(Degrees.of(30))),
                                     cruiseSpeed,
                                     true)
                     };
                 }
                 yield new Setpoint[] {
                         new Setpoint(goal, FieldSetpoint.TRENCH_RIGHT_NEUTRAL.pose,
-                                Optional.of(Rotation2d.k180deg),
+                                Optional.of(new Rotation2d(Degrees.of(180 + 30))),
                                 cruiseSpeed,
                                 true),
                         new Setpoint(goal, FieldSetpoint.TRENCH_RIGHT_ALLIANCE.pose,
-                                Optional.empty(),
+                                Optional.of(new Rotation2d(Degrees.of(180 - 30))),
                                 cruiseSpeed,
                                 true)
                 };
