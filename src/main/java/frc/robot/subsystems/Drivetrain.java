@@ -16,19 +16,19 @@ public class Drivetrain extends CommandSwerveDrivetrain {
 
     public double getInputX() {
         double rawInput = -controller.getLeftY();
-        double filteredInput = MathUtil.applyDeadband(OperatorConstants.kDriverControllerVelocityDeadband, rawInput);
+        double filteredInput = MathUtil.applyDeadband(rawInput, OperatorConstants.kDriverControllerVelocityDeadband);
         return Math.abs(Math.pow(filteredInput, 2)) * Math.signum(filteredInput);
     }
 
     public double getInputY() {
         double rawInput = -controller.getLeftX();
-        double filteredInput = MathUtil.applyDeadband(OperatorConstants.kDriverControllerVelocityDeadband, rawInput);
+        double filteredInput = MathUtil.applyDeadband(rawInput, OperatorConstants.kDriverControllerVelocityDeadband);
         return Math.abs(Math.pow(filteredInput, 2)) * Math.signum(filteredInput);
     }
 
     public double getInputRotation() {
         double rawInput = -controller.getRightX();
-        double filteredInput = MathUtil.applyDeadband(OperatorConstants.kDriverControllerRotationDeadband, rawInput);
+        double filteredInput = MathUtil.applyDeadband(rawInput, OperatorConstants.kDriverControllerRotationDeadband, rawInput);
         return Math.abs(Math.pow(filteredInput, 2)) * Math.signum(filteredInput);
     }
 }

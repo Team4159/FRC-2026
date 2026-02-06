@@ -7,36 +7,50 @@ package frc.robot;
 import static edu.wpi.first.units.Units.*;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
+import com.ctre.phoenix6.swerve.SwerveRequest.ForwardPerspectiveValue;
+import com.therekrab.autopilot.APConstraints;
+import com.therekrab.autopilot.APProfile;
+import com.therekrab.autopilot.Autopilot;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import choreo.auto.AutoChooser;
 import choreo.auto.AutoFactory;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+import frc.lib.BirdAuto;
+import frc.lib.BirdAuto.AlignmentResult;
+import frc.lib.BirdAuto.FieldGoal;
 import frc.robot.commands.AutoAim;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Drivetrain;
 
 public class RobotContainer {
-    private double MaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
-    private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
+    private double maxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
+    private double maxAngularSpeed = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
 
     /* Setting up bindings for necessary control of the swerve drive platform */
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-            .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
-            .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
+            .withDeadband(maxSpeed * 0.1).withRotationalDeadband(maxAngularSpeed * 0.1) // Add a 10% deadband
+            .withDriveRequestType(DriveRequestType.OpenLoopVoltage) // Use open-loop control for drive motors
+            .withForwardPerspective(ForwardPerspectiveValue.BlueAlliance);
+    private final SwerveRequest.FieldCentricFacingAngle path = new SwerveRequest.FieldCentricFacingAngle()
+            .withDeadband(0).withRotationalDeadband(0)
+            .withForwardPerspective(ForwardPerspectiveValue.BlueAlliance)
+            .withHeadingPID(4, 0, 0)
+            .withDriveRequestType(DriveRequestType.Velocity);
     private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
     private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
     private final SwerveRequest.RobotCentric forwardStraight = new SwerveRequest.RobotCentric()
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
-    private final Telemetry logger = new Telemetry(MaxSpeed);
+    private final Telemetry logger = new Telemetry(maxSpeed);
 
     private final CommandXboxController primaryController = new CommandXboxController(0);
     private final Trigger AutoAimTrigger = primaryController.rightBumper();
@@ -65,9 +79,9 @@ public class RobotContainer {
         drivetrain.setDefaultCommand(
             // Drivetrain will execute this command periodically
             drivetrain.applyRequest(() ->
-                drive.withVelocityX(drivetrain.getInputX() * MaxSpeed) // Drive forward with negative Y (forward)
-                    .withVelocityY(drivetrain.getInputY() * MaxSpeed) // Drive left with negative X (left)
-                    .withRotationalRate(drivetrain.getInputRotation() * MaxAngularRate) // Drive counterclockwise with negative X (left)
+                drive.withVelocityX(drivetrain.getInputX() * maxSpeed) // Drive forward with negative Y (forward)
+                    .withVelocityY(drivetrain.getInputY() * maxSpeed) // Drive left with negative X (left)
+                    .withRotationalRate(drivetrain.getInputRotation() * maxAngularSpeed) // Drive counterclockwise with negative X (left)
             )
         );
 
@@ -107,6 +121,30 @@ public class RobotContainer {
 
     public Command getAutonomousCommand() {
         /* Run the routine selected from the auto chooser */
-        return autoChooser.selectedCommand();
+        //return autoChooser.selectedCommand();
+        return new Command() {
+            BirdAuto bird;
+
+            {
+                addRequirements(drivetrain);
+            }
+
+            @Override
+            public void initialize() {
+                APConstraints constraints = new APConstraints().withJerk(5).withAcceleration(3);
+                APProfile profile = new APProfile(constraints)
+                    .withErrorXY(Centimeters.of(15.0))
+                    .withErrorTheta(Degrees.of(1))
+                    .withBeelineRadius(Centimeters.of(18.0));
+                Autopilot autopilot = new Autopilot(profile);
+                bird = new BirdAuto(autopilot, MetersPerSecond.of(maxSpeed), new FieldGoal[] {FieldGoal.ALLIANCE_MIDDLE, FieldGoal.TRENCH_LEFT, FieldGoal.TRENCH_RIGHT, FieldGoal.TRENCH_LEFT, FieldGoal.TRENCH_RIGHT, FieldGoal.OUTPOST, FieldGoal.CLIMB_RIGHT});
+            }
+
+            @Override
+            public void execute() {
+                AlignmentResult result = bird.calculateAlignment(drivetrain.getState().Pose, drivetrain.getState().Speeds, Alliance.Blue);
+                drivetrain.setControl(path.withVelocityX(result.velocityX()).withVelocityY(result.velocityY()));
+            }
+        };
     }
 }
