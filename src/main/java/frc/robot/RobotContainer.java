@@ -124,25 +124,29 @@ public class RobotContainer {
         //return autoChooser.selectedCommand();
         return new Command() {
             BirdAuto bird;
-
+            APConstraints constraints = new APConstraints().withJerk(2).withAcceleration(5);
+                APProfile cruiseProfile = new APProfile(constraints)
+                    .withErrorXY(Centimeters.of(15.0))
+                    .withErrorTheta(Degrees.of(1))
+                    .withBeelineRadius(Centimeters.of(18.0));
+                APProfile alignmentProfile = new APProfile(constraints)
+                    .withErrorXY(Centimeters.of(3.0))
+                    .withErrorTheta(Degrees.of(1))
+                    .withBeelineRadius(Centimeters.of(5.0));
+                Autopilot cruiseAutopilot = new Autopilot(cruiseProfile);
+                Autopilot alignmentAutopilot = new Autopilot(alignmentProfile);
             {
                 addRequirements(drivetrain);
             }
 
             @Override
             public void initialize() {
-                APConstraints constraints = new APConstraints().withJerk(2).withAcceleration(5);
-                APProfile profile = new APProfile(constraints)
-                    .withErrorXY(Centimeters.of(15.0))
-                    .withErrorTheta(Degrees.of(1))
-                    .withBeelineRadius(Centimeters.of(18.0));
-                Autopilot autopilot = new Autopilot(profile);
-                bird = new BirdAuto(autopilot, MetersPerSecond.of(maxSpeed), new FieldGoal[] {FieldGoal.TRENCH_RIGHT, FieldGoal.TRENCH_LEFT, FieldGoal.TRENCH_LEFT, FieldGoal.TRENCH_RIGHT, FieldGoal.OUTPOST, FieldGoal.CLIMB_RIGHT});
+                bird = new BirdAuto(new FieldGoal[] {FieldGoal.TRENCH_RIGHT, FieldGoal.TRENCH_LEFT, FieldGoal.TRENCH_LEFT, FieldGoal.TRENCH_RIGHT, FieldGoal.OUTPOST, FieldGoal.CLIMB_RIGHT});
             }
 
             @Override
             public void execute() {
-                AlignmentResult result = bird.calculateAlignment(drivetrain.getState().Pose, drivetrain.getState().Speeds, Alliance.Blue);
+                AlignmentResult result = bird.calculateAlignment(cruiseAutopilot, alignmentAutopilot, drivetrain.getState().Pose, drivetrain.getState().Speeds, Alliance.Blue, MetersPerSecond.of(maxSpeed));
                 drivetrain.setControl(path.withVelocityX(result.velocityX()).withVelocityY(result.velocityY()).withTargetDirection(result.rotationHeading()));
             }
         };

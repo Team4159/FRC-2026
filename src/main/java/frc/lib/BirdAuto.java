@@ -4,8 +4,6 @@ import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Optional;
 
 import com.therekrab.autopilot.APTarget;
@@ -132,35 +130,56 @@ public class BirdAuto {
 
     private static final AlignmentResult kIdleAlignmentResult = new AlignmentResult(MetersPerSecond.of(0.0),
             MetersPerSecond.of(0.0), Rotation2d.kZero, true);
-
-    private final Autopilot autopilot;
-    private final Setpoint[] setpoints;
-
-    private int pathProgress;
+    private static final Setpoint defaultSetpoint = new Setpoint(FieldGoal.NONE, new Pose2d(), Optional.empty(),
+            MetersPerSecond.of(0.0), false);
+    
     private boolean pathFinished;
     private APTarget target;
-
+    private FieldGoal[] goals;
+    private int goalProgress;
+    private Setpoint[] setpoints;
+    private int setpointProgress;
+    
     // TODO: have separate profiles for cruise and alignment
-    public BirdAuto(Autopilot autopilot, LinearVelocity cruiseSpeed, FieldGoal[] goals) {
-        this.autopilot = autopilot;
-        this.setpoints = getSetpointsFromGoals(goals, cruiseSpeed);
+    public BirdAuto(FieldGoal[] goals) {
+        this.goals = goals;
         reset();
     }
 
-    public AlignmentResult calculateAlignment(Pose2d currentPose, ChassisSpeeds drivetrainRelativeSpeeds,
-            Alliance alliance) {
+    public AlignmentResult calculateAlignment(
+        Autopilot cruiseAutopilot, 
+        Autopilot alignmentAutopilot,
+        Pose2d currentPose, 
+        ChassisSpeeds drivetrainRelativeSpeeds,
+        Alliance alliance, 
+        LinearVelocity cruiseSpeed) {
         if (pathFinished) {
             return kIdleAlignmentResult;
         }
+        Autopilot autopilot = target == null ? alignmentAutopilot : (target.getVelocity() == 0 ? alignmentAutopilot : cruiseAutopilot);
         boolean reachedSetpoint = target == null ? true : autopilot.atTarget(currentPose, target);
         boolean translationOnly = false;
         if (reachedSetpoint) {
-             if (pathProgress >= setpoints.length) {
+            setpointProgress++;
+            boolean newGoal = false;
+            if (setpointProgress >= setpoints.length) {
+                newGoal = true;
+                goalProgress++;
+            }
+            if (target == null) {
+                newGoal = true;
+                goalProgress = 0;
+            }
+            if (goalProgress >= goals.length) {
                 pathFinished = true;
                 return kIdleAlignmentResult;
             }
+            if (newGoal) {
+                setpointProgress = 0;
+                setpoints = setpointFactory(goals[goalProgress], Optional.ofNullable(setpoints.length == 0 ? null : setpoints[setpoints.length - 1]), cruiseSpeed);
+            }
 
-            Setpoint setpoint = setpoints[pathProgress];
+            Setpoint setpoint = setpoints[setpointProgress];
             Pose2d desiredPose = alliance == Alliance.Blue ? setpoint.pose
                     : PoseUtil.flipPoseToOtherAlliance(setpoint.pose);
             Optional<Rotation2d> entryAngle = setpoint.entryAngle;
@@ -175,29 +194,16 @@ public class BirdAuto {
             } else {
                 target = target.withoutEntryAngle();
             }
-
-            pathProgress++;
         }
         APResult result = autopilot.calculate(currentPose, drivetrainRelativeSpeeds, target);
         return new AlignmentResult(result.vx(), result.vy(), result.targetAngle(), translationOnly);
     }
 
     public void reset() {
-        pathProgress = 0;
+        goalProgress = -1;
         pathFinished = false;
-    }
-
-    private Setpoint[] getSetpointsFromGoals(FieldGoal[] goals, LinearVelocity cruiseSpeed) {
-        ArrayList<Setpoint> setpoints = new ArrayList<>();
-        Setpoint lastSetpoint = new Setpoint(FieldGoal.NONE, FieldSetpoint.ALLIANCE_MIDDLE.pose, Optional.empty(), MetersPerSecond.of(0.0), pathFinished);
-        for (FieldGoal goal : goals) {
-            Setpoint[] nextSetpoints = setpointFactory(goal, Optional.ofNullable(lastSetpoint), cruiseSpeed);
-            if (nextSetpoints.length > 0) {
-                lastSetpoint = nextSetpoints[nextSetpoints.length - 1];
-            }
-            Collections.addAll(setpoints, nextSetpoints);
-        }
-        return setpoints.toArray(Setpoint[]::new);
+        setpointProgress = -1;
+        setpoints = new Setpoint[] {};
     }
 
     // TODO: add dyanmic entry angles to smooth paths
@@ -305,7 +311,7 @@ public class BirdAuto {
                 };
             }
             case TRENCH_LEFT: {
-                if (lastSetpoint.isPresent() && PoseUtil.isPoseInAllianceZone(Alliance.Blue, lastSetpoint.get().pose)) {
+                if (!lastSetpoint.isPresent() || PoseUtil.isPoseInAllianceZone(Alliance.Blue, lastSetpoint.get().pose)) {
                     yield new Setpoint[] {
                             new Setpoint(goal, FieldSetpoint.TRENCH_LEFT_ALLIANCE.pose,
                                     Optional.of(new Rotation2d(Degrees.of(30))),
@@ -329,7 +335,7 @@ public class BirdAuto {
                 };
             }
             case TRENCH_RIGHT: {
-                if (lastSetpoint.isPresent() && PoseUtil.isPoseInAllianceZone(Alliance.Blue, lastSetpoint.get().pose)) {
+                if (!lastSetpoint.isPresent() || PoseUtil.isPoseInAllianceZone(Alliance.Blue, lastSetpoint.get().pose)) {
                     yield new Setpoint[] {
                             new Setpoint(goal, FieldSetpoint.TRENCH_RIGHT_ALLIANCE.pose,
                                     Optional.of(new Rotation2d(Degrees.of(-30))),
