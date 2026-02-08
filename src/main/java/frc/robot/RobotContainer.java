@@ -17,6 +17,7 @@ import choreo.auto.AutoChooser;
 import choreo.auto.AutoFactory;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -32,18 +33,25 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Drivetrain;
 
 public class RobotContainer {
-    private double maxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
-    private double maxAngularSpeed = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
+    private double maxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top
+                                                                                        // speed
+    private double maxAngularSpeed = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second
+                                                                                       // max angular velocity
 
     /* Setting up bindings for necessary control of the swerve drive platform */
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
             .withDeadband(maxSpeed * 0.1).withRotationalDeadband(maxAngularSpeed * 0.1) // Add a 10% deadband
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage) // Use open-loop control for drive motors
             .withForwardPerspective(ForwardPerspectiveValue.BlueAlliance);
-    private final SwerveRequest.FieldCentricFacingAngle path = new SwerveRequest.FieldCentricFacingAngle()
+
+    private final SwerveRequest.FieldCentric cruise = new SwerveRequest.FieldCentric()
             .withDeadband(0).withRotationalDeadband(0)
             .withForwardPerspective(ForwardPerspectiveValue.BlueAlliance)
-            .withHeadingPID(4, 0, 0)
+            .withDriveRequestType(DriveRequestType.Velocity);
+    private final SwerveRequest.FieldCentricFacingAngle align = new SwerveRequest.FieldCentricFacingAngle()
+            .withDeadband(0).withRotationalDeadband(0)
+            .withForwardPerspective(ForwardPerspectiveValue.BlueAlliance)
+            .withHeadingPID(15, 0, 0)
             .withDriveRequestType(DriveRequestType.Velocity);
     private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
     private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
@@ -77,13 +85,14 @@ public class RobotContainer {
         // Note that X is defined as forward according to WPILib convention,
         // and Y is defined as to the left according to WPILib convention.
         drivetrain.setDefaultCommand(
-            // Drivetrain will execute this command periodically
-            drivetrain.applyRequest(() ->
-                drive.withVelocityX(drivetrain.getInputX() * maxSpeed) // Drive forward with negative Y (forward)
-                    .withVelocityY(drivetrain.getInputY() * maxSpeed) // Drive left with negative X (left)
-                    .withRotationalRate(drivetrain.getInputRotation() * maxAngularSpeed) // Drive counterclockwise with negative X (left)
-            )
-        );
+                // Drivetrain will execute this command periodically
+                drivetrain.applyRequest(() -> drive.withVelocityX(drivetrain.getInputX() * maxSpeed) // Drive forward
+                                                                                                     // with negative Y
+                                                                                                     // (forward)
+                        .withVelocityY(drivetrain.getInputY() * maxSpeed) // Drive left with negative X (left)
+                        .withRotationalRate(drivetrain.getInputRotation() * maxAngularSpeed) // Drive counterclockwise
+                                                                                             // with negative X (left)
+                ));
 
         AutoAimTrigger.whileTrue(new AutoAim(drivetrain));
 
@@ -91,20 +100,16 @@ public class RobotContainer {
         // neutral mode is applied to the drive motors while disabled.
         final var idle = new SwerveRequest.Idle();
         RobotModeTriggers.disabled().whileTrue(
-            drivetrain.applyRequest(() -> idle).ignoringDisable(true)
-        );
+                drivetrain.applyRequest(() -> idle).ignoringDisable(true));
 
         primaryController.a().whileTrue(drivetrain.applyRequest(() -> brake));
-        primaryController.b().whileTrue(drivetrain.applyRequest(() ->
-            point.withModuleDirection(new Rotation2d(-primaryController.getLeftY(), -primaryController.getLeftX()))
-        ));
+        primaryController.b().whileTrue(drivetrain.applyRequest(() -> point
+                .withModuleDirection(new Rotation2d(-primaryController.getLeftY(), -primaryController.getLeftX()))));
 
-        primaryController.povUp().whileTrue(drivetrain.applyRequest(() ->
-            forwardStraight.withVelocityX(0.5).withVelocityY(0))
-        );
-        primaryController.povDown().whileTrue(drivetrain.applyRequest(() ->
-            forwardStraight.withVelocityX(-0.5).withVelocityY(0))
-        );
+        primaryController.povUp()
+                .whileTrue(drivetrain.applyRequest(() -> forwardStraight.withVelocityX(0.5).withVelocityY(0)));
+        primaryController.povDown()
+                .whileTrue(drivetrain.applyRequest(() -> forwardStraight.withVelocityX(-0.5).withVelocityY(0)));
 
         // Run SysId routines when holding back/start and X/Y.
         // Note that each routine should be run exactly once in a single log.
@@ -121,33 +126,47 @@ public class RobotContainer {
 
     public Command getAutonomousCommand() {
         /* Run the routine selected from the auto chooser */
-        //return autoChooser.selectedCommand();
+        // return autoChooser.selectedCommand();
         return new Command() {
             BirdAuto bird;
             APConstraints constraints = new APConstraints().withJerk(2).withAcceleration(5);
-                APProfile cruiseProfile = new APProfile(constraints)
+            APProfile cruiseProfile = new APProfile(constraints)
                     .withErrorXY(Centimeters.of(15.0))
-                    .withErrorTheta(Degrees.of(1))
+                    .withErrorTheta(Degrees.of(360))
                     .withBeelineRadius(Centimeters.of(18.0));
-                APProfile alignmentProfile = new APProfile(constraints)
+            APProfile alignmentProfile = new APProfile(constraints)
                     .withErrorXY(Centimeters.of(3.0))
-                    .withErrorTheta(Degrees.of(1))
+                    .withErrorTheta(Degrees.of(5))
                     .withBeelineRadius(Centimeters.of(5.0));
-                Autopilot cruiseAutopilot = new Autopilot(cruiseProfile);
-                Autopilot alignmentAutopilot = new Autopilot(alignmentProfile);
+            Autopilot cruiseAutopilot = new Autopilot(cruiseProfile);
+            Autopilot alignmentAutopilot = new Autopilot(alignmentProfile);
             {
                 addRequirements(drivetrain);
             }
 
             @Override
             public void initialize() {
-                bird = new BirdAuto(new FieldGoal[] {FieldGoal.TRENCH_RIGHT, FieldGoal.TRENCH_LEFT, FieldGoal.TRENCH_LEFT, FieldGoal.TRENCH_RIGHT, FieldGoal.OUTPOST, FieldGoal.CLIMB_RIGHT});
+                bird = new BirdAuto(new FieldGoal[] {
+                        FieldGoal.OUTPOST,
+                        FieldGoal.TRENCH_RIGHT,
+                        FieldGoal.TRENCH_LEFT,
+                        FieldGoal.DEPOT_RIGHT,
+                        FieldGoal.DEPOT_LEFT,
+                        FieldGoal.CLIMB_MIDDLE
+                });
             }
 
             @Override
             public void execute() {
-                AlignmentResult result = bird.calculateAlignment(cruiseAutopilot, alignmentAutopilot, drivetrain.getState().Pose, drivetrain.getState().Speeds, Alliance.Blue, MetersPerSecond.of(maxSpeed));
-                drivetrain.setControl(path.withVelocityX(result.velocityX()).withVelocityY(result.velocityY()).withTargetDirection(result.rotationHeading()));
+                AlignmentResult result = bird.calculateAlignment(cruiseAutopilot, alignmentAutopilot,
+                        drivetrain.getState().Pose, drivetrain.getState().Speeds, DriverStation.getAlliance().orElse(Alliance.Blue),
+                        MetersPerSecond.of(maxSpeed));
+                if (result.translationOnly()) {
+                    drivetrain.setControl(cruise.withVelocityX(result.velocityX()).withVelocityY(result.velocityY()));
+                } else {
+                    drivetrain.setControl(align.withVelocityX(result.velocityX()).withVelocityY(result.velocityY())
+                        .withTargetDirection(result.rotationHeading()));
+                }
             }
         };
     }
