@@ -1,9 +1,8 @@
 package frc.robot.subsystems;
 
-import com.ctre.phoenix6.configs.Slot0Configs;
-import com.ctre.phoenix6.controls.PositionVoltage;
-import com.ctre.phoenix6.controls.VelocityVoltage;
-import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.hardware.CANcoder;
+import com.revrobotics.spark.SparkFlex;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -11,72 +10,57 @@ import frc.robot.Constants;
 import frc.robot.Constants.IntakeConstants.IntakeState;
 
 public class Intake extends SubsystemBase {
-    private final TalonFX locationMotor;
-    private final TalonFX spinMotor;
-
-    private final PositionVoltage intakePositionVoltage;
-    private final VelocityVoltage intakeVelocityVoltage; 
+    private final SparkFlex pivotMotor;
+    private final SparkFlex spinMotor;
+    private final CANcoder encoder;
+    private double targetAngle;
 
     public Intake() {
-        Slot0Configs locationConfig = new Slot0Configs();
-
-        locationConfig.kP = Constants.IntakeConstants.kP;
-        locationConfig.kI = Constants.IntakeConstants.kI;
-        locationConfig.kD = Constants.IntakeConstants.kD;
-
-        Slot0Configs spinConfig = new Slot0Configs();
-
-        spinConfig.kP = Constants.IntakeConstants.kP;
-        spinConfig.kI = Constants.IntakeConstants.kI;
-        spinConfig.kD = Constants.IntakeConstants.kD;  
-
-        locationMotor = new TalonFX(Constants.IntakeConstants.kIntakeLocationId);
-        spinMotor = new TalonFX(Constants.IntakeConstants.kIntakeSpinId);
-
-        locationMotor.getConfigurator().apply(locationConfig);
-        spinMotor.getConfigurator().apply(spinConfig);
-
-        intakePositionVoltage = new PositionVoltage(0);
-        intakeVelocityVoltage = new VelocityVoltage(0);
+        pivotMotor = new SparkFlex(Constants.IntakeConstants.kIntakePivotID, MotorType.kBrushless);
+        spinMotor = new SparkFlex(Constants.IntakeConstants.kIntakeSpinID, MotorType.kBrushless);
+        encoder = new CANcoder(Constants.IntakeConstants.kEncoderID);
+        targetAngle = IntakeState.UP_OFF.angle;
     }
 
     public void setSpinSpeed(double speed) {
-        spinMotor.setControl(intakeVelocityVoltage.withVelocity(speed * Constants.IntakeConstants.kSpinGearRatio)); //I don't think I am properly accounting for gear ratio
+        spinMotor.set(speed);
     }
 
     public void setLocation(double angle) {
-        locationMotor.setControl(intakePositionVoltage.withPosition(angle * Constants.IntakeConstants.kLocationGearRatio)); //here too
+        targetAngle = angle;
+    }
+
+    @Override
+    public void periodic(){
+        //range [-0.5, 0.5)
+        var currentAngle = encoder.getAbsolutePosition().getValueAsDouble();
+
+        //convert to [0, 1)
+        if(currentAngle < 0) currentAngle++;
+
+        System.out.println("currentAngle: " + currentAngle);
+
+        //PID
+        double pidOutput = -Constants.IntakeConstants.intakePIDController.calculate(currentAngle, targetAngle);
+        pivotMotor.set(pidOutput);
     }
 
     public class ChangeStates extends Command {
         private IntakeState state;
 
-        private double currentLocation;
-
         public ChangeStates(IntakeState state) {
             this.state = state;
-
-            currentLocation = 0;
-
             addRequirements(Intake.this);
         }
 
         @Override
         public void initialize() {
-            if (state.rotationLocation != currentLocation) { 
-                Intake.this.setLocation(state.rotationLocation);
-            }
-            Intake.this.setSpinSpeed(state.spinSpeed);
-
-            currentLocation = state.rotationLocation;
+            Intake.this.setSpinSpeed(state.spinPercentage);
+            Intake.this.setLocation(state.angle);
         }
 
         @Override
         public void end(boolean interrupt) {
-            if (interrupt) {
-                Intake.this.setLocation(0);
-            }
-            
             Intake.this.setSpinSpeed(0);
         }
     }

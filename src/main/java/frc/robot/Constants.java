@@ -12,6 +12,7 @@ import java.util.Map;
 
 import com.ctre.phoenix6.swerve.utility.PhoenixPIDController;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -81,25 +82,31 @@ public final class Constants {
   }
 
   public static class IntakeConstants{
+    public static final double kP = 2;
     public static final double kI = 0;
     public static final double kD = 0;
-    public static final double kP = 0.01;
 
-    public static final int kIntakeLocationId = 9; //I don't know the port, change once known.
-    public static final int kIntakeSpinId = 10;
+    public static final int kIntakePivotID = 1;
+    public static final int kIntakeSpinID = 2;
+    public static final int kEncoderID = 5;
 
     public static final double kLocationGearRatio = 1.0 / 2.0;
     public static final double kSpinGearRatio = 1.0 / 5.0;
 
+    public static final PIDController intakePIDController = new PIDController(kP, kI, kD);
+
     public static enum IntakeState {
-      DOWN_ON(0.25, 0.5), DOWN_OFF(0.25, 0), UP_OFF(0, 0), STOP(0, 0); 
+      DOWN_ON(0.77, 1),
+      DOWN_OFF(0.77, 0),
+      UP_OFF(0.36, 0),
+      OWN_OUTTAKE(0.77, -1); 
 
-      public final double rotationLocation;
-      public final double spinSpeed;
+      public final double angle;
+      public final double spinPercentage;
 
-      private IntakeState(double location, double speed){
-        rotationLocation = location;
-        spinSpeed = speed;
+      private IntakeState(double angle, double spinPercentage){
+        this.angle = angle;
+        this.spinPercentage = spinPercentage;
       }
     }
   }

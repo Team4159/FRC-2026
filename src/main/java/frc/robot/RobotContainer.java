@@ -20,11 +20,13 @@ import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.FeederConstants.FeederState;
 import frc.robot.Constants.HopperConstants.HopperState;
+import frc.robot.Constants.IntakeConstants.IntakeState;
 import frc.robot.commands.AutoAim;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.LEDs;
 import frc.robot.subsystems.Hopper;
+import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
 
 public class RobotContainer {
@@ -53,9 +55,14 @@ public class RobotContainer {
     private final Trigger feedHopper = secondary.x();
     private final Trigger reverseFeederHopper = secondary.y();
 
+    private final Trigger intakeTrigger = secondary.leftBumper();
+    private final Trigger outtakeTrigger = secondary.leftTrigger(0.1);
+    private final Trigger stowTrigger = secondary.b();
+
     //Subsystems
     private final Shooter shooter = new Shooter();
     private final Hopper hopper = new Hopper();
+    private final Intake intake = new Intake();
     private final LEDs leds = new LEDs();
     private final Drivetrain drivetrain = new Drivetrain(primaryController);
 
@@ -126,6 +133,10 @@ public class RobotContainer {
 
         feedHopper.onTrue(new ParallelCommandGroup(shooter.new ChangeState(FeederState.FEED), hopper.new ChangeState(HopperState.FEED)));
         reverseFeederHopper.onTrue(new ParallelCommandGroup(shooter.new ChangeState(FeederState.UNSTUCKFEEDER), hopper.new ChangeState(HopperState.REVERSE)));
+
+        intakeTrigger.whileTrue(intake.new ChangeStates(IntakeState.DOWN_ON));
+        outtakeTrigger.whileTrue(intake.new ChangeStates(IntakeState.DOWN_OFF));
+        stowTrigger.whileTrue(intake.new ChangeStates(IntakeState.UP_OFF));
     }
 
     public Command getAutonomousCommand() {
