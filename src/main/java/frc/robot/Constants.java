@@ -26,7 +26,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 public final class Constants {
   public static class OperatorConstants {
     public static final int kDriverControllerPort = 0;
-    public static final double kDriverControllerVelocityDeadband = 0.1;
+    public static final double kDriverControllerTranslationDeadband = 0.1;
     public static final double kDriverControllerRotationDeadband = 0.1;
   }
 
