@@ -38,8 +38,8 @@ public class BirdAuto {
         private static final Distance kDepotX = kRobotBumperSize.div(2.0);
         private static final Distance kDepotY = kFieldMiddleY.plus(Inches.of(75.93));
         private static final Distance kDepotEntryX = kDepotX.plus(Inches.of(30.0));
-        private static final Distance kDepotLeftY = kDepotY.minus(Inches.of(40.0));
-        private static final Distance kDepotRightY = kDepotY.plus(Inches.of(40.0));
+        private static final Distance kDepotLeftY = kDepotY.plus(Inches.of(40.0));
+        private static final Distance kDepotRightY = kDepotY.minus(Inches.of(40.0));
 
         private static final Distance kTrenchX = Inches.of(182.11);
         private static final Distance kTrenchAllianceX = kTrenchX.minus(Inches.of(45.0));
@@ -49,9 +49,9 @@ public class BirdAuto {
 
         private static final Distance kClimbX = kTowerX.plus(kRobotChassisSize.div(2.0));
         private static final Distance kClimbEntryX = kClimbX.plus(Inches.of(25.0));
-        private static final Distance kClimbLeftY = kFieldMiddleY.minus(Inches.of(2));
+        private static final Distance kClimbLeftY = kFieldMiddleY.plus(Inches.of(2));
         private static final Distance kClimbMiddleY = kFieldMiddleY;
-        private static final Distance kClimbRightY = kFieldMiddleY.plus(Inches.of(2));
+        private static final Distance kClimbRightY = kFieldMiddleY.minus(Inches.of(2));
     }
 
     private static enum FieldSetpoint {
@@ -208,7 +208,7 @@ public class BirdAuto {
                     .withVelocity(targetVelocity.in(MetersPerSecond));
             if (entryAngle.isPresent()) {
                 target = target.withEntryAngle(alliance == Alliance.Blue ? entryAngle.get()
-                    : entryAngle.get().rotateBy(Rotation2d.k180deg));
+                        : entryAngle.get().rotateBy(Rotation2d.k180deg));
             } else {
                 target = target.withoutEntryAngle();
             }
@@ -242,7 +242,9 @@ public class BirdAuto {
             case DEPOT_LEFT: {
                 if (lastSetpoint.goal == FieldGoal.DEPOT_RIGHT) {
                     yield new Setpoint[] {
-                            new Setpoint(goal, FieldSetpoint.DEPOT_LEFT.pose.rotateAround(FieldSetpoint.DEPOT_LEFT.pose.getTranslation(), Rotation2d.k180deg),
+                            new Setpoint(goal,
+                                    FieldSetpoint.DEPOT_LEFT.pose.rotateAround(
+                                            FieldSetpoint.DEPOT_LEFT.pose.getTranslation(), Rotation2d.k180deg),
                                     Optional.empty(),
                                     MetersPerSecond.of(0.0),
                                     false)
@@ -262,7 +264,9 @@ public class BirdAuto {
             case DEPOT_RIGHT: {
                 if (lastSetpoint.goal == FieldGoal.DEPOT_RIGHT) {
                     yield new Setpoint[] {
-                            new Setpoint(goal, FieldSetpoint.DEPOT_RIGHT.pose.rotateAround(FieldSetpoint.DEPOT_RIGHT.pose.getTranslation(), Rotation2d.k180deg),
+                            new Setpoint(goal,
+                                    FieldSetpoint.DEPOT_RIGHT.pose.rotateAround(
+                                            FieldSetpoint.DEPOT_RIGHT.pose.getTranslation(), Rotation2d.k180deg),
                                     Optional.empty(),
                                     MetersPerSecond.of(0.0),
                                     false)
