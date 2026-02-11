@@ -22,7 +22,7 @@ import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 
 public class BirdAuto {
-    private static class FieldMeasurements {
+    private static class FieldDimensions {
         private static final Distance kRobotBumperSize = Inches.of(32.0);
         private static final Distance kRobotChassisSize = Inches.of(32.0);
 
@@ -33,10 +33,12 @@ public class BirdAuto {
         private static final Distance kOutpostWidth = Inches.of(49.84);
 
         private static final Distance kAllianceMiddleY = kFieldMiddleY;
-        private static final Distance kAllianceMiddleX = Inches.of(100);
+        private static final Distance kAllianceMiddleX = Inches.of(100.0);
+
+        private static final Distance kNeutralIntakeY = Inches.of(290.0);
 
         private static final Distance kDepotX = kRobotBumperSize.div(2.0);
-        private static final Distance kDepotY = kFieldMiddleY.plus(Inches.of(75.93));
+        private static final Distance kDepotY = kFieldHeight.minus(Inches.of(82.84));
         private static final Distance kDepotEntryX = kDepotX.plus(Inches.of(30.0));
         private static final Distance kDepotLeftY = kDepotY.plus(Inches.of(40.0));
         private static final Distance kDepotRightY = kDepotY.minus(Inches.of(40.0));
@@ -49,60 +51,74 @@ public class BirdAuto {
 
         private static final Distance kClimbX = kTowerX.plus(kRobotChassisSize.div(2.0));
         private static final Distance kClimbEntryX = kClimbX.plus(Inches.of(25.0));
-        private static final Distance kClimbLeftY = kFieldMiddleY.plus(Inches.of(2));
-        private static final Distance kClimbMiddleY = kFieldMiddleY;
-        private static final Distance kClimbRightY = kFieldMiddleY.minus(Inches.of(2));
+        private static final Distance kClimbMiddleY = Inches.of(147.47);
+        private static final Distance kClimbLeftY = kClimbMiddleY.plus(Inches.of(2));
+        private static final Distance kClimbRightY = kClimbMiddleY.minus(Inches.of(2));
+    }
+
+    {
+        System.out.println(FieldDimensions.kTrenchAllianceX.magnitude());
+        System.out.println(FieldDimensions.kTrenchNeutralX.magnitude());
+        System.out.println(FieldDimensions.kTrenchLeftY.magnitude());
+        System.out.println(FieldDimensions.kTrenchRightY.magnitude());
+        System.out.println(FieldDimensions.kClimbRightY.magnitude());
     }
 
     private static enum FieldSetpoint {
-        OUTPOST(FieldMeasurements.kRobotBumperSize.div(2.0), FieldMeasurements.kOutpostWidth.div(2.0),
-                new Rotation2d()),
-        DEPOT_LEFT(FieldMeasurements.kDepotX, FieldMeasurements.kDepotLeftY,
+        OUTPOST(FieldDimensions.kRobotBumperSize.div(2.0), FieldDimensions.kOutpostWidth.div(2.0),
+                Rotation2d.kZero),
+        DEPOT_LEFT(FieldDimensions.kDepotX, FieldDimensions.kDepotLeftY,
                 Rotation2d.kCW_90deg),
-        DEPOT_RIGHT(FieldMeasurements.kDepotX, FieldMeasurements.kDepotRightY,
+        DEPOT_RIGHT(FieldDimensions.kDepotX, FieldDimensions.kDepotRightY,
                 Rotation2d.kCCW_90deg),
-        DEPOT_LEFT_ENTRY(FieldMeasurements.kDepotEntryX,
-                FieldMeasurements.kDepotLeftY,
+        DEPOT_LEFT_ENTRY(FieldDimensions.kDepotEntryX,
+                FieldDimensions.kDepotLeftY,
                 Rotation2d.kCW_90deg),
-        DEPOT_RIGHT_ENTRY(FieldMeasurements.kDepotEntryX,
-                FieldMeasurements.kDepotRightY,
+        DEPOT_RIGHT_ENTRY(FieldDimensions.kDepotEntryX,
+                FieldDimensions.kDepotRightY,
                 Rotation2d.kCCW_90deg),
-        ALLIANCE_LEFT(),
-        ALLIANCE_MIDDLE(FieldMeasurements.kAllianceMiddleX, FieldMeasurements.kAllianceMiddleY,
+        ALLIANCE_LEFT(FieldDimensions.kAllianceMiddleX, FieldDimensions.kAllianceMiddleY.plus(Inches.of(75)),
                 new Rotation2d()),
-        ALLIANCE_RIGHT(),
-        NEUTRAL_LEFT_OUTER(),
-        NEUTRAL_LEFT_INNER(),
-        NEUTRAL_RIGHT_OUTER(),
-        NEUTRAL_RIGHT_INNER(),
-        TRENCH_LEFT_ALLIANCE(FieldMeasurements.kTrenchAllianceX,
-                FieldMeasurements.kTrenchLeftY,
+        ALLIANCE_MIDDLE(FieldDimensions.kAllianceMiddleX, FieldDimensions.kAllianceMiddleY,
                 new Rotation2d()),
-        TRENCH_LEFT_NEUTRAL(FieldMeasurements.kTrenchNeutralX,
-                FieldMeasurements.kTrenchLeftY,
+        ALLIANCE_RIGHT(FieldDimensions.kAllianceMiddleX, FieldDimensions.kAllianceMiddleY.minus(Inches.of(75)),
                 new Rotation2d()),
-        TRENCH_RIGHT_ALLIANCE(FieldMeasurements.kTrenchAllianceX,
-                FieldMeasurements.kTrenchRightY,
+        NEUTRAL_LEFT_OUTER(FieldDimensions.kAllianceMiddleX.plus(Inches.of(120)), FieldDimensions.kNeutralIntakeY,
+                Rotation2d.kCW_90deg),
+        NEUTRAL_LEFT_INNER(FieldDimensions.kAllianceMiddleX.plus(Inches.of(10)), FieldDimensions.kNeutralIntakeY,
+                Rotation2d.kCW_90deg),
+        NEUTRAL_RIGHT_OUTER(FieldDimensions.kAllianceMiddleX.minus(Inches.of(120)), FieldDimensions.kNeutralIntakeY,
+                Rotation2d.kCCW_90deg),
+        NEUTRAL_RIGHT_INNER(FieldDimensions.kAllianceMiddleX.minus(Inches.of(10)), FieldDimensions.kNeutralIntakeY,
+                Rotation2d.kCCW_90deg),
+        TRENCH_LEFT_ALLIANCE(FieldDimensions.kTrenchAllianceX,
+                FieldDimensions.kTrenchLeftY,
                 new Rotation2d()),
-        TRENCH_RIGHT_NEUTRAL(FieldMeasurements.kTrenchNeutralX,
-                FieldMeasurements.kTrenchRightY,
+        TRENCH_LEFT_NEUTRAL(FieldDimensions.kTrenchNeutralX,
+                FieldDimensions.kTrenchLeftY,
                 new Rotation2d()),
-        CLIMB_LEFT(FieldMeasurements.kClimbX, FieldMeasurements.kClimbLeftY,
+        TRENCH_RIGHT_ALLIANCE(FieldDimensions.kTrenchAllianceX,
+                FieldDimensions.kTrenchRightY,
+                new Rotation2d()),
+        TRENCH_RIGHT_NEUTRAL(FieldDimensions.kTrenchNeutralX,
+                FieldDimensions.kTrenchRightY,
                 Rotation2d.kZero),
-        CLIMB_MIDDLE(FieldMeasurements.kClimbX, FieldMeasurements.kClimbMiddleY,
+        CLIMB_LEFT(FieldDimensions.kClimbX, FieldDimensions.kClimbLeftY,
                 Rotation2d.kZero),
-        CLIMB_RIGHT(FieldMeasurements.kClimbX, FieldMeasurements.kClimbRightY,
+        CLIMB_MIDDLE(FieldDimensions.kClimbX, FieldDimensions.kClimbMiddleY,
                 Rotation2d.kZero),
-        CLIMB_LEFT_ENTRY(FieldMeasurements.kClimbEntryX,
-                FieldMeasurements.kClimbLeftY,
+        CLIMB_RIGHT(FieldDimensions.kClimbX, FieldDimensions.kClimbRightY,
+                Rotation2d.kZero),
+        CLIMB_LEFT_ENTRY(FieldDimensions.kClimbEntryX,
+                FieldDimensions.kClimbLeftY,
                 Rotation2d.kZero),
         CLIMB_MIDDLE_ENTRY(
-                FieldMeasurements.kClimbEntryX,
-                FieldMeasurements.kClimbMiddleY,
+                FieldDimensions.kClimbEntryX,
+                FieldDimensions.kClimbMiddleY,
                 Rotation2d.kZero),
         CLIMB_RIGHT_ENTRY(
-                FieldMeasurements.kClimbEntryX,
-                FieldMeasurements.kClimbRightY,
+                FieldDimensions.kClimbEntryX,
+                FieldDimensions.kClimbRightY,
                 Rotation2d.kZero);
 
         public final Pose2d pose;
