@@ -55,15 +55,7 @@ public class BirdAuto {
         private static final Distance kClimbLeftY = kClimbMiddleY.plus(Inches.of(2));
         private static final Distance kClimbRightY = kClimbMiddleY.minus(Inches.of(2));
     }
-
-    {
-        System.out.println(FieldDimensions.kTrenchAllianceX.magnitude());
-        System.out.println(FieldDimensions.kTrenchNeutralX.magnitude());
-        System.out.println(FieldDimensions.kTrenchLeftY.magnitude());
-        System.out.println(FieldDimensions.kTrenchRightY.magnitude());
-        System.out.println(FieldDimensions.kClimbRightY.magnitude());
-    }
-
+    
     private static enum FieldSetpoint {
         OUTPOST(FieldDimensions.kRobotBumperSize.div(2.0), FieldDimensions.kOutpostWidth.div(2.0),
                 Rotation2d.kZero),
