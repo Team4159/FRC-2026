@@ -6,7 +6,6 @@ import java.util.Optional;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
-import org.photonvision.PhotonPoseEstimator.PoseStrategy;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
@@ -36,8 +35,8 @@ public class PhotonVision extends SubsystemBase{
         leftShooterCam = new PhotonCamera("leftShooter");
         rightShooterCam = new PhotonCamera("rightShooter");
         //estimators
-        leftShooterEstimator = new PhotonPoseEstimator(aprilTagFieldLayout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, Constants.PhotonVisionConstants.leftShooterCamTransform);
-        rightShooterEstimator = new PhotonPoseEstimator(aprilTagFieldLayout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, Constants.PhotonVisionConstants.rightShooterCamTransform);
+        leftShooterEstimator = new PhotonPoseEstimator(aprilTagFieldLayout, Constants.PhotonVisionConstants.leftShooterCamTransform);
+        rightShooterEstimator = new PhotonPoseEstimator(aprilTagFieldLayout, Constants.PhotonVisionConstants.rightShooterCamTransform);
         //used for converting to CTRE time for drivetrain vision measurement function
         timeOffset = Utils.getCurrentTimeSeconds() - Timer.getFPGATimestamp();
     }
@@ -50,7 +49,7 @@ public class PhotonVision extends SubsystemBase{
         //loops through all unread camera results
         for(PhotonPipelineResult leftShooterCamResult : leftShooterCam.getAllUnreadResults()){
             //get pose estimate
-            leftShooterEstimate = leftShooterEstimator.update(leftShooterCamResult);
+            leftShooterEstimate = leftShooterEstimator.estimateCoprocMultiTagPose(leftShooterCamResult);
             //check if estimate exists
             if(leftShooterEstimate.isPresent()){
                 //set standard deviation
@@ -65,7 +64,7 @@ public class PhotonVision extends SubsystemBase{
         //loops through all unread camera results
         for(PhotonPipelineResult rightCamResult : rightShooterCam.getAllUnreadResults()){
             //get pose estimate
-            rightShooterEstimate = rightShooterEstimator.update(rightCamResult);
+            rightShooterEstimate = rightShooterEstimator.estimateCoprocMultiTagPose(rightCamResult);
             //check if estimate exists
             if(rightShooterEstimate.isPresent()){
                 //set standard deviation
