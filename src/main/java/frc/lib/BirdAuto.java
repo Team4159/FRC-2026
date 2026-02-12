@@ -49,8 +49,9 @@ public class BirdAuto {
         private static final Distance kTrenchLeftY = Inches.of(292.69 - 3);
         private static final Distance kTrenchRightY = Inches.of(25 + 3);
 
-        private static final Distance kClimbX = kTowerX.plus(kRobotChassisSize.div(2.0));
-        private static final Distance kClimbEntryX = kClimbX.plus(Inches.of(25.0));
+        private static final Distance kClimbFrontX = kTowerX.plus(kRobotChassisSize.div(2.0));
+        private static final Distance kClimbUnderX = kClimbFrontX.minus(Inches.of(16.0));
+        private static final Distance kClimbEntryX = kClimbFrontX.plus(Inches.of(25.0));
         private static final Distance kClimbMiddleY = Inches.of(147.47);
         private static final Distance kClimbLeftY = kClimbMiddleY.plus(Inches.of(2));
         private static final Distance kClimbRightY = kClimbMiddleY.minus(Inches.of(2));
@@ -95,23 +96,23 @@ public class BirdAuto {
         TRENCH_RIGHT_NEUTRAL(FieldDimensions.kTrenchNeutralX,
                 FieldDimensions.kTrenchRightY,
                 Rotation2d.kZero),
-        CLIMB_LEFT(FieldDimensions.kClimbX, FieldDimensions.kClimbLeftY,
-                Rotation2d.kZero),
-        CLIMB_MIDDLE(FieldDimensions.kClimbX, FieldDimensions.kClimbMiddleY,
-                Rotation2d.kZero),
-        CLIMB_RIGHT(FieldDimensions.kClimbX, FieldDimensions.kClimbRightY,
-                Rotation2d.kZero),
+        CLIMB_LEFT(FieldDimensions.kClimbFrontX, FieldDimensions.kClimbLeftY,
+                Rotation2d.k180deg),
+        CLIMB_MIDDLE(FieldDimensions.kClimbUnderX, FieldDimensions.kClimbMiddleY,
+                Rotation2d.k180deg),
+        CLIMB_RIGHT(FieldDimensions.kClimbFrontX, FieldDimensions.kClimbRightY,
+                Rotation2d.k180deg),
         CLIMB_LEFT_ENTRY(FieldDimensions.kClimbEntryX,
                 FieldDimensions.kClimbLeftY,
-                Rotation2d.kZero),
+                Rotation2d.k180deg),
         CLIMB_MIDDLE_ENTRY(
                 FieldDimensions.kClimbEntryX,
                 FieldDimensions.kClimbMiddleY,
-                Rotation2d.kZero),
+                Rotation2d.k180deg),
         CLIMB_RIGHT_ENTRY(
                 FieldDimensions.kClimbEntryX,
                 FieldDimensions.kClimbRightY,
-                Rotation2d.kZero);
+                Rotation2d.k180deg);
 
         public final Pose2d pose;
 
