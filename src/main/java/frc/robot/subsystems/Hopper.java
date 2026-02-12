@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.controls.PercentOutput;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -9,17 +10,19 @@ import frc.robot.Constants.HopperConstants.HopperState;
 
 public class Hopper extends SubsystemBase{
     private TalonFX hopperMotor;
+    private final PercentOutput percentOutput;
 
     public Hopper(){
         hopperMotor = new TalonFX(Constants.HopperConstants.HopperId);
+        percentOutput = new PercentOutput(0);
     }
     
     public void setHopperSpeed(double speed){
-        hopperMotor.set(speed);
+        hopperMotor.setControl(percentOutput.withOutput(speed));
     }
 
     public void stopHopper(){
-        hopperMotor.set(0);
+        hopperMotor.setControl(percentOutput.withOutput(0));
     }
 
     public class ChangeState extends Command{

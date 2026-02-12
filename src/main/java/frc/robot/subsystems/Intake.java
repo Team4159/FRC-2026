@@ -1,20 +1,20 @@
 package frc.robot.subsystems;
 
-import com.ctre.phoenix6.configs.Slot0Configs;//                
-import com.ctre.phoenix6.controls.PositionVoltage;//            
-import com.ctre.phoenix6.controls.VelocityVoltage;//            
-import com.ctre.phoenix6.hardware.TalonFX;//                    
-//                                                            
-import edu.wpi.first.wpilibj2.command.Command;//               
-import edu.wpi.first.wpilibj2.command.SubsystemBase;//         
-import frc.robot.Constants.IntakeConstants;//                  
+import com.ctre.phoenix6.configs.Slot0Configs;//
+import com.ctre.phoenix6.controls.PositionVoltage;//
+import com.ctre.phoenix6.controls.PercentOutput;
+import com.ctre.phoenix6.hardware.TalonFX;//
+
+import edu.wpi.first.wpilibj2.command.Command;//
+import edu.wpi.first.wpilibj2.command.SubsystemBase;//
+import frc.robot.Constants.IntakeConstants;//
 import frc.robot.Constants.IntakeConstants.IntakeState;//       
 
 public class Intake extends SubsystemBase {
     private final TalonFX locationMotor, spinMotor;
 
     private final PositionVoltage intakePositionVoltage;
-    private final VelocityVoltage intakeVelocityVoltage; 
+    private final PercentOutput spinPercentOutput;
 
     public Intake() {
         Slot0Configs locationConfig = new Slot0Configs();
@@ -31,15 +31,17 @@ public class Intake extends SubsystemBase {
         spinMotor = new TalonFX(IntakeConstants.kIntakeSpinId);
 
         locationMotor.getConfigurator().apply(locationConfig);
-        spinMotor.getConfigurator().apply(spinConfig);
+        //spin motor no PID right?
 
         intakePositionVoltage = new PositionVoltage(0);
-        intakeVelocityVoltage = new VelocityVoltage(0);
+        spinPercentOutput = new PercentOutput(0);
     }
 
     public void setSpinSpeed(double speed) {
         double speedWithGearRatio = speed * IntakeConstants.kSpinGearRatio;
-        spinMotor.setControl(intakeVelocityVoltage.withVelocity(speedWithGearRatio)); //I don't think I am properly accounting for gear ratio
+        //spinMotor.setControl(intakeVelocityVoltage.withVelocity(speedWithGearRatio)); //I don't think I am properly accounting for gear ratio
+        spinMotor.setControl(spinPercentOutput.withOutput(speedWithGearRatio));
+        
     }
 
     public void setLocation(double angle) {
@@ -54,6 +56,7 @@ public class Intake extends SubsystemBase {
 
         public IntakeCommand(double angle, double speed) {
             this.angle = angle;
+            this.speed = speed;
 
             currentLocation = 0;
 
@@ -63,6 +66,7 @@ public class Intake extends SubsystemBase {
         @Override
         public void initialize() {
             Intake.this.setLocation(angle);
+            Intake.this.setSpinSpeed(speed);
 
 
             if (angle != currentLocation) { 
@@ -76,12 +80,14 @@ public class Intake extends SubsystemBase {
         @Override
         public void end(boolean interrupt) {
             Intake.this.setLocation(0);
+            Intake.this.setSpinSpeed(0);
             currentLocation = 0;
         }
     }
 
     public class ChangeStates extends Command {
-        private IntakeState intakeState;
+        //private IntakeState intakeState;
+        private final IntakeState intakeState;
 
         public ChangeStates(IntakeState state) {
             this.intakeState = state;

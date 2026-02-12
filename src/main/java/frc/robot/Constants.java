@@ -39,9 +39,9 @@ public final class Constants {
 
     public static enum ClimberState {
       CLIMB(1),STOP(0),DOWN(-1);
-      public double percentage;
-      private ClimberState(double speed) {
-        percentage = speed;
+      public double position;
+      private ClimberState(double pos) {
+        position = pos;
       }
     }
   }

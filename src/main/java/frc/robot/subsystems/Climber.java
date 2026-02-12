@@ -1,9 +1,8 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix6.configs.Slot0Configs;
-import com.ctre.phoenix6.controls.VelocityVoltage;
+import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
-
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ClimberConstants;
@@ -12,7 +11,7 @@ import frc.robot.Constants.ClimberConstants.ClimberState;
 public class Climber extends SubsystemBase{
     private TalonFX climbMotorOne, climbMotorTwo;
     
-    private final VelocityVoltage climberVelocityVoltage;
+    private final PositionVoltage climberPositionVoltage;
 
     public Climber(){
         Slot0Configs climberConfigOne = new Slot0Configs();
@@ -31,19 +30,20 @@ public class Climber extends SubsystemBase{
         climbMotorOne.getConfigurator().apply(climberConfigOne);
         climbMotorTwo.getConfigurator().apply(climberConfigTwo);
 
-        climberVelocityVoltage = new VelocityVoltage(0);
+        climberPositionVoltage = new PositionVoltage(0);
 
     }
 
-    public void setClimberSpeed(double speed){
-        climberVelocityVoltage.withVelocity(speed);
-        climbMotorOne.setControl(climberVelocityVoltage);
-        climbMotorTwo.setControl(climberVelocityVoltage);
+    public void setClimberPosition(double position){
+        climberPositionVoltage.withPosition(position);
+        climbMotorOne.setControl(climberPositionVoltage);
+        climbMotorTwo.setControl(climberPositionVoltage);
     }
 
     public void stopClimber(){
-        climbMotorOne.setControl(climberVelocityVoltage.withVelocity(0));
-        climbMotorTwo.setControl(climberVelocityVoltage.withVelocity(0));
+        double currentPosition = climbMotorOne.getPosition().getValue();
+        climbMotorOne.setControl(climberPositionVoltage.withPosition(currentPosition));
+        climbMotorTwo.setControl(climberPositionVoltage.withPosition(currentPosition));
     }
 
     public class ChangeState extends Command{
@@ -56,7 +56,7 @@ public class Climber extends SubsystemBase{
 
         @Override
         public void initialize(){
-            Climber.this.setClimberSpeed(climberState.percentage);
+            Climber.this.setClimberSpeed(climberState.position);
         }
 
         @Override
