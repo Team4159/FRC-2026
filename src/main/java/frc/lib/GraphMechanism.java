@@ -1,6 +1,7 @@
 package frc.lib;
 
 import java.util.ArrayList;
+import java.util.function.Function;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.RobotBase;
@@ -10,12 +11,6 @@ import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class GraphMechanism {
-
-    @FunctionalInterface
-    public interface GraphFunction {
-        Translation2d get(double t);
-    }
-
     private final Mechanism2d mechanism = new Mechanism2d(0, 0);
     private final MechanismRoot2d root = mechanism.getRoot("root", 0, 0);
     private final ArrayList<MechanismLigament2d> ligaments = new ArrayList<>();
@@ -43,14 +38,14 @@ public class GraphMechanism {
         SmartDashboard.putData(name, mechanism);
     }
 
-    public void update(GraphFunction graphFunction) {
+    public void update(Function<Double, Translation2d> graphFunction) {
         if (!RobotBase.isSimulation()) { return; }
         double lastAngle = 0;
         for (int i = 0; i < ligaments.size(); i++) {
             double t0 = timeStep * i;
             double t1 = timeStep * (i + 1);
-            Translation2d p0 = graphFunction.get(t0);
-            Translation2d p1 = graphFunction.get(t1);
+            Translation2d p0 = graphFunction.apply(t0);
+            Translation2d p1 = graphFunction.apply(t1);
             Translation2d delta = p1.minus(p0);
             double angle = delta.getAngle().getDegrees();
             var ligament = ligaments.get(i);
