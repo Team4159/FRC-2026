@@ -38,7 +38,7 @@ public class Intake extends SubsystemBase {
         //convert to [0, 1)
         if(currentAngle < 0) currentAngle++;
 
-        System.out.println("currentAngle: " + currentAngle);
+        
 
         //PID
         double pidOutput = -Constants.IntakeConstants.intakePIDController.calculate(currentAngle, targetAngle);

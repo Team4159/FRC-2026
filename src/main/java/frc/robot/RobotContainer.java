@@ -25,6 +25,7 @@ import frc.robot.commands.AutoAim;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.LEDs;
+import frc.robot.subsystems.PhotonVision;
 import frc.robot.subsystems.Hopper;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
@@ -65,6 +66,7 @@ public class RobotContainer {
     private final Intake intake = new Intake();
     private final LEDs leds = new LEDs();
     private final Drivetrain drivetrain = new Drivetrain(primaryController);
+    private final PhotonVision photonvision = new PhotonVision(drivetrain);
 
     /* Path follower */
     private final AutoFactory autoFactory;

@@ -82,7 +82,7 @@ public final class Constants {
   }
 
   public static class IntakeConstants{
-    public static final double kP = 2;
+    public static final double kP = 0.1;
     public static final double kI = 0;
     public static final double kD = 0;
 
@@ -161,8 +161,22 @@ public final class Constants {
   }
 
   public static class PhotonVisionConstants {
-    public static Transform3d leftShooterCamTransform = new Transform3d(-0.1647, 8.8160, 20.3287,new Rotation3d(0,-30,-5));
-    public static Transform3d rightShooterCamTransform = new Transform3d(-0.1647, -8.8160, 20.8237, new Rotation3d(0, -30, 5));
+    public final static Transform3d leftShooterCamTransform = new Transform3d(
+      Units.inchesToMeters(-0.1647),
+      Units.inchesToMeters(8.8160),
+      Units.inchesToMeters(20.3287),
+      new Rotation3d(
+        0,
+        Units.degreesToRadians(-30),
+        Units.degreesToRadians(-5)));
+    public final static Transform3d rightShooterCamTransform = new Transform3d(
+      Units.inchesToMeters(-0.1647),
+      Units.inchesToMeters(-8.8160),
+      Units.inchesToMeters(20.3287),
+      new Rotation3d(
+        0, 
+        Units.degreesToRadians(-30), 
+        Units.degreesToRadians(5)));
   }
 
   public static class FieldConstants {
