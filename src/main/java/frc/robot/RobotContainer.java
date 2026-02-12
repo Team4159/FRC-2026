@@ -33,16 +33,16 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Drivetrain;
 
 public class RobotContainer {
-    private double maxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top
+    private double MaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top
                                                                                         // speed
-    private double maxAngularSpeed = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second
-                                                                                       // max angular velocity
+    private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second
+                                                                                      // max angular velocity
 
     /* Setting up bindings for necessary control of the swerve drive platform */
-    private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-            .withDeadband(maxSpeed * 0.1).withRotationalDeadband(maxAngularSpeed * 0.1) // Add a 10% deadband
-            .withDriveRequestType(DriveRequestType.OpenLoopVoltage) // Use open-loop control for drive motors
-            .withForwardPerspective(ForwardPerspectiveValue.BlueAlliance);
+    private final SwerveRequest.FieldCentric fieldCentricDrive = new SwerveRequest.FieldCentric()
+            .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
+    private final SwerveRequest.RobotCentric robotCentricDrive = new SwerveRequest.RobotCentric()
+            .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
     private final SwerveRequest.FieldCentric cruise = new SwerveRequest.FieldCentric()
             .withDeadband(0).withRotationalDeadband(0)
@@ -55,12 +55,12 @@ public class RobotContainer {
             .withDriveRequestType(DriveRequestType.Velocity);
     private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
     private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
-    private final SwerveRequest.RobotCentric forwardStraight = new SwerveRequest.RobotCentric()
-            .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
+    private final SwerveRequest.Idle idle = new SwerveRequest.Idle();
 
-    private final Telemetry logger = new Telemetry(maxSpeed);
+    private final Telemetry logger = new Telemetry(MaxSpeed);
 
     private final CommandXboxController primaryController = new CommandXboxController(0);
+    private final Trigger robotCentricDriveTrigger = primaryController.leftStick();
     private final Trigger AutoAimTrigger = primaryController.rightBumper();
 
     public final Drivetrain drivetrain = new Drivetrain(primaryController);
@@ -86,37 +86,31 @@ public class RobotContainer {
         // and Y is defined as to the left according to WPILib convention.
         drivetrain.setDefaultCommand(
                 // Drivetrain will execute this command periodically
-                drivetrain.applyRequest(() -> drive.withVelocityX(drivetrain.getInputX() * maxSpeed) // Drive forward
-                                                                                                     // with negative Y
-                                                                                                     // (forward)
-                        .withVelocityY(drivetrain.getInputY() * maxSpeed) // Drive left with negative X (left)
-                        .withRotationalRate(drivetrain.getInputRotation() * maxAngularSpeed) // Drive counterclockwise
-                                                                                             // with negative X (left)
-                ));
+                drivetrain.applyRequest(() -> {
+                    double x = drivetrain.getInputX() * MaxSpeed;
+                    double y = drivetrain.getInputY() * MaxSpeed;
+                    double rotation = drivetrain.getInputRotation() * MaxAngularRate;
+                    if (robotCentricDriveTrigger.getAsBoolean()) {
+                        return robotCentricDrive.withVelocityX(x)
+                                .withVelocityY(y)
+                                .withRotationalRate(rotation);
+                    } else {
+                        return fieldCentricDrive.withVelocityX(x)
+                                .withVelocityY(y)
+                                .withRotationalRate(rotation);
+                    }
+                }));
 
         AutoAimTrigger.whileTrue(new AutoAim(drivetrain));
 
         // Idle while the robot is disabled. This ensures the configured
         // neutral mode is applied to the drive motors while disabled.
-        final var idle = new SwerveRequest.Idle();
         RobotModeTriggers.disabled().whileTrue(
                 drivetrain.applyRequest(() -> idle).ignoringDisable(true));
 
         primaryController.a().whileTrue(drivetrain.applyRequest(() -> brake));
         primaryController.b().whileTrue(drivetrain.applyRequest(() -> point
                 .withModuleDirection(new Rotation2d(-primaryController.getLeftY(), -primaryController.getLeftX()))));
-
-        primaryController.povUp()
-                .whileTrue(drivetrain.applyRequest(() -> forwardStraight.withVelocityX(0.5).withVelocityY(0)));
-        primaryController.povDown()
-                .whileTrue(drivetrain.applyRequest(() -> forwardStraight.withVelocityX(-0.5).withVelocityY(0)));
-
-        // Run SysId routines when holding back/start and X/Y.
-        // Note that each routine should be run exactly once in a single log.
-        primaryController.back().and(primaryController.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
-        primaryController.back().and(primaryController.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
-        primaryController.start().and(primaryController.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
-        primaryController.start().and(primaryController.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 
         // Reset the field-centric heading on left bumper press.
         primaryController.leftBumper().onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
@@ -160,7 +154,7 @@ public class RobotContainer {
             public void execute() {
                 AlignmentResult result = bird.calculateAlignment(cruiseAutopilot, alignmentAutopilot,
                         drivetrain.getState().Pose, drivetrain.getState().Speeds, DriverStation.getAlliance().orElse(Alliance.Blue),
-                        MetersPerSecond.of(maxSpeed));
+                        MetersPerSecond.of(MaxSpeed));
                 if (result.translationOnly()) {
                     drivetrain.setControl(cruise.withVelocityX(result.velocityX()).withVelocityY(result.velocityY()));
                 } else {
