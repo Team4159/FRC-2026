@@ -135,12 +135,8 @@ public class PhotonVision extends SubsystemBase{
                 //convert the scaling
                 area += tag.area/100; 
             }
-            System.out.println("stddev position: " + (1 - area * 0.3));
             //TODO: tune, currently this is just the limelight one(why are sds on limelight negative lol)
-            //return VecBuilder.fill(1 - area * 0.3, 1 - area * 0.3, 1-area * 0.1);
-            return VecBuilder.fill(-1, -1, -1);
-        }else{
-            System.out.println("cooked :(");
+            return VecBuilder.fill(1 - area * 0.3, 1 - area * 0.3, 1-area * 0.1);
         }
         //if the estimated pose does not exist just return extremely high stddevs
         return VecBuilder.fill(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
