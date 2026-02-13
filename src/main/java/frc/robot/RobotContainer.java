@@ -133,12 +133,12 @@ public class RobotContainer {
 
         drivetrain.registerTelemetry(logger::telemeterize);
 
-        feedHopper.onTrue(new ParallelCommandGroup(shooter.new ChangeState(FeederState.FEED), hopper.new ChangeState(HopperState.FEED)));
-        reverseFeederHopper.onTrue(new ParallelCommandGroup(shooter.new ChangeState(FeederState.UNSTUCKFEEDER), hopper.new ChangeState(HopperState.REVERSE)));
+        feedHopper.onTrue(new ParallelCommandGroup(shooter.new ChangeFeederState(FeederState.FEED), hopper.new ChangeHopperState(HopperState.FEED)));
+        reverseFeederHopper.onTrue(new ParallelCommandGroup(shooter.new ChangeFeederState(FeederState.UNSTUCKFEEDER), hopper.new ChangeHopperState(HopperState.REVERSE)));
 
-        intakeTrigger.whileTrue(intake.new ChangeStates(IntakeState.DOWN_ON));
-        outtakeTrigger.whileTrue(intake.new ChangeStates(IntakeState.DOWN_OFF));
-        stowTrigger.whileTrue(intake.new ChangeStates(IntakeState.UP_OFF));
+        intakeTrigger.whileTrue(intake.new ChangeIntakeState(IntakeState.DOWN_ON));
+        outtakeTrigger.whileTrue(intake.new ChangeIntakeState(IntakeState.DOWN_OFF));
+        stowTrigger.whileTrue(intake.new ChangeIntakeState(IntakeState.UP_OFF));
     }
 
     public Command getAutonomousCommand() {

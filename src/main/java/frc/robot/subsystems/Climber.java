@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 
@@ -12,8 +13,8 @@ import frc.robot.Constants.ClimberConstants.ClimberState;
 public class Climber extends SubsystemBase{
     private TalonFX climbMotorOne;
     private TalonFX climbMotorTwo;
-    
-    private final VelocityVoltage climberVelocityVoltage;
+
+    private PositionVoltage climberPositionVoltage;
 
     public Climber(){
         Slot0Configs climberConfigOne = new Slot0Configs();
@@ -32,19 +33,19 @@ public class Climber extends SubsystemBase{
         climbMotorOne.getConfigurator().apply(climberConfigOne);
         climbMotorTwo.getConfigurator().apply(climberConfigTwo);
 
-        climberVelocityVoltage = new VelocityVoltage(0);
+        climberPositionVoltage = new PositionVoltage(0);
 
     }
 
-    public void setClimberSpeed(double climberSpeed){
-        climberVelocityVoltage.withVelocity(climberSpeed);
-        climbMotorOne.setControl(climberVelocityVoltage);
-        climbMotorTwo.setControl(climberVelocityVoltage);
+    public void setClimberPosition(double climberPosition){
+        climberPositionVoltage.withPosition(climberPosition);
+        climbMotorOne.setControl(climberPositionVoltage);
+        climbMotorTwo.setControl(climberPositionVoltage);
     }
 
     public void stopClimber(){
-        climbMotorOne.setControl(climberVelocityVoltage.withVelocity(0));
-        climbMotorTwo.setControl(climberVelocityVoltage.withVelocity(0));
+        climbMotorOne.stopMotor();
+        climbMotorTwo.stopMotor();
     }
 
     public class ChangeState extends Command{
@@ -57,12 +58,12 @@ public class Climber extends SubsystemBase{
 
         @Override
         public void initialize(){
-            Climber.this.setClimberSpeed(climberState.percentage);
+            setClimberPosition(climberState.position);
         }
 
         @Override
         public void end(boolean interrupt){
-            Climber.this.stopClimber();
+            stopClimber();
         }
     }
 }

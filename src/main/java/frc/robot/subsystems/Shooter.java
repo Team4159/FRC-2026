@@ -74,35 +74,35 @@ public class Shooter extends SubsystemBase{
         private double angle;
         
         public ShooterCommand(double velocity, double angle){
-            this.velocity=velocity;
-            this.angle=angle;
+            this.velocity = velocity;
+            this.angle = angle;
             
             addRequirements(Shooter.this);
         }
         
         @Override
         public void initialize() {
-            Shooter.this.adjustHood(angle);
-            Shooter.this.setSpeed(velocity);
+            adjustHood(angle);
+            setSpeed(velocity);
         }
 
         @Override
         public void end(boolean interrupt) {
-            Shooter.this.setSpeed(0);
+            setSpeed(0);
         }
     }
 
-    public class ChangeState extends Command{
+    public class ChangeFeederState extends Command{
         private FeederState feederState;
         
-        public ChangeState(FeederState feederState){
+        public ChangeFeederState(FeederState feederState){
             this.feederState = feederState;
             addRequirements(Shooter.this);
         }
 
         @Override
         public void initialize(){
-            Shooter.this.setFeederSpeed(feederState.percentage);
+            setFeederSpeed(feederState.percentage);
         }
         
     }

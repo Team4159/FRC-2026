@@ -38,30 +38,28 @@ public class Intake extends SubsystemBase {
         //convert to [0, 1)
         if(currentAngle < 0) currentAngle++;
 
-        
-
         //PID
         double pidOutput = -Constants.IntakeConstants.intakePIDController.calculate(currentAngle, targetAngle);
         pivotMotor.set(pidOutput);
     }
 
-    public class ChangeStates extends Command {
-        private IntakeState state;
+    public class ChangeIntakeState extends Command {
+        private IntakeState intakeState;
 
-        public ChangeStates(IntakeState state) {
-            this.state = state;
+        public ChangeIntakeState(IntakeState intakeState) {
+            this.intakeState = intakeState;
             addRequirements(Intake.this);
         }
 
         @Override
         public void initialize() {
-            Intake.this.setSpinSpeed(state.spinPercentage);
-            Intake.this.setLocation(state.angle);
+            setSpinSpeed(intakeState.spinPercentage);
+            setLocation(intakeState.angle);
         }
 
         @Override
         public void end(boolean interrupt) {
-            Intake.this.setSpinSpeed(0);
+            setSpinSpeed(0);
         }
     }
 }

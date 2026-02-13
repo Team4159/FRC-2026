@@ -19,25 +19,25 @@ public class Hopper extends SubsystemBase{
     }
 
     public void stopHopper(){
-        hopperMotor.set(0);
+        hopperMotor.stopMotor();
     }
 
-    public class ChangeState extends Command{
+    public class ChangeHopperState extends Command{
         private HopperState hopperState;
         
-        public ChangeState(HopperState hopperState) {
+        public ChangeHopperState(HopperState hopperState) {
             this.hopperState = hopperState;
             addRequirements(Hopper.this);
         }
 
         @Override
         public void initialize(){
-            Hopper.this.setHopperSpeed(hopperState.percentage);
+            setHopperSpeed(hopperState.percentage);
         }
 
         @Override
         public void end(boolean interrupt){
-            Hopper.this.stopHopper();
+            stopHopper();
         }
     }
 }

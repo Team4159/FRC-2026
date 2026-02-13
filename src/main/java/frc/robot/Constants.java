@@ -54,10 +54,12 @@ public final class Constants {
     public static final int idClimberTwo = 10;
 
     public static enum ClimberState {
-      CLIMB(1),STOP(0),DOWN(-1);
-      public double percentage;
-      private ClimberState(double speed) {
-        percentage = speed;
+      //TODO: add accurate L1 position setpoint
+      UP(1),DOWN(0);
+
+      public double position;
+      private ClimberState(double position) {
+        position = this.position;
       }
     }
   }
