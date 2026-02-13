@@ -39,9 +39,26 @@ public final class Constants {
 
   public static class PhotonVisionConstants{
 
-    public static Transform3d leftShooterCamTransform = new Transform3d();
-    public static Transform3d rightShooterCamTransform = new Transform3d();
+    //TODO: tune stddev values
+    public static final Matrix<N3, N1> kSingleTagStdDevs = VecBuilder.fill(4, 4, 8);
+    public static final Matrix<N3, N1> kMultiTagStdDevs = VecBuilder.fill(0.5, 0.5, 1);
 
+    public final static Transform3d leftShooterCamTransform = new Transform3d(
+      Units.inchesToMeters(-0.1647),
+      Units.inchesToMeters(8.8160),
+      Units.inchesToMeters(20.3287),
+      new Rotation3d(
+        0,
+        Units.degreesToRadians(-30),
+        Units.degreesToRadians(-5)));
+    public final static Transform3d rightShooterCamTransform = new Transform3d(
+      Units.inchesToMeters(-0.1647),
+      Units.inchesToMeters(-8.8160),
+      Units.inchesToMeters(20.3287),
+      new Rotation3d(
+        0, 
+        Units.degreesToRadians(-30), 
+        Units.degreesToRadians(5)));
   }
 
   public static class ShooterConstants {
