@@ -48,7 +48,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     /** @return the field relative rotation input (-right joystick x), from range -1 to 1. a deadzone and quadratic are applied for better control.*/
     public double getInputRotation() {
         double rawInput = inputRotation.get();
-        double filteredInput = MathUtil.applyDeadband(Math.abs(rawInput), OperatorConstants.kDriverControllerTranslationDeadband, 1);
+        double filteredInput = MathUtil.applyDeadband(Math.abs(rawInput), OperatorConstants.kDriverControllerRotationDeadband, 1);
         return Math.abs(Math.pow(filteredInput, kInputRotationExponent)) * Math.signum(rawInput);
     }
 }
