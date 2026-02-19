@@ -136,9 +136,27 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                 }
                 case SHOOT -> {
                     // TODO: implement
+                    // TODO: verify
+                    double radialInput = MathUtil.applyDeadband(inputX.get(), OperatorConstants.kDriverControllerTranslationDeadband, 1);
+                    double tangentialInput = MathUtil.applyDeadband(inputY.get(), OperatorConstants.kDriverControllerTranslationDeadband, 1);
+                    Pose2d robotPose = getState().Pose;
+                    Pose2d hubPose = FieldConstants.hubLocations(DriverStation.getAlliance().orElse(Alliance.Blue));
+                    Translation2d radialVector = new Translation2d(
+                        hubPose.getX() - robotPose.getX(),
+                        hubPose.getY() - robotPose.getY()
+                    );
+                    if (radialVector.getNorm() <= 1e-3) {
+                        radialVector = new Translation2d(0.0, 0.0);
+                    } else {
+                        radialVector = radialVector.div(radialVector.getNorm());
+                    }
+                    Translation2d tangentialVector = new Translation2d(
+                        -radialVector.getY(),
+                        -radialVector.getX()
+                    );
                     yield shootDrive
-                        .withVelocityX(getInputX() * kMaxSpeed)
-                        .withVelocityY(getInputY() * kMaxSpeed);
+                        .withVelocityX(kMaxSpeed * (radialInput * radialVector.getX() + tangentialInput * tangentialVector.getX())),
+                        .withVelocityY(kMaxSpeed * (radialInput * radialVector.getY() + tangentialInput * tangentialVector.getY()));
                 }
             };
         });
