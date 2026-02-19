@@ -7,7 +7,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants;
+import frc.robot.Constants.IntakeConstants;
 import frc.robot.Constants.IntakeConstants.IntakeState;
 
 public class Intake extends SubsystemBase {
@@ -20,18 +20,18 @@ public class Intake extends SubsystemBase {
     public Intake() {
         Slot0Configs locationConfig = new Slot0Configs();
 
-        locationConfig.kP = Constants.IntakeConstants.kP;
-        locationConfig.kI = Constants.IntakeConstants.kI;
-        locationConfig.kD = Constants.IntakeConstants.kD;
+        locationConfig.kP = IntakeConstants.kP;
+        locationConfig.kI = IntakeConstants.kI;
+        locationConfig.kD = IntakeConstants.kD;
 
         Slot0Configs spinConfig = new Slot0Configs();
 
-        spinConfig.kP = Constants.IntakeConstants.kP;
-        spinConfig.kI = Constants.IntakeConstants.kI;
-        spinConfig.kD = Constants.IntakeConstants.kD;  
+        spinConfig.kP = IntakeConstants.kP;
+        spinConfig.kI = IntakeConstants.kI;
+        spinConfig.kD = IntakeConstants.kD;  
 
-        locationMotor = new TalonFX(Constants.IntakeConstants.kIntakeLocationId);
-        spinMotor = new TalonFX(Constants.IntakeConstants.kIntakeSpinId);
+        locationMotor = new TalonFX(IntakeConstants.kIntakeLocationId);
+        spinMotor = new TalonFX(IntakeConstants.kIntakeSpinId);
 
         locationMotor.getConfigurator().apply(locationConfig);
         spinMotor.getConfigurator().apply(spinConfig);
@@ -41,11 +41,11 @@ public class Intake extends SubsystemBase {
     }
 
     public void setSpinSpeed(double speed) {
-        spinMotor.setControl(intakeVelocityVoltage.withVelocity(speed * Constants.IntakeConstants.kSpinGearRatio)); //I don't think I am properly accounting for gear ratio
+        spinMotor.setControl(intakeVelocityVoltage.withVelocity(speed * IntakeConstants.kSpinGearRatio)); //I don't think I am properly accounting for gear ratio
     }
 
     public void setLocation(double angle) {
-        locationMotor.setControl(intakePositionVoltage.withPosition(angle * Constants.IntakeConstants.kLocationGearRatio)); //here too
+        locationMotor.setControl(intakePositionVoltage.withPosition(angle * IntakeConstants.kLocationGearRatio)); //here too
     }
 
     public class ChangeStates extends Command {

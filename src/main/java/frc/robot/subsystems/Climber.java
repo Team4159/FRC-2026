@@ -33,8 +33,8 @@ public class Climber extends SubsystemBase{
         climbMotorTwo.getConfigurator().apply(climberConfigTwo);
 
         climberVelocityVoltage = new VelocityVoltage(0);
-
     }
+    
 
     public void setClimberSpeed(double climberSpeed){
         climberVelocityVoltage.withVelocity(climberSpeed);

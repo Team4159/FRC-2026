@@ -4,6 +4,22 @@
 
 package frc.robot;
 
+import java.util.Map;
+
+import com.ctre.phoenix6.swerve.utility.PhoenixPIDController;
+
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
+
 import com.ctre.phoenix6.configs.Slot0Configs;
 
 /**
@@ -30,6 +46,12 @@ public final class Constants {
     public static final int ShooterIDTwo = 5;
     public static final int ShooterIDThree = 6;
     public static final int ShooterIDFour = 7;
+
+    //TODO: find ball launch velocity
+    /** units: m/s */
+    public static final double launchVelocity = Units.feetToMeters(29);//convert from ft/s to m/s
+    public static final double ratio = 1;
+    public static final double shootHeight = Units.inchesToMeters(40);
   }
 
   public static class ClimberConstants {
@@ -97,5 +119,50 @@ public final class Constants {
 
   public static class OperatorConstants {
     public static final int kDriverControllerPort = 0;
+    public static final double kDriverControllerTranslationDeadband = 0.1;
+    public static final double kDriverControllerRotationDeadband = 0.1;
+  }
+
+  public static class DrivetrainConstants {
+    public static final PhoenixPIDController AutoAimRotationController = new PhoenixPIDController(15, 0, 0);
+    static {
+      AutoAimRotationController.enableContinuousInput(-Math.PI, Math.PI);
+    }
+  }
+
+  public static class PhotonVisionConstants{
+
+    //TODO: tune stddev values
+    public static final Matrix<N3, N1> kSingleTagStdDevs = VecBuilder.fill(4, 4, 8);
+    public static final Matrix<N3, N1> kMultiTagStdDevs = VecBuilder.fill(0.5, 0.5, 1);
+
+    public final static Transform3d leftShooterCamTransform = new Transform3d(
+      Units.inchesToMeters(-0.1647),
+      Units.inchesToMeters(8.8160),
+      Units.inchesToMeters(20.3287),
+      new Rotation3d(
+        0,
+        Units.degreesToRadians(-30),
+        Units.degreesToRadians(-5)));
+    public final static Transform3d rightShooterCamTransform = new Transform3d(
+      Units.inchesToMeters(-0.1647),
+      Units.inchesToMeters(-8.8160),
+      Units.inchesToMeters(20.3287),
+      new Rotation3d(
+        0, 
+        Units.degreesToRadians(-30), 
+        Units.degreesToRadians(5)));
+  }
+
+  public static class FieldConstants {
+    public static final Map<DriverStation.Alliance, Pose2d> hubLocations = Map.of(
+      Alliance.Blue, new Pose2d(Units.inchesToMeters(182.11), Units.inchesToMeters(158.84), new Rotation2d()),
+      Alliance.Red, new Pose2d(Units.inchesToMeters(651.22 - 182.11), Units.inchesToMeters(158.84), new Rotation2d())
+    );
+
+    /** Units:m/s^2 */
+    public static final double g = 9.80;
+
+    public static final double hubZ = Units.inchesToMeters(56.4);
   }
 }
