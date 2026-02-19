@@ -4,43 +4,22 @@
 
 package frc.robot;
 
-import static edu.wpi.first.units.Units.*;
-
-import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
-import com.ctre.phoenix6.swerve.SwerveRequest;
-
 import choreo.auto.AutoChooser;
 import choreo.auto.AutoFactory;
 
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.AutoAim;
-import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Drivetrain;
+import frc.robot.subsystems.Drivetrain.DriveMode;
 
 public class RobotContainer {
-    private double MaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top
-                                                                                        // speed
-    private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second
-                                                                                      // max angular velocity
-
-    /* Setting up bindings for necessary control of the swerve drive platform */
-    private final SwerveRequest.FieldCentric fieldCentricDrive = new SwerveRequest.FieldCentric()
-            .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
-    private final SwerveRequest.RobotCentric robotCentricDrive = new SwerveRequest.RobotCentric()
-            .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
-    private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
-    private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
-    private final SwerveRequest.Idle idle = new SwerveRequest.Idle();
-
-    private final Telemetry logger = new Telemetry(MaxSpeed);
+    private final Telemetry logger = new Telemetry(Drivetrain.kMaxSpeed);
 
     private final CommandXboxController primaryController = new CommandXboxController(0);
-    private final Trigger robotCentricDriveTrigger = primaryController.leftStick();
     private final Trigger AutoAimTrigger = primaryController.rightBumper();
 
     public final Drivetrain drivetrain = new Drivetrain(primaryController);
@@ -66,31 +45,21 @@ public class RobotContainer {
         // and Y is defined as to the left according to WPILib convention.
         drivetrain.setDefaultCommand(
                 // Drivetrain will execute this command periodically
-                drivetrain.applyRequest(() -> {
-                    double x = drivetrain.getInputX() * MaxSpeed;
-                    double y = drivetrain.getInputY() * MaxSpeed;
-                    double rotation = drivetrain.getInputRotation() * MaxAngularRate;
-                    if (robotCentricDriveTrigger.getAsBoolean()) {
-                        return robotCentricDrive.withVelocityX(x)
-                                .withVelocityY(y)
-                                .withRotationalRate(rotation);
-                    } else {
-                        return fieldCentricDrive.withVelocityX(x)
-                                .withVelocityY(y)
-                                .withRotationalRate(rotation);
-                    }
-                }));
+                drivetrain.drive(DriveMode.FIELD_CENTRIC)
+        );
 
         AutoAimTrigger.whileTrue(new AutoAim(drivetrain));
 
         // Idle while the robot is disabled. This ensures the configured
         // neutral mode is applied to the drive motors while disabled.
         RobotModeTriggers.disabled().whileTrue(
-                drivetrain.applyRequest(() -> idle).ignoringDisable(true));
+                drivetrain.drive(DriveMode.IDLE).ignoringDisable(true));
 
-        primaryController.a().whileTrue(drivetrain.applyRequest(() -> brake));
-        primaryController.b().whileTrue(drivetrain.applyRequest(() -> point
-                .withModuleDirection(new Rotation2d(-primaryController.getLeftY(), -primaryController.getLeftX()))));
+        primaryController.leftStick().whileTrue(drivetrain.drive(DriveMode.ROBOT_CENTRIC));
+        primaryController.a().whileTrue(drivetrain.drive(DriveMode.BRAKE));
+        primaryController.b().whileTrue(drivetrain.drive(DriveMode.POINT));
+        primaryController.x().whileTrue(drivetrain.drive(DriveMode.INTAKE));
+        primaryController.y().whileTrue(drivetrain.drive(DriveMode.SHOOT));
 
         // Reset the field-centric heading on left bumper press.
         primaryController.leftBumper().onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
