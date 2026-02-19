@@ -113,27 +113,35 @@ public class Drivetrain extends CommandSwerveDrivetrain {
 
     public Command drive(DriveMode mode) {
         return applyRequest(() -> {
-            Translation2d inputTranslation = getInputTranslation();
-            double inputRotation = getInputRotation();
             return switch (mode) {
-                case FIELD_CENTRIC -> fieldCentricDrive.withVelocityX(inputTranslation.getX() * kMaxSpeed)
-                        .withVelocityY(inputTranslation.getY() * kMaxSpeed)
-                        .withRotationalRate(inputRotation * kMaxAngularRate);
-                case ROBOT_CENTRIC -> robotCentricDrive.withVelocityX(inputTranslation.getX() * kMaxSpeed)
-                        .withVelocityY(inputTranslation.getY() * kMaxSpeed)
-                        .withRotationalRate(inputRotation * kMaxAngularRate);
+                case FIELD_CENTRIC -> fieldCentricDrive.withVelocityX(getInputX() * kMaxSpeed)
+                        .withVelocityY(getInputY() * kMaxSpeed)
+                        .withRotationalRate(getInputRotation() * kMaxAngularRate);
+                case ROBOT_CENTRIC -> robotCentricDrive.withVelocityX(getInputX() * kMaxSpeed)
+                        .withVelocityY(getInputY() * kMaxSpeed)
+                        .withRotationalRate(getInputRotation() * kMaxAngularRate);
                 case BRAKE -> brakeDrive;
                 case POINT -> pointDrive
-                        .withModuleDirection(new Rotation2d(inputTranslation.getX(), inputTranslation.getY()));
+                        .withModuleDirection(new Rotation2d(getInputX(), getInputY()));
                 case IDLE -> idleDrive;
-                case INTAKE -> intakeDrive // TODO: make this not activate when there's no input
-                        .withVelocityX(inputTranslation.getX() * kMaxSpeed)
-                        .withVelocityY(inputTranslation.getY() * kMaxSpeed)
-                        .withTargetDirection(new Rotation2d(inputTranslation.getX(), inputTranslation.getY()));
-                case SHOOT -> shootDrive // TODO: implement 
-                        .withVelocityX(inputTranslation.getX() * kMaxSpeed)
-                        .withVelocityY(inputTranslation.getY() * kMaxSpeed);
+                case INTAKE -> {
+                    intakeDrive
+                        .withVelocityX(getInputX() * kMaxSpeed)
+                        .withVelocityY(getInputY() * kMaxSpeed);
+                    // TODO: decide whats the optimal deadzone or have some heuristic to check if the joystick was released
+                    if (Math.hypot(getInputX(), getInputY()) >= 0.5) {
+                        intakeDrive.withTargetDirection(new Rotation2d(getInputX(), getInputY()));
+                    }
+                    yield intakeDrive;
+                }
+                case SHOOT -> {
+                    // TODO: implement
+                    yield shootDrive
+                        .withVelocityX(getInputX() * kMaxSpeed)
+                        .withVelocityY(getInputY() * kMaxSpeed);
+                }
             };
         });
     }
+
 }
