@@ -35,14 +35,12 @@ public class Drivetrain extends CommandSwerveDrivetrain {
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
     private final SwerveRequest.RobotCentric robotCentricDrive = new SwerveRequest.RobotCentric()
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
+    private final SwerveRequest.FieldCentricFacingAngle fieldCentricFacingAngleDrive = new SwerveRequest.FieldCentricFacingAngle()
+            .withDriveRequestType(DriveRequestType.OpenLoopVoltage)
+            .withHeadingPID(15, 0, 0);
     private final SwerveRequest.SwerveDriveBrake brakeDrive = new SwerveRequest.SwerveDriveBrake();
     private final SwerveRequest.PointWheelsAt pointDrive = new SwerveRequest.PointWheelsAt();
     private final SwerveRequest.Idle idleDrive = new SwerveRequest.Idle();
-    private final SwerveRequest.FieldCentricFacingAngle intakeDrive = new SwerveRequest.FieldCentricFacingAngle()
-            .withDriveRequestType(DriveRequestType.OpenLoopVoltage)
-            .withHeadingPID(15, 0, 0);
-    private final SwerveRequest.FieldCentric shootDrive = new SwerveRequest.FieldCentric()
-            .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
     public static enum DriveMode {
         FIELD_CENTRIC,
@@ -129,38 +127,39 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                         .withModuleDirection(new Rotation2d(getInputX(), getInputY()));
                 case IDLE -> idleDrive;
                 case INTAKE -> {
-                    intakeDrive
-                        .withVelocityX(getInputX() * kMaxSpeed)
-                        .withVelocityY(getInputY() * kMaxSpeed);
-                    // TODO: decide whats the optimal deadzone or have some heuristic to check if the joystick was released
-                    if (Math.hypot(getInputX(), getInputY()) >= 0.5) {
-                        intakeDrive.withTargetDirection(new Rotation2d(getInputX(), getInputY()));
+                    // TODO: decide whats the optimal deadzone or have some heuristic to check if
+                    // the joystick was released
+                    if (Math.hypot(getInputX(), getInputY()) >= 0.0) {
+                        yield fieldCentricFacingAngleDrive
+                                .withVelocityX(getInputX() * kMaxSpeed)
+                                .withVelocityY(getInputY() * kMaxSpeed)
+                                .withTargetDirection(new Rotation2d(getInputX(), getInputY()));
                     }
-                    yield intakeDrive;
+                    yield fieldCentricDrive
+                            .withVelocityX(getInputX() * kMaxSpeed)
+                            .withVelocityY(getInputY() * kMaxSpeed);
                 }
                 case SHOOT -> {
-                    // TODO: implement
-                    // TODO: verify
-                    double radialInput = MathUtil.applyDeadband(inputX.get(), OperatorConstants.kDriverControllerTranslationDeadband, 1);
-                    double tangentialInput = MathUtil.applyDeadband(inputY.get(), OperatorConstants.kDriverControllerTranslationDeadband, 1);
+                    double radialInput = MathUtil.applyDeadband(inputX.get(), 0.25, 1);
+                    double tangentialInput = MathUtil.applyDeadband(inputY.get(), 0.25, 1);
                     Pose2d robotPose = getState().Pose;
                     Pose2d hubPose = FieldConstants.hubLocations.get(DriverStation.getAlliance().orElse(Alliance.Blue));
                     Translation2d radialVector = new Translation2d(
-                        hubPose.getX() - robotPose.getX(),
-                        hubPose.getY() - robotPose.getY()
-                    );
+                            hubPose.getX() - robotPose.getX(),
+                            hubPose.getY() - robotPose.getY());
                     if (radialVector.getNorm() <= 1e-3) {
                         radialVector = new Translation2d(0.0, 0.0);
                     } else {
                         radialVector = radialVector.div(radialVector.getNorm());
                     }
                     Translation2d tangentialVector = new Translation2d(
-                        radialVector.getY(),
-                        radialVector.getX()
-                    );
-                    yield shootDrive
-                        .withVelocityX(kMaxSpeed * (-radialInput * radialVector.getX() + tangentialInput * tangentialVector.getX()))
-                        .withVelocityY(kMaxSpeed * (-radialInput * radialVector.getY() - tangentialInput * tangentialVector.getY()));
+                            radialVector.getY(),
+                            radialVector.getX());
+                    yield fieldCentricDrive
+                            .withVelocityX(kMaxSpeed
+                                    * (-radialInput * radialVector.getX() + tangentialInput * tangentialVector.getX()))
+                            .withVelocityY(kMaxSpeed
+                                    * (-radialInput * radialVector.getY() - tangentialInput * tangentialVector.getY()));
                 }
             };
         });
