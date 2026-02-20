@@ -11,11 +11,15 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Vector;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N2;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.generated.CommandSwerveDrivetrain;
 import frc.robot.generated.TunerConstants;
@@ -140,7 +144,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                     double radialInput = MathUtil.applyDeadband(inputX.get(), OperatorConstants.kDriverControllerTranslationDeadband, 1);
                     double tangentialInput = MathUtil.applyDeadband(inputY.get(), OperatorConstants.kDriverControllerTranslationDeadband, 1);
                     Pose2d robotPose = getState().Pose;
-                    Pose2d hubPose = FieldConstants.hubLocations(DriverStation.getAlliance().orElse(Alliance.Blue));
+                    Pose2d hubPose = FieldConstants.hubLocations.get(DriverStation.getAlliance().orElse(Alliance.Blue));
                     Translation2d radialVector = new Translation2d(
                         hubPose.getX() - robotPose.getX(),
                         hubPose.getY() - robotPose.getY()
@@ -151,12 +155,12 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                         radialVector = radialVector.div(radialVector.getNorm());
                     }
                     Translation2d tangentialVector = new Translation2d(
-                        -radialVector.getY(),
-                        -radialVector.getX()
+                        radialVector.getY(),
+                        radialVector.getX()
                     );
                     yield shootDrive
-                        .withVelocityX(kMaxSpeed * (radialInput * radialVector.getX() + tangentialInput * tangentialVector.getX())),
-                        .withVelocityY(kMaxSpeed * (radialInput * radialVector.getY() + tangentialInput * tangentialVector.getY()));
+                        .withVelocityX(kMaxSpeed * (-radialInput * radialVector.getX() + tangentialInput * tangentialVector.getX()))
+                        .withVelocityY(kMaxSpeed * (-radialInput * radialVector.getY() - tangentialInput * tangentialVector.getY()));
                 }
             };
         });
