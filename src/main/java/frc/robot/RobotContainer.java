@@ -16,7 +16,7 @@ import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Drivetrain.DriveMode;
 
 public class RobotContainer {
-    private final Telemetry logger = new Telemetry(Drivetrain.kMaxSpeed);
+    private final Telemetry logger = new Telemetry();
 
     private final CommandXboxController primaryController = new CommandXboxController(0);
     private final Trigger AutoAimTrigger = primaryController.rightBumper();

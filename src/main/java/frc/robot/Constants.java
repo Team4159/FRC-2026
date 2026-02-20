@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.*;
+
 import java.util.Map;
 
 import com.ctre.phoenix6.swerve.utility.PhoenixPIDController;
@@ -19,6 +21,7 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import frc.robot.generated.TunerConstants;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
@@ -36,6 +39,12 @@ public final class Constants {
   }
 
   public static class DrivetrainConstants {
+    public static final double kMaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
+    public static final double kMaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond);
+
+    public static final double kInputTranslationExponent = 2.0;
+    public static final double kInputRotationExponent = 2.0;
+
     public static final PhoenixPIDController AutoAimRotationController = new PhoenixPIDController(15, 0, 0);
     static {
       AutoAimRotationController.enableContinuousInput(-Math.PI, Math.PI);

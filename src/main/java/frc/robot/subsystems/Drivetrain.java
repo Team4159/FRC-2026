@@ -1,8 +1,7 @@
 package frc.robot.subsystems;
 
-import static edu.wpi.first.units.Units.MetersPerSecond;
-import static edu.wpi.first.units.Units.RadiansPerSecond;
-import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static frc.robot.Constants.OperatorConstants.*;
+import static frc.robot.Constants.DrivetrainConstants.*;
 
 import java.util.function.Supplier;
 
@@ -20,17 +19,10 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.FieldConstants;
-import frc.robot.Constants.OperatorConstants;
 import frc.robot.generated.CommandSwerveDrivetrain;
 import frc.robot.generated.TunerConstants;
 
 public class Drivetrain extends CommandSwerveDrivetrain {
-    public static final double kMaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
-    public static final double kMaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond);
-
-    private static final double kInputTranslationExponent = 2.0;
-    private static final double kInputRotationExponent = 2.0;
-
     private final SwerveRequest.FieldCentric fieldCentricDrive = new SwerveRequest.FieldCentric()
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
     private final SwerveRequest.RobotCentric robotCentricDrive = new SwerveRequest.RobotCentric()
@@ -76,7 +68,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     public Translation2d getInputTranslation() {
         Translation2d rawInput = getRawInputTranslation();
         Vector<N2> filteredInputVector = MathUtil.applyDeadband(rawInput.toVector(),
-                OperatorConstants.kDriverControllerTranslationDeadband, 1);
+                kDriverControllerTranslationDeadband, 1);
         return new Translation2d(filteredInputVector);
     }
 
@@ -109,7 +101,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     public double getInputRotation() {
         double rawInput = getRawInputRotation();
         double filteredInput = MathUtil.applyDeadband(Math.abs(rawInput),
-                OperatorConstants.kDriverControllerRotationDeadband, 1);
+                kDriverControllerRotationDeadband, 1);
         return Math.abs(Math.pow(filteredInput, kInputRotationExponent)) * Math.signum(rawInput);
     }
 
