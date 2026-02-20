@@ -6,6 +6,7 @@ package frc.robot;
 
 import choreo.auto.AutoChooser;
 import choreo.auto.AutoFactory;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -54,10 +55,12 @@ public class RobotContainer {
                 drivetrain.drive(DriveMode.IDLE).ignoringDisable(true));
 
         primaryController.leftStick().whileTrue(drivetrain.drive(DriveMode.ROBOT_CENTRIC));
-        primaryController.a().whileTrue(drivetrain.drive(DriveMode.BRAKE));
-        primaryController.b().whileTrue(drivetrain.drive(DriveMode.POINT));
         primaryController.x().whileTrue(drivetrain.drive(DriveMode.INTAKE));
         primaryController.y().whileTrue(drivetrain.drive(DriveMode.SHOOT));
+        if (DriverStation.isTest()) {
+            primaryController.a().whileTrue(drivetrain.drive(DriveMode.BRAKE));
+            primaryController.b().whileTrue(drivetrain.drive(DriveMode.POINT));
+        }
 
         // Reset the field-centric heading on left bumper press.
         primaryController.leftBumper().onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
