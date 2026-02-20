@@ -49,6 +49,16 @@ public final class Constants {
     static {
       AutoAimRotationController.enableContinuousInput(-Math.PI, Math.PI);
     }
+
+    public static enum DriveMode {
+        FIELD_CENTRIC,
+        ROBOT_CENTRIC,
+        BRAKE,
+        POINT,
+        IDLE,
+        INTAKE,
+        SHOOT,
+    }
   }
 
   public static class PhotonVisionConstants{

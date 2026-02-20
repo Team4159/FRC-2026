@@ -23,6 +23,7 @@ import frc.robot.generated.CommandSwerveDrivetrain;
 import frc.robot.generated.TunerConstants;
 
 public class Drivetrain extends CommandSwerveDrivetrain {
+
     private final SwerveRequest.FieldCentric fieldCentricDrive = new SwerveRequest.FieldCentric()
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
     private final SwerveRequest.RobotCentric robotCentricDrive = new SwerveRequest.RobotCentric()
@@ -33,16 +34,6 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     private final SwerveRequest.SwerveDriveBrake brakeDrive = new SwerveRequest.SwerveDriveBrake();
     private final SwerveRequest.PointWheelsAt pointDrive = new SwerveRequest.PointWheelsAt();
     private final SwerveRequest.Idle idleDrive = new SwerveRequest.Idle();
-
-    public static enum DriveMode {
-        FIELD_CENTRIC,
-        ROBOT_CENTRIC,
-        BRAKE,
-        POINT,
-        IDLE,
-        INTAKE,
-        SHOOT,
-    }
 
     private final Supplier<Double> inputX;
     private final Supplier<Double> inputY;

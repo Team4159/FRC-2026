@@ -12,9 +12,9 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.Constants.DrivetrainConstants.DriveMode;
 import frc.robot.commands.AutoAim;
 import frc.robot.subsystems.Drivetrain;
-import frc.robot.subsystems.Drivetrain.DriveMode;
 
 public class RobotContainer {
     private final Telemetry logger = new Telemetry();
