@@ -33,7 +33,6 @@ public class Shooter extends SubsystemBase{
         shooterConfig.kI = Constants.ShooterConstants.kI;
         shooterConfig.kD = Constants.ShooterConstants.kD;
 
-
         hoodMotor = new TalonFX(Constants.HoodConstants.HoodId);
         feederMotor = new TalonFX(Constants.FeederConstants.FeederID);
         motorOne = new TalonFX(Constants.ShooterConstants.ShooterIDOne);

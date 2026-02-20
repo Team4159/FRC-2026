@@ -38,7 +38,8 @@ public final class Constants {
     public static final double kI = 0;
     public static final double kD = 0;
     public static final double kP = 0.01;
-    public static final int HoodId = 3; //fix this
+    // oriinal hood id was 3, but i had to change it because it was messing with the drivetrain
+    public static final int HoodId = 11; //fix this
   }
 
   public static class ClimberConstants {
