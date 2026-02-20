@@ -37,7 +37,7 @@ public class Shooter extends SubsystemBase {
         }
     }
 
-    private static final AngularVelocity kSteadyTolerance = RPM.of(25);
+    private static final AngularVelocity kSteadyTolerance = RPM.of(0.0);
     private static final AngularVelocity kRevVelocity = RPM.of(10.0);
 
     private final TalonFX motor = new TalonFX(9);
@@ -80,7 +80,7 @@ public class Shooter extends SubsystemBase {
         public void execute() {
             AngularVelocity motorVelocity = motor.getVelocity(true).getValue();
             AngularVelocity targetVelocity = velocitySupplier.get();
-            if (!steady && Math.abs(motorVelocity.in(RPM) - targetVelocity.in(RPM)) <= kSteadyTolerance.in(RPM)) {
+            if (!steady && motorVelocity.in(RPM) >= targetVelocity.in(RPM) - kSteadyTolerance.in(RPM)) {
                 steady = true;
             }
             if (steady) {
