@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
 import java.util.function.Supplier;
@@ -37,8 +38,8 @@ public class Shooter extends SubsystemBase {
         }
     }
 
-    private static final AngularVelocity kSteadyTolerance = RPM.of(0.0);
-    private static final AngularVelocity kRevVelocity = RPM.of(10.0);
+    private static final AngularVelocity kSteadyTolerance = RotationsPerSecond.of(0.0);
+    private static final AngularVelocity kRevVelocity = RotationsPerSecond.of(10.0);
 
     private final TalonFX motor = new TalonFX(9);
     {
