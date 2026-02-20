@@ -1,7 +1,7 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.controls.PercentOutput;
+import com.ctre.phoenix6.controls.DutyCycleOut; //read what I put in climber
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -10,11 +10,11 @@ import frc.robot.Constants.HopperConstants.HopperState;
 
 public class Hopper extends SubsystemBase{
     private TalonFX hopperMotor;
-    private final PercentOutput percentOutput;
+    private final DutyCycleOut percentOutput;
 
     public Hopper(){
         hopperMotor = new TalonFX(Constants.HopperConstants.HopperId);
-        percentOutput = new PercentOutput(0);
+        percentOutput = new DutyCycleOut(0);
     }
     
     public void setHopperSpeed(double speed){

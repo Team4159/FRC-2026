@@ -3,6 +3,8 @@ package frc.robot.subsystems;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
+
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ClimberConstants;
@@ -41,7 +43,7 @@ public class Climber extends SubsystemBase{
     }
 
     public void stopClimber(){
-        double currentPosition = climbMotorOne.getPosition().getValue();
+        Angle currentPosition = climbMotorOne.getPosition().getValue(); //This might fuck with stuff
         climbMotorOne.setControl(climberPositionVoltage.withPosition(currentPosition));
         climbMotorTwo.setControl(climberPositionVoltage.withPosition(currentPosition));
     }
@@ -56,7 +58,7 @@ public class Climber extends SubsystemBase{
 
         @Override
         public void initialize(){
-            Climber.this.setClimberSpeed(climberState.position);
+            Climber.this.setClimberPosition(climberState.position);
         }
 
         @Override

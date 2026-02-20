@@ -2,7 +2,7 @@ package frc.robot.subsystems;
 
 import com.ctre.phoenix6.configs.Slot0Configs;//
 import com.ctre.phoenix6.controls.PositionVoltage;//
-import com.ctre.phoenix6.controls.PercentOutput;
+import com.ctre.phoenix6.controls.DutyCycleOut; //PercentOutput is for Phoenix 5, Voltage out has voltage compensation
 import com.ctre.phoenix6.hardware.TalonFX;//
 
 import edu.wpi.first.wpilibj2.command.Command;//
@@ -14,7 +14,7 @@ public class Intake extends SubsystemBase {
     private final TalonFX locationMotor, spinMotor;
 
     private final PositionVoltage intakePositionVoltage;
-    private final PercentOutput spinPercentOutput;
+    private final DutyCycleOut spinPercentOutput;
 
     public Intake() {
         Slot0Configs locationConfig = new Slot0Configs();
@@ -34,7 +34,7 @@ public class Intake extends SubsystemBase {
         //spin motor no PID right?
 
         intakePositionVoltage = new PositionVoltage(0);
-        spinPercentOutput = new PercentOutput(0);
+        spinPercentOutput = new DutyCycleOut(0);
     }
 
     public void setSpinSpeed(double speed) {
