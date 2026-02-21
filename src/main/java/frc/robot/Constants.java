@@ -43,8 +43,8 @@ public final class Constants {
         // controller joystick constants
         public static final double kPrimaryTranslationDeadband = 0.1;
         public static final double kPrimaryRotationDeadband = 0.1;
-        public static final double kPrimaryTranslationExponent = 1.0;
-        public static final double kPrimaryRotationExponent = 1.0;
+        public static final double kPrimaryTranslationExponent = 2.0;
+        public static final double kPrimaryRotationExponent = 2.0;
         public static final double kPrimaryTranslationRadius = 0.99;
         public static final double kPrimaryRotationRadius = 0.99;
 
