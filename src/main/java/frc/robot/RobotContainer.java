@@ -9,17 +9,18 @@ import choreo.auto.AutoFactory;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.Constants.DrivetrainConstants.DriveMode;
+import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.AutoAim;
 import frc.robot.subsystems.Drivetrain;
 
 public class RobotContainer {
     private final Telemetry logger = new Telemetry();
 
-    private final CommandXboxController primaryController = new CommandXboxController(0);
+    private final CommandXboxController primaryController = new CommandXboxController(OperatorConstants.kPrimaryControllerPort);
     private final Trigger AutoAimTrigger = primaryController.rightBumper();
 
     public final Drivetrain drivetrain = new Drivetrain(primaryController);
@@ -44,22 +45,24 @@ public class RobotContainer {
         // and Y is defined as to the left according to WPILib convention.
         drivetrain.setDefaultCommand(
                 // Drivetrain will execute this command periodically
-                drivetrain.drive(DriveMode.FIELD_CENTRIC)
-        );
+                drivetrain.drive(OperatorConstants.DriveMode.FIELD_CENTRIC));
 
         AutoAimTrigger.whileTrue(new AutoAim(drivetrain));
 
         // Idle while the robot is disabled. This ensures the configured
         // neutral mode is applied to the drive motors while disabled.
         RobotModeTriggers.disabled().whileTrue(
-                drivetrain.drive(DriveMode.IDLE).ignoringDisable(true));
+                drivetrain.drive(OperatorConstants.DriveMode.IDLE).ignoringDisable(true));
 
-        primaryController.leftStick().whileTrue(drivetrain.drive(DriveMode.ROBOT_CENTRIC));
-        primaryController.x().whileTrue(drivetrain.drive(DriveMode.INTAKE));
-        primaryController.y().whileTrue(drivetrain.drive(DriveMode.SHOOT));
+        primaryController.leftStick().whileTrue(drivetrain.drive(OperatorConstants.DriveMode.ROBOT_CENTRIC));
+        if (!DriverStation.isTest()) {
+            primaryController.x().whileTrue(drivetrain.drive(OperatorConstants.DriveMode.INTAKE));
+            primaryController.y().whileTrue(drivetrain.drive(OperatorConstants.DriveMode.SHOOT));
+            primaryController.a().onChange(Commands.runOnce(() -> drivetrain.enableDriveAssist(!primaryController.a().getAsBoolean())));
+        }
         if (DriverStation.isTest()) {
-            primaryController.a().whileTrue(drivetrain.drive(DriveMode.BRAKE));
-            primaryController.b().whileTrue(drivetrain.drive(DriveMode.POINT));
+            primaryController.a().whileTrue(drivetrain.drive(OperatorConstants.DriveMode.BRAKE));
+            primaryController.b().whileTrue(drivetrain.drive(OperatorConstants.DriveMode.POINT));
         }
 
         // Reset the field-centric heading on left bumper press.

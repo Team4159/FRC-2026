@@ -12,19 +12,19 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Vector;
-import edu.wpi.first.math.controller.BangBangController;
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.numbers.N2;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.lib.FieldUtil;
 import frc.robot.Constants.FieldConstants;
+import frc.robot.Constants.OperatorConstants.DriveMode;
 import frc.robot.generated.CommandSwerveDrivetrain;
 import frc.robot.generated.TunerConstants;
 
@@ -45,6 +45,8 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     private final Supplier<Double> inputY;
     private final Supplier<Double> inputRotation;
 
+    private boolean driveAssistEnabled = true;
+
     public Drivetrain(CommandXboxController controller) {
         super(TunerConstants.DrivetrainConstants, TunerConstants.FrontLeft, TunerConstants.FrontRight,
                 TunerConstants.BackLeft, TunerConstants.BackRight);
@@ -53,8 +55,42 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         this.inputRotation = () -> -controller.getRightX();
     }
 
+    public void enableDriveAssist(boolean enabled) {
+        driveAssistEnabled = enabled;
+    }
+
+    /**
+     * @return the robot relative translation input (-left joystick y input, -left
+     *         joystick x input), from magnitude range -1 to 1. no deadzone is
+     *         applied
+     */
     public Translation2d getRawInputTranslation() {
         return new Translation2d(inputX.get(), inputY.get());
+    }
+
+    /**
+     * @return the robot relative translation input (-left joystick y input, -left
+     *         joystick x input), from magnitude range -1 to 1. a deadzone is
+     *         applied.
+     */
+    public Translation2d getInputTranslation() {
+        Translation2d rawInput = getRawInputTranslation();
+        Vector<N2> filteredInputVector = rawInput.toVector();
+        filteredInputVector = MathUtil.applyDeadband(filteredInputVector, kPrimaryTranslationDeadband, 1);
+        filteredInputVector = filteredInputVector.div(kPrimaryTranslationRadius);
+        if (filteredInputVector.norm() > 1) {
+            filteredInputVector = filteredInputVector.div(filteredInputVector.norm());
+        }
+        return new Translation2d(filteredInputVector);
+    }
+
+    /**
+     * @return the robot relative x input (-left joystick y input), from range -1 to
+     *         1. a deadzone and quadratic are applied for better control.
+     */
+    public double getInputX() {
+        double input = getInputTranslation().getX();
+        return Math.abs(Math.pow(input, kPrimaryTranslationExponent)) * Math.signum(input);
     }
 
     /**
@@ -62,35 +98,31 @@ public class Drivetrain extends CommandSwerveDrivetrain {
      *         joystick x input), from magnitude range -1 to 1. a deadzone is
      *         applied.
      */
-    public Translation2d getInputTranslation() {
-        Translation2d rawInput = getRawInputTranslation();
-        Vector<N2> filteredInputVector = MathUtil.applyDeadband(rawInput.toVector(),
-                kDriverControllerTranslationDeadband, 1);
-        return new Translation2d(filteredInputVector);
+    public double getInputFieldX() {
+        return DriverStation.getAlliance().orElse(Alliance.Blue).equals(Alliance.Blue) ? getInputX() : -getInputX();
     }
 
     /**
-     * @return the field relative x input (-left joystick y input), from range -1 to
+     * @return the robot relative y input (-left joystick x input), from range -1 to
      *         1. a deadzone and quadratic are applied for better control.
      */
-    public double getInputX() {
-        double input = getInputTranslation().getX();
-        return Math.abs(Math.pow(input, kInputTranslationExponent)) * Math.signum(input);
-    }
-
-    public double getInputFieldX() {
-        return DriverStation.getAlliance().orElse(Alliance.Blue).equals(Alliance.Blue) ? getInputX() : -getInputX();
+    public double getInputY() {
+        double input = getInputTranslation().getY();
+        return Math.abs(Math.pow(input, kPrimaryTranslationExponent)) * Math.signum(input);
     }
 
     /**
      * @return the field relative y input (-left joystick x input), from range -1 to
      *         1. a deadzone and quadratic are applied for better control.
      */
-    public double getInputY() {
-        double input = getInputTranslation().getY();
-        return Math.abs(Math.pow(input, kInputTranslationExponent)) * Math.signum(input);
+    public double getInputFieldY() {
+        return DriverStation.getAlliance().orElse(Alliance.Blue).equals(Alliance.Blue) ? getInputY() : -getInputY();
     }
 
+    /**
+     * @return the field relative rotation input (-right joystick x), from range -1
+     *         to 1. no deadzone is applied
+     */
     public double getRawInputRotation() {
         return inputRotation.get();
     }
@@ -102,18 +134,23 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     public double getInputRotation() {
         double rawInput = getRawInputRotation();
         double filteredInput = MathUtil.applyDeadband(Math.abs(rawInput),
-                kDriverControllerRotationDeadband, 1);
-        return Math.abs(Math.pow(filteredInput, kInputRotationExponent)) * Math.signum(rawInput);
+                kPrimaryRotationDeadband, 1);
+        return Math.abs(Math.pow(filteredInput, kPrimaryRotationExponent)) * Math.signum(rawInput);
     }
 
+    /**
+     * @return the command to apply a swerve request based on the given DriveMode
+     */
     public Command drive(DriveMode mode) {
         return applyRequest(() -> {
             return switch (mode) {
                 case FIELD_CENTRIC -> {
                     var assistSpeed = driveAssist();
                     yield fieldCentricDrive.withVelocityX(getInputX() * kMaxSpeed)
-                        .withVelocityY(assistSpeed.isEmpty() ? getInputY() * kMaxSpeed : assistSpeed.get().vyMetersPerSecond + 0.2 * getInputY() * kMaxSpeed)
-                        .withRotationalRate(getInputRotation() * kMaxAngularRate);
+                            .withVelocityY(assistSpeed.isEmpty() ? getInputY() * kMaxSpeed
+                                    : assistSpeed.get().vyMetersPerSecond
+                                            + kTrenchAssistAlignInfluence * getInputY() * kMaxSpeed)
+                            .withRotationalRate(getInputRotation() * kMaxAngularRate);
                 }
                 case ROBOT_CENTRIC -> robotCentricDrive.withVelocityX(getInputX() * kMaxSpeed)
                         .withVelocityY(getInputY() * kMaxSpeed)
@@ -136,8 +173,8 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                             .withVelocityY(getInputY() * kMaxSpeed);
                 }
                 case SHOOT -> {
-                    double radialInput = MathUtil.applyDeadband(inputX.get(), 0.25, 1);
-                    double tangentialInput = MathUtil.applyDeadband(inputY.get(), 0.25, 1);
+                    double radialInput = MathUtil.applyDeadband(inputX.get(), kPrimaryRadialModeDeadband, 1);
+                    double tangentialInput = MathUtil.applyDeadband(inputY.get(), kPrimaryRadialModeDeadband, 1);
                     Pose2d robotPose = getState().Pose;
                     Pose2d hubPose = FieldConstants.hubLocations.get(DriverStation.getAlliance().orElse(Alliance.Blue));
                     Translation2d radialVector = new Translation2d(
@@ -162,27 +199,34 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     }
 
     private Optional<ChassisSpeeds> driveAssist() {
-        if (DriverStation.isTest()) {
+        if (driveAssistEnabled && DriverStation.isTest()) {
             return Optional.empty();
         }
         Pose2d robotPose = getState().Pose;
 
+        // trench assist
         var trenchZone = FieldUtil.getPoseTrenchZone(robotPose);
         if (trenchZone.isPresent()) {
-            double xError = trenchZone.get().x.in(Meters) - robotPose.getMeasureX().in(Meters);
-            double yError = trenchZone.get().y.in(Meters) - robotPose.getMeasureY().in(Meters);
-            if (Math.abs(xError) >= 0.5 && Math.signum(getInputFieldX()) == -Math.signum(xError)) {
+            Distance errorX = trenchZone.get().x.minus(robotPose.getMeasureX());
+            Distance errorY = trenchZone.get().y.minus(robotPose.getMeasureY());
+
+            boolean hasPassed = !errorX.isNear(Meters.zero(), kTrenchAssistPassPositionTolerance);
+            boolean isNotApproaching = Math.signum(getInputFieldX()) == -Math.signum(errorX.magnitude())
+                    || Math.abs(getInputFieldX()) <= kTrenchAssistPassInputTolerance;
+            if (hasPassed && isNotApproaching) {
                 return Optional.empty();
             }
+
             double vy = 0.0;
-            if (Math.abs(yError) >= 0.25) {
-                vy = -kMaxSpeed * Math.signum(yError) * Math.abs(getInputFieldX());
+            boolean outsideTolerance = !errorY.isNear(Meters.zero(), kTrenchAssistAlignPositionTolerance);
+            if (outsideTolerance) {
+                vy = -kMaxSpeed * Math.signum(errorY.magnitude()) * Math.abs(getInputFieldX());
             }
+
             return Optional.of(new ChassisSpeeds(
-                0.0,
-                vy,
-                0.0
-            ));
+                    0.0,
+                    vy,
+                    0.0));
         }
 
         return Optional.empty();

@@ -34,35 +34,43 @@ import frc.robot.generated.TunerConstants;
  */
 public final class Constants {
   public static class OperatorConstants {
-    public static final int kDriverControllerPort = 0;
-    public static final double kDriverControllerTranslationDeadband = 0.1;
-    public static final double kDriverControllerRotationDeadband = 0.1;
+      public static final int kPrimaryControllerPort = 0;
+      public static final double kPrimaryTranslationDeadband = 0.1;
+      public static final double kPrimaryRotationDeadband = 0.1;
+      public static final double kPrimaryTranslationExponent = 2.0;
+      public static final double kPrimaryRotationExponent = 2.0;
+      public static final double kPrimaryTranslationRadius = 0.95;
+      public static final double kPrimaryRotationRadius = 0.95;
+      public static final double kPrimaryRadialModeDeadband = 0.2;
+
+      public static enum DriveMode {
+          FIELD_CENTRIC,
+          ROBOT_CENTRIC,
+          BRAKE,
+          POINT,
+          IDLE,
+          INTAKE,
+          SHOOT,
+      }
   }
 
   public static class DrivetrainConstants {
     public static final double kMaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
     public static final double kMaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond);
 
-    public static final double kInputTranslationExponent = 2.0;
-    public static final double kInputRotationExponent = 2.0;
+    // driver assist constnats
+    public static Distance kTrenchAssistPassPositionTolerance = Meters.of(0.3);
+    public static double kTrenchAssistPassInputTolerance = 0.25;
+    public static Distance kTrenchAssistAlignPositionTolerance = Meters.of(0.15);
+    public static double kTrenchAssistAlignInfluence = 0.15;
 
     public static final PhoenixPIDController AutoAimRotationController = new PhoenixPIDController(15, 0, 0);
     static {
       AutoAimRotationController.enableContinuousInput(-Math.PI, Math.PI);
     }
-
-    public static enum DriveMode {
-        FIELD_CENTRIC,
-        ROBOT_CENTRIC,
-        BRAKE,
-        POINT,
-        IDLE,
-        INTAKE,
-        SHOOT,
-    }
   }
 
-  public static class PhotonVisionConstants{
+  public static class PhotonVisionConstants {
 
     //TODO: tune stddev values
     public static final Matrix<N3, N1> kSingleTagStdDevs = VecBuilder.fill(4, 4, 8);
@@ -89,7 +97,7 @@ public final class Constants {
   public static class ShooterConstants {
     //TODO: find ball launch velocity
     /** units: m/s */
-    public static final double launchVelocity = Units.feetToMeters(29);//convert from ft/s to m/s
+    public static final double launchVelocity = Units.feetToMeters(29); //convert from ft/s to m/s
     public static final double ratio = 1;
     public static final double shootHeight = Units.inchesToMeters(40);
   }
