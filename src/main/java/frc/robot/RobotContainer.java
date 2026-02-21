@@ -20,7 +20,8 @@ import frc.robot.subsystems.Drivetrain;
 public class RobotContainer {
     private final Telemetry logger = new Telemetry();
 
-    private final CommandXboxController primaryController = new CommandXboxController(OperatorConstants.kPrimaryControllerPort);
+    private final CommandXboxController primaryController = new CommandXboxController(
+            OperatorConstants.kPrimaryControllerPort);
     private final Trigger AutoAimTrigger = primaryController.rightBumper();
 
     public final Drivetrain drivetrain = new Drivetrain(primaryController);
@@ -54,11 +55,12 @@ public class RobotContainer {
         RobotModeTriggers.disabled().whileTrue(
                 drivetrain.drive(OperatorConstants.DriveMode.IDLE).ignoringDisable(true));
 
-        primaryController.leftStick().whileTrue(drivetrain.drive(OperatorConstants.DriveMode.ROBOT_CENTRIC));
         if (!DriverStation.isTest()) {
-            primaryController.x().whileTrue(drivetrain.drive(OperatorConstants.DriveMode.INTAKE));
-            primaryController.y().whileTrue(drivetrain.drive(OperatorConstants.DriveMode.SHOOT));
-            primaryController.a().onChange(Commands.runOnce(() -> drivetrain.enableDriveAssist(!primaryController.a().getAsBoolean())));
+            primaryController.b().whileTrue(drivetrain.drive(OperatorConstants.DriveMode.INTAKE));
+            primaryController.x().whileTrue(drivetrain.drive(OperatorConstants.DriveMode.ROBOT_CENTRIC));
+            primaryController.y().whileTrue(drivetrain.drive(OperatorConstants.DriveMode.RADIAL));
+            primaryController.rightBumper().onChange(
+                    Commands.runOnce(() -> drivetrain.enableDriveAssist(!primaryController.a().getAsBoolean())));
         }
         if (DriverStation.isTest()) {
             primaryController.a().whileTrue(drivetrain.drive(OperatorConstants.DriveMode.BRAKE));

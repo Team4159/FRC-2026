@@ -50,7 +50,7 @@ public final class Constants {
           POINT,
           IDLE,
           INTAKE,
-          SHOOT,
+          RADIAL,
       }
   }
 

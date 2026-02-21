@@ -172,7 +172,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                             .withVelocityX(getInputX() * kMaxSpeed)
                             .withVelocityY(getInputY() * kMaxSpeed);
                 }
-                case SHOOT -> {
+                case RADIAL -> {
                     double radialInput = MathUtil.applyDeadband(inputX.get(), kPrimaryRadialModeDeadband, 1);
                     double tangentialInput = MathUtil.applyDeadband(inputY.get(), kPrimaryRadialModeDeadband, 1);
                     Pose2d robotPose = getState().Pose;
