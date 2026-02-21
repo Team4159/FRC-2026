@@ -208,7 +208,7 @@ public class BirdAuto {
 
             Setpoint setpoint = setpoints[setpointProgress];
             Pose2d desiredPose = alliance == Alliance.Blue ? setpoint.pose
-                    : PoseUtil.flipPoseToOtherAlliance(setpoint.pose);
+                    : FieldUtil.flipPoseToOtherAlliance(setpoint.pose);
             Optional<Rotation2d> entryAngle = setpoint.entryAngle;
             LinearVelocity targetVelocity = setpoint.targetVelocity;
             translationOnly = setpoint.translationOnly;
@@ -235,9 +235,9 @@ public class BirdAuto {
 
     // TODO: tune dynamic entry angles to smooth out paths
     private Setpoint[] setpointFactory(FieldGoal goal, Setpoint lastSetpoint, LinearVelocity cruiseSpeed) {
-        boolean lastOnRight = PoseUtil.isPoseOnRight(lastSetpoint.pose);
+        boolean lastOnRight = FieldUtil.isPoseOnRight(lastSetpoint.pose);
         boolean lastOnLeft = !lastOnRight;
-        boolean lastInAlliance = PoseUtil.isPoseInAllianceZone(Alliance.Blue, lastSetpoint.pose);
+        boolean lastInAlliance = FieldUtil.isPoseInAllianceZone(Alliance.Blue, lastSetpoint.pose);
         boolean lastInNeutral = !lastInAlliance;
         return switch (goal) {
             case OUTPOST: {

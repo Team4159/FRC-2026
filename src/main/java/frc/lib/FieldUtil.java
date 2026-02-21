@@ -8,7 +8,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 
-public final class PoseUtil {
+public final class FieldUtil {
     public static enum FieldZone {
         FIELD(Inches.of(651.22), Inches.of(317.69)),
         ALLIANCE(Inches.of(156.61), Inches.of(317.69));
