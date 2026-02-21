@@ -14,7 +14,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
-import frc.robot.commands.AutoAim;
+import frc.robot.Constants.OperatorConstants.DriveMode;
 import frc.robot.subsystems.Drivetrain;
 
 public class RobotContainer {
@@ -22,7 +22,13 @@ public class RobotContainer {
 
     private final CommandXboxController primaryController = new CommandXboxController(
             OperatorConstants.kPrimaryControllerPort);
-    private final Trigger AutoAimTrigger = primaryController.rightBumper();
+    private final Trigger primaryIntakeModeTrigger = primaryController.b();
+    private final Trigger primaryRadialModeTrigger = primaryController.y();
+    private final Trigger primaryRobotAlignModeTrigger = primaryController.leftBumper();
+    private final Trigger primaryRobotRelativeTrigger = primaryController.leftTrigger();
+    private final Trigger primaryReduceSpeedTrigger = primaryController.rightTrigger();
+    private final Trigger primaryDriverAssistTrigger = primaryController.rightBumper();
+    private final Trigger primaryZeroTrigger = primaryController.back();
 
     public final Drivetrain drivetrain = new Drivetrain(primaryController);
 
@@ -44,31 +50,32 @@ public class RobotContainer {
     private void configureBindings() {
         // Note that X is defined as forward according to WPILib convention,
         // and Y is defined as to the left according to WPILib convention.
-        drivetrain.setDefaultCommand(
-                // Drivetrain will execute this command periodically
-                drivetrain.drive(OperatorConstants.DriveMode.FIELD_CENTRIC));
-
-        AutoAimTrigger.whileTrue(new AutoAim(drivetrain));
+        drivetrain.setDefaultCommand(drivetrain.new Drive(DriveMode.FREE,
+                () -> primaryRobotRelativeTrigger.getAsBoolean()));
 
         // Idle while the robot is disabled. This ensures the configured
         // neutral mode is applied to the drive motors while disabled.
         RobotModeTriggers.disabled().whileTrue(
-                drivetrain.drive(OperatorConstants.DriveMode.IDLE).ignoringDisable(true));
+                drivetrain.new Drive(DriveMode.IDLE).ignoringDisable(true));
 
-        if (!DriverStation.isTest()) {
-            primaryController.b().whileTrue(drivetrain.drive(OperatorConstants.DriveMode.INTAKE));
-            primaryController.x().whileTrue(drivetrain.drive(OperatorConstants.DriveMode.ROBOT_CENTRIC));
-            primaryController.y().whileTrue(drivetrain.drive(OperatorConstants.DriveMode.RADIAL));
-            primaryController.rightBumper().onChange(
-                    Commands.runOnce(() -> drivetrain.enableDriveAssist(!primaryController.a().getAsBoolean())));
-        }
         if (DriverStation.isTest()) {
-            primaryController.a().whileTrue(drivetrain.drive(OperatorConstants.DriveMode.BRAKE));
-            primaryController.b().whileTrue(drivetrain.drive(OperatorConstants.DriveMode.POINT));
+            // test mode
+            primaryController.a().whileTrue(drivetrain.new Drive(DriveMode.BRAKE));
+            primaryController.b().whileTrue(drivetrain.new Drive(DriveMode.POINT));
+        } else {
+            // game mode
+            primaryRobotAlignModeTrigger.whileTrue(drivetrain.new Drive(DriveMode.ALIGN,
+                    () -> primaryRobotRelativeTrigger.getAsBoolean()));
+            primaryIntakeModeTrigger.whileTrue(drivetrain.new Drive(DriveMode.INTAKE));
+            primaryRadialModeTrigger.whileTrue(drivetrain.new Drive(DriveMode.RADIAL));
+            primaryReduceSpeedTrigger.onChange(
+                    Commands.runOnce(() -> drivetrain.enableReduceSpeed(primaryReduceSpeedTrigger.getAsBoolean())));
+            primaryDriverAssistTrigger.onChange(
+                    Commands.runOnce(() -> drivetrain.enableDriveAssist(!primaryDriverAssistTrigger.getAsBoolean())));
         }
 
         // Reset the field-centric heading on left bumper press.
-        primaryController.leftBumper().onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
+        primaryZeroTrigger.onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
 
         drivetrain.registerTelemetry(logger::telemeterize);
     }
