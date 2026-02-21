@@ -19,6 +19,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.generated.TunerConstants;
@@ -98,6 +99,35 @@ public final class Constants {
       Alliance.Blue, new Pose2d(Units.inchesToMeters(182.11), Units.inchesToMeters(158.84), new Rotation2d()),
       Alliance.Red, new Pose2d(Units.inchesToMeters(651.22 - 182.11), Units.inchesToMeters(158.84), new Rotation2d())
     );
+
+    public static enum FieldZone {
+        FIELD(Inches.of(651.22), Inches.of(317.69)),
+        ALLIANCE(Inches.of(156.61), Inches.of(317.69)),
+        TRENCH(Inches.of(120.0), Inches.of(49.96));
+
+        public final Distance width, height;
+
+        private FieldZone(Distance width, Distance height) {
+            this.width = width;
+            this.height = height;
+        }
+    }
+
+    public static enum TrenchZone {
+      BLUE_LEFT(Inches.of(182.11), Inches.of(24.97)), 
+      BLUE_RIGHT(Inches.of(182.11), Inches.of(317.69 - 24.97)),
+      RED_LEFT(Inches.of(651.22 - 182.11), Inches.of(24.97)), 
+      RED_RIGHT(Inches.of(651.22 - 182.11), Inches.of(317.69 - 24.97));
+
+      public final Distance x, y;
+
+        private TrenchZone(Distance x, Distance y) {
+            this.x = x;
+            this.y = y;
+        }
+    }
+
+    public static Distance kTrenchX = Inches.of(182.11);
 
     /** Units:m/s^2 */
     public static final double g = 9.80;
