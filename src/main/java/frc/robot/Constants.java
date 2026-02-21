@@ -43,10 +43,10 @@ public final class Constants {
         // controller joystick constants
         public static final double kPrimaryTranslationDeadband = 0.1;
         public static final double kPrimaryRotationDeadband = 0.1;
-        public static final double kPrimaryTranslationExponent = 2.0;
-        public static final double kPrimaryRotationExponent = 2.0;
-        public static final double kPrimaryTranslationRadius = 0.95;
-        public static final double kPrimaryRotationRadius = 0.95;
+        public static final double kPrimaryTranslationExponent = 1.0;
+        public static final double kPrimaryRotationExponent = 1.0;
+        public static final double kPrimaryTranslationRadius = 0.99;
+        public static final double kPrimaryRotationRadius = 0.99;
 
         public static enum DriveMode {
             FREE,
@@ -59,10 +59,11 @@ public final class Constants {
         }
 
         // drive assist constants
-        public static Distance kTrenchAssistPassPositionTolerance = Meters.of(0.3);
-        public static double kTrenchAssistPassInputTolerance = 0.25;
-        public static Distance kTrenchAssistAlignPositionTolerance = Meters.of(0.15);
-        public static double kTrenchAssistAlignInfluence = 0.15;
+        public static final Distance kTrenchAssistPassPositionTolerance = Meters.of(0.45);
+        public static final double kTrenchAssistApproachInputTolerance = 0.2;
+        public static final Distance kTrenchAssistAlignPositionTolerance = Meters.of(0.15);
+        public static final double kTrenchAssistAlignStrength = 0.8;
+        public static final double kTrenchAssistAlignInfluence = 0.15;
 
         // drive mode constants
         public static final double kPrimaryReduceSpeedTranslationFactor = 0.5;
@@ -70,8 +71,8 @@ public final class Constants {
 
         public static final double kPrimaryRadialModeDeadband = 0.2;
         
-        public static final double kPrimaryAlignModeDeadband = 0.5;
-        public static final double kPrimaryAlignModeSpeedTranslationFactor = 0.15;
+        public static final double kPrimaryAlignModeDeadband = 0.65;
+        public static final double kPrimaryAlignModeSpeedTranslationFactor = 0.2;
         public static final double kPrimaryAlignModeSpeedRotationFactor = 0.1;
     }
 

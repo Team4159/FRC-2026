@@ -58,21 +58,19 @@ public class RobotContainer {
         RobotModeTriggers.disabled().whileTrue(
                 drivetrain.new Drive(DriveMode.IDLE).ignoringDisable(true));
 
-        if (DriverStation.isTest()) {
-            // test mode
-            primaryController.a().whileTrue(drivetrain.new Drive(DriveMode.BRAKE));
-            primaryController.b().whileTrue(drivetrain.new Drive(DriveMode.POINT));
-        } else {
-            // game mode
-            primaryRobotAlignModeTrigger.whileTrue(drivetrain.new Drive(DriveMode.ALIGN,
-                    () -> primaryRobotRelativeTrigger.getAsBoolean()));
-            primaryIntakeModeTrigger.whileTrue(drivetrain.new Drive(DriveMode.INTAKE));
-            primaryRadialModeTrigger.whileTrue(drivetrain.new Drive(DriveMode.RADIAL));
-            primaryReduceSpeedTrigger.onChange(
-                    Commands.runOnce(() -> drivetrain.enableReduceSpeed(primaryReduceSpeedTrigger.getAsBoolean())));
-            primaryDriverAssistTrigger.onChange(
-                    Commands.runOnce(() -> drivetrain.enableDriveAssist(!primaryDriverAssistTrigger.getAsBoolean())));
-        }
+        // test mode
+        primaryController.a().and(DriverStation::isTest).whileTrue(drivetrain.new Drive(DriveMode.BRAKE));
+        primaryController.b().and(DriverStation::isTest).whileTrue(drivetrain.new Drive(DriveMode.POINT));
+
+        // teleop mode
+        primaryRobotAlignModeTrigger.and(DriverStation::isTeleop).whileTrue(drivetrain.new Drive(DriveMode.ALIGN,
+                () -> primaryRobotRelativeTrigger.getAsBoolean()));
+        primaryIntakeModeTrigger.and(DriverStation::isTeleop).whileTrue(drivetrain.new Drive(DriveMode.INTAKE));
+        primaryRadialModeTrigger.and(DriverStation::isTeleop).whileTrue(drivetrain.new Drive(DriveMode.RADIAL));
+        primaryReduceSpeedTrigger.and(DriverStation::isTeleop).onChange(
+                Commands.runOnce(() -> drivetrain.enableReduceSpeed(primaryReduceSpeedTrigger.getAsBoolean())));
+        primaryDriverAssistTrigger.and(DriverStation::isTeleop).onChange(
+                Commands.runOnce(() -> drivetrain.enableDriveAssist(!primaryDriverAssistTrigger.getAsBoolean())));
 
         // Reset the field-centric heading on left bumper press.
         primaryZeroTrigger.onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));

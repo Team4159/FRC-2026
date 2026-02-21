@@ -106,7 +106,6 @@ public class Drivetrain extends CommandSwerveDrivetrain {
             // trench assist
             var trenchZone = FieldUtil.getPoseTrenchZone(robotPose);
             if (trenchZone.isPresent()) {
-                
                 Distance errorX = trenchZone.get().x.minus(robotPose.getMeasureX());
                 Distance errorY = trenchZone.get().y.minus(robotPose.getMeasureY());
                 double inputFieldX = getInputX()
@@ -114,14 +113,16 @@ public class Drivetrain extends CommandSwerveDrivetrain {
 
                 boolean hasPassed = !errorX.isNear(Meters.zero(), OperatorConstants.kTrenchAssistPassPositionTolerance);
                 boolean isNotApproaching = (Math.signum(inputFieldX) == -Math.signum(errorX.magnitude()))
-                        || Math.abs(inputFieldX) <= OperatorConstants.kTrenchAssistPassInputTolerance;
+                        || Math.abs(inputFieldX) <= OperatorConstants.kTrenchAssistApproachInputTolerance;
                 if (hasPassed && isNotApproaching) {
                     return Optional.empty();
                 }
 
-                double vy = -kMaxTranslationSpeed * Math.signum(errorY.magnitude()) * Math.abs(inputFieldX);
+                double vy = -kTrenchAssistAlignStrength * getMaxTranslationSpeed() * Math.signum(errorY.magnitude())
+                        * Math.abs(inputFieldX);
                 double influence = OperatorConstants.kTrenchAssistAlignInfluence * getSpeedY();
-                boolean insideTolerance = errorY.isNear(Meters.zero(), OperatorConstants.kTrenchAssistAlignPositionTolerance);
+                boolean insideTolerance = errorY.isNear(Meters.zero(),
+                        OperatorConstants.kTrenchAssistAlignPositionTolerance);
                 boolean againstAlignment = (influence >= Math.abs(vy));
                 if (insideTolerance || againstAlignment) {
                     vy = 0.0;
@@ -140,6 +141,9 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         private Supplier<SwerveRequest> getDriveSupplier(DriveMode driveMode) {
             return () -> switch (driveMode) {
                 case FREE -> {
+                    if (isInputIdle()) {
+                        yield brakeDrive;
+                    }
                     if (robotRelativeSupplier.getAsBoolean()) {
                         yield robotCentricDrive.withVelocityX(getSpeedX())
                                 .withVelocityY(getSpeedY())
@@ -168,7 +172,8 @@ public class Drivetrain extends CommandSwerveDrivetrain {
 
                     double velocityX = kPrimaryAlignModeSpeedTranslationFactor * x * getMaxTranslationSpeed();
                     double velocityY = kPrimaryAlignModeSpeedTranslationFactor * y * getMaxTranslationSpeed();
-                    double rotationalRate = kPrimaryAlignModeSpeedRotationFactor * kMaxRotationSpeed * getInputRotation();
+                    double rotationalRate = kPrimaryAlignModeSpeedRotationFactor * kMaxRotationSpeed
+                            * getInputRotation();
 
                     if (robotRelativeSupplier.getAsBoolean()) {
                         yield robotCentricDrive.withVelocityX(velocityX)
@@ -193,6 +198,9 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                             .withVelocityY(getSpeedY());
                 }
                 case RADIAL -> {
+                    if (isInputIdle()) {
+                        yield brakeDrive;
+                    }
                     double radialInput = MathUtil.applyDeadband(inputX.get(), kPrimaryRadialModeDeadband, 1);
                     double tangentialInput = MathUtil.applyDeadband(inputY.get(), kPrimaryRadialModeDeadband, 1);
                     Pose2d robotPose = getState().Pose;
@@ -209,9 +217,9 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                             radialVector.getY(),
                             radialVector.getX());
                     yield fieldCentricDrive
-                            .withVelocityX(kMaxTranslationSpeed
+                            .withVelocityX(getMaxTranslationSpeed()
                                     * (-radialInput * radialVector.getX() + tangentialInput * tangentialVector.getX()))
-                            .withVelocityY(kMaxTranslationSpeed
+                            .withVelocityY(getMaxTranslationSpeed()
                                     * (-radialInput * radialVector.getY() - tangentialInput * tangentialVector.getY()));
                 }
             };
@@ -259,10 +267,9 @@ public class Drivetrain extends CommandSwerveDrivetrain {
      *         1. a deadzone and quadratic are applied for better control.
      */
     public double getInputX() {
-        // double input = getInputTranslation().getX();
-        // return Math.abs(Math.pow(input, kPrimaryTranslationExponent)) *
-        // Math.signum(input);
-        return getInputTranslation().getX();
+        double input = getInputTranslation().getX();
+        return Math.abs(Math.pow(input, kPrimaryTranslationExponent)) *
+                Math.signum(input);
     }
 
     /**
@@ -271,10 +278,9 @@ public class Drivetrain extends CommandSwerveDrivetrain {
      *         1. a deadzone and quadratic are applied for better control.
      */
     public double getInputY() {
-        // double input = getInputTranslation().getY();
-        // return Math.abs(Math.pow(input, kPrimaryTranslationExponent)) *
-        // Math.signum(input);
-        return getInputTranslation().getY();
+        double input = getInputTranslation().getY();
+        return Math.abs(Math.pow(input, kPrimaryTranslationExponent)) *
+                Math.signum(input);
     }
 
     /**
@@ -294,6 +300,13 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         double filteredInput = MathUtil.applyDeadband(Math.abs(rawInput),
                 kPrimaryRotationDeadband, 1);
         return Math.abs(Math.pow(filteredInput, kPrimaryRotationExponent)) * Math.signum(rawInput);
+    }
+
+    /**
+     * @return {@Code true} if there is no joystick input
+     */
+    public boolean isInputIdle() {
+        return getInputTranslation().getNorm() == 0.0 && getInputRotation() == 0.0;
     }
 
 }
