@@ -57,9 +57,10 @@ public class HIDRumble {
     }
 
     private static class RumbleManager {
-        private final GenericHID hid;
-        private ArrayList<RumbleRequest> rumbleRequestList = new ArrayList<>();
+        private final ArrayList<RumbleRequest> rumbleRequestList = new ArrayList<>();
         private int highestPriorityRequestIndex = 0;
+
+        private final GenericHID hid;
 
         public RumbleManager(GenericHID hid) {
             this.hid = hid;
