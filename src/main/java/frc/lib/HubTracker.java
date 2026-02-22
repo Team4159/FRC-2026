@@ -38,11 +38,11 @@ public class HubTracker {
     }
 
     public static Optional<Double> getTimeUntilNextActiveHub() {
-        double matchTime = DriverStation.getMatchTime();
-
-        if (matchTime > 140 || matchTime == -1) {
+        if (getAutoWinner().isEmpty()) {
             return Optional.empty();
         }
+
+        double matchTime = DriverStation.getMatchTime();
 
         if (matchTime > 105) {
             return Optional.of(matchTime - 105);
