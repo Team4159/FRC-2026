@@ -135,7 +135,7 @@ public final class Constants {
         public static enum FieldZone {
             FIELD(Inches.of(651.22), Inches.of(317.69)),
             ALLIANCE(Inches.of(156.61), Inches.of(317.69)),
-            TRENCH(Inches.of(120.0), Inches.of(49.96));
+            TRENCH(Inches.of(140.0), Inches.of(49.96));
 
             public final Distance width, height;
 

@@ -111,18 +111,16 @@ public class Drivetrain extends CommandSwerveDrivetrain {
             if (trenchZone.isPresent()) {
                 Distance errorX = trenchZone.get().x.minus(robotPose.getMeasureX());
                 Distance errorY = trenchZone.get().y.minus(robotPose.getMeasureY());
-                double inputFieldX = getInputX()
-                        * (DriverStation.getAlliance().orElse(Alliance.Blue).equals(Alliance.Blue) ? 1 : -1);
 
                 boolean hasPassed = !errorX.isNear(Meters.zero(), OperatorConstants.kTrenchAssistPassPositionTolerance);
-                boolean isNotApproaching = (Math.signum(inputFieldX) == -Math.signum(errorX.magnitude()))
-                        || Math.abs(inputFieldX) <= OperatorConstants.kTrenchAssistApproachInputTolerance;
+                boolean isNotApproaching = (Math.signum(getInputX()) == -Math.signum(errorX.magnitude()))
+                        || Math.abs(getInputX()) <= OperatorConstants.kTrenchAssistApproachInputTolerance;
                 if (hasPassed && isNotApproaching) {
                     return Optional.empty();
                 }
 
-                double vy = -kTrenchAssistAlignStrength * getMaxTranslationSpeed() * Math.signum(errorY.magnitude())
-                        * Math.abs(inputFieldX);
+                double vy = kTrenchAssistAlignStrength * getMaxTranslationSpeed() * Math.signum(errorY.magnitude())
+                        * Math.abs(getInputX());
                 double influence = OperatorConstants.kTrenchAssistAlignInfluence * getSpeedY();
                 boolean insideTolerance = errorY.isNear(Meters.zero(),
                         OperatorConstants.kTrenchAssistAlignPositionTolerance);
@@ -261,33 +259,30 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         if (filteredInputVector.norm() > 1) {
             filteredInputVector = filteredInputVector.div(filteredInputVector.norm());
         }
+        if (DriverStation.getAlliance().orElse(Alliance.Blue).equals(Alliance.Red)) {
+            filteredInputVector = filteredInputVector.times(-1);
+        }
         return new Translation2d(filteredInputVector);
     }
 
     /**
-     * @return the alliance relative x input (-left joystick y input), from range -1
+     * @return the field relative x input (-left joystick y input), from range -1
      *         to
      *         1. a deadzone and quadratic are applied for better control.
      */
     public double getInputX() {
         double input = getInputTranslation().getX();
-        if (DriverStation.getAlliance().orElse(Alliance.Blue).equals(Alliance.Red)) {
-            input *= -1;
-        }
         return Math.abs(Math.pow(input, kPrimaryTranslationExponent)) *
                 Math.signum(input);
     }
 
     /**
-     * @return the alliance relative y input (-left joystick x input), from range -1
+     * @return the field relative y input (-left joystick x input), from range -1
      *         to
      *         1. a deadzone and quadratic are applied for better control.
      */
     public double getInputY() {
         double input = getInputTranslation().getY();
-        if (DriverStation.getAlliance().orElse(Alliance.Blue).equals(Alliance.Red)) {
-            input *= -1;
-        }
         return Math.abs(Math.pow(input, kPrimaryTranslationExponent)) *
                 Math.signum(input);
     }
