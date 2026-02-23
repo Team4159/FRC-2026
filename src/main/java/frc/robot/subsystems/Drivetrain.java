@@ -9,6 +9,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
+import com.ctre.phoenix6.swerve.SwerveRequest.ForwardPerspectiveValue;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.MathUtil;
@@ -32,16 +33,18 @@ import frc.robot.generated.TunerConstants;
 
 public class Drivetrain extends CommandSwerveDrivetrain {
 
-    private final SwerveRequest.FieldCentric fieldCentricDrive = new SwerveRequest.FieldCentric()
+    public final SwerveRequest.FieldCentric fieldCentricDrive = new SwerveRequest.FieldCentric()
+            .withForwardPerspective(ForwardPerspectiveValue.BlueAlliance)
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
-    private final SwerveRequest.RobotCentric robotCentricDrive = new SwerveRequest.RobotCentric()
+    public final SwerveRequest.RobotCentric robotCentricDrive = new SwerveRequest.RobotCentric()
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
-    private final SwerveRequest.FieldCentricFacingAngle fieldCentricFacingAngleDrive = new SwerveRequest.FieldCentricFacingAngle()
+    public final SwerveRequest.FieldCentricFacingAngle fieldCentricFacingAngleDrive = new SwerveRequest.FieldCentricFacingAngle()
+            .withForwardPerspective(ForwardPerspectiveValue.BlueAlliance)
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage)
             .withHeadingPID(15, 0, 0);
-    private final SwerveRequest.SwerveDriveBrake brakeDrive = new SwerveRequest.SwerveDriveBrake();
-    private final SwerveRequest.PointWheelsAt pointDrive = new SwerveRequest.PointWheelsAt();
-    private final SwerveRequest.Idle idleDrive = new SwerveRequest.Idle();
+    public final SwerveRequest.SwerveDriveBrake brakeDrive = new SwerveRequest.SwerveDriveBrake();
+    public final SwerveRequest.PointWheelsAt pointDrive = new SwerveRequest.PointWheelsAt();
+    public final SwerveRequest.Idle idleDrive = new SwerveRequest.Idle();
 
     private final Supplier<Double> inputX;
     private final Supplier<Double> inputY;
@@ -160,7 +163,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                 case POINT -> pointDrive
                         .withModuleDirection(new Rotation2d(getInputX(), getInputY()));
                 case IDLE -> idleDrive;
-                case ALIGN -> {
+                case MANUAL_ALIGN -> {
                     Translation2d rawInput = getRawInputTranslation();
                     double x = Math.signum(MathUtil.applyDeadband(rawInput.getX(), kPrimaryAlignModeDeadband, 1));
                     double y = Math.signum(MathUtil.applyDeadband(rawInput.getY(), kPrimaryAlignModeDeadband, 1));
@@ -218,9 +221,9 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                             radialVector.getX());
                     yield fieldCentricDrive
                             .withVelocityX(getMaxTranslationSpeed()
-                                    * (-radialInput * radialVector.getX() + tangentialInput * tangentialVector.getX()))
+                                    * (radialInput * radialVector.getX() - tangentialInput * tangentialVector.getX()))
                             .withVelocityY(getMaxTranslationSpeed()
-                                    * (-radialInput * radialVector.getY() - tangentialInput * tangentialVector.getY()));
+                                    * (radialInput * radialVector.getY() + tangentialInput * tangentialVector.getY()));
                 }
             };
         }
@@ -268,6 +271,9 @@ public class Drivetrain extends CommandSwerveDrivetrain {
      */
     public double getInputX() {
         double input = getInputTranslation().getX();
+        if (DriverStation.getAlliance().orElse(Alliance.Blue).equals(Alliance.Red)) {
+            input *= -1;
+        }
         return Math.abs(Math.pow(input, kPrimaryTranslationExponent)) *
                 Math.signum(input);
     }
@@ -279,6 +285,9 @@ public class Drivetrain extends CommandSwerveDrivetrain {
      */
     public double getInputY() {
         double input = getInputTranslation().getY();
+        if (DriverStation.getAlliance().orElse(Alliance.Blue).equals(Alliance.Red)) {
+            input *= -1;
+        }
         return Math.abs(Math.pow(input, kPrimaryTranslationExponent)) *
                 Math.signum(input);
     }

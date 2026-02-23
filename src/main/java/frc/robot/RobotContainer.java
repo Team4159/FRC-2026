@@ -14,7 +14,9 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
+import frc.robot.Constants.AlignConstants.TowerAlignGoal;
 import frc.robot.Constants.OperatorConstants.DriveMode;
+import frc.robot.commands.AutoAlign;
 import frc.robot.subsystems.Drivetrain;
 
 public class RobotContainer {
@@ -22,13 +24,17 @@ public class RobotContainer {
 
     private final CommandXboxController primaryController = new CommandXboxController(
             OperatorConstants.kPrimaryControllerPort);
+    private final Trigger primaryZeroTrigger = primaryController.back();
     private final Trigger primaryIntakeModeTrigger = primaryController.b();
     private final Trigger primaryRadialModeTrigger = primaryController.y();
-    private final Trigger primaryRobotAlignModeTrigger = primaryController.leftBumper();
+    private final Trigger primaryRobotManualAlignModeTrigger = primaryController.leftBumper();
     private final Trigger primaryRobotRelativeTrigger = primaryController.leftTrigger();
     private final Trigger primaryReduceSpeedTrigger = primaryController.rightTrigger();
     private final Trigger primaryDriverAssistTrigger = primaryController.rightBumper();
-    private final Trigger primaryZeroTrigger = primaryController.back();
+    private final Trigger primaryLeftClimbAlignTrigger = primaryController.povLeft();
+    private final Trigger primaryRightClimbAlignTrigger = primaryController.povRight();
+    private final Trigger primaryMiddleFrontClimbAlignTrigger = primaryController.povUp();
+    private final Trigger primaryMiddleBackClimbAlignTrigger = primaryController.povDown();
 
     public final Drivetrain drivetrain = new Drivetrain(primaryController);
 
@@ -63,7 +69,7 @@ public class RobotContainer {
         primaryController.b().and(DriverStation::isTest).whileTrue(drivetrain.new Drive(DriveMode.POINT));
 
         // teleop mode
-        primaryRobotAlignModeTrigger.and(DriverStation::isTeleop).whileTrue(drivetrain.new Drive(DriveMode.ALIGN,
+        primaryRobotManualAlignModeTrigger.and(DriverStation::isTeleop).whileTrue(drivetrain.new Drive(DriveMode.MANUAL_ALIGN,
                 () -> primaryRobotRelativeTrigger.getAsBoolean()));
         primaryIntakeModeTrigger.and(DriverStation::isTeleop).whileTrue(drivetrain.new Drive(DriveMode.INTAKE));
         primaryRadialModeTrigger.and(DriverStation::isTeleop).whileTrue(drivetrain.new Drive(DriveMode.RADIAL));
@@ -71,6 +77,10 @@ public class RobotContainer {
                 Commands.runOnce(() -> drivetrain.enableReduceSpeed(primaryReduceSpeedTrigger.getAsBoolean())));
         primaryDriverAssistTrigger.and(DriverStation::isTeleop).onChange(
                 Commands.runOnce(() -> drivetrain.enableDriveAssist(!primaryDriverAssistTrigger.getAsBoolean())));
+        primaryLeftClimbAlignTrigger.and(DriverStation::isTeleop).onTrue(new AutoAlign(drivetrain, TowerAlignGoal.LEFT, primaryRobotRelativeTrigger));
+        primaryRightClimbAlignTrigger.and(DriverStation::isTeleop).onTrue(new AutoAlign(drivetrain, TowerAlignGoal.RIGHT, primaryRobotRelativeTrigger));
+        primaryMiddleFrontClimbAlignTrigger.and(DriverStation::isTeleop).onTrue(new AutoAlign(drivetrain, TowerAlignGoal.MIDDLE_FRONT, primaryRobotRelativeTrigger));
+        primaryMiddleBackClimbAlignTrigger.and(DriverStation::isTeleop).onTrue(new AutoAlign(drivetrain, TowerAlignGoal.MIDDLE_BACK, primaryRobotRelativeTrigger));
 
         // Reset the field-centric heading on left bumper press.
         primaryZeroTrigger.onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));

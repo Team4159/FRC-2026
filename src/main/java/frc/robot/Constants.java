@@ -5,10 +5,15 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
+import static frc.robot.Constants.DrivetrainConstants.kMaxTranslationSpeed;
 
 import java.util.Map;
 
 import com.ctre.phoenix6.swerve.utility.PhoenixPIDController;
+import com.therekrab.autopilot.APConstraints;
+import com.therekrab.autopilot.APProfile;
+import com.therekrab.autopilot.APTarget;
+import com.therekrab.autopilot.Autopilot;
 
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
@@ -50,7 +55,7 @@ public final class Constants {
 
         public static enum DriveMode {
             FREE,
-            ALIGN,
+            MANUAL_ALIGN,
             BRAKE,
             POINT,
             IDLE,
@@ -70,13 +75,16 @@ public final class Constants {
         public static final double kPrimaryReduceSpeedRotationFactor = 1;
 
         public static final double kPrimaryRadialModeDeadband = 0.2;
-        
+
         public static final double kPrimaryAlignModeDeadband = 0.65;
         public static final double kPrimaryAlignModeSpeedTranslationFactor = 0.2;
         public static final double kPrimaryAlignModeSpeedRotationFactor = 0.1;
     }
 
     public static class DrivetrainConstants {
+        public static final Distance kDrivetrainSizeX = Inches.of(34.0);
+        public static final Distance kDrivetrainSizeY = Inches.of(34.0);
+
         public static final double kMaxTranslationSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
         public static final double kMaxRotationSpeed = RotationsPerSecond.of(0.75).in(RadiansPerSecond);
 
@@ -153,9 +161,53 @@ public final class Constants {
 
         public static Distance kTrenchX = Inches.of(182.11);
 
+        public static Distance kTowerX = Inches.of(41.755);
+        public static Distance kTowerY = Inches.of(147.47);
+        public static Distance kTowerWidth = Inches.of(35.2);
+
         /** Units:m/s^2 */
         public static final double g = 9.80;
 
         public static final double hubZ = Units.inchesToMeters(56.4);
+    }
+
+    public static class AlignConstants {
+        public static final APConstraints kAlignConstraints = new APConstraints()
+                .withVelocity(kMaxTranslationSpeed)
+                .withAcceleration(5.0)
+                .withJerk(2.0);
+        public static final APProfile kAlignProfile = new APProfile(kAlignConstraints)
+                .withErrorXY(Centimeters.of(2.0))
+                .withErrorTheta(Degrees.of(1.0))
+                .withBeelineRadius(Centimeters.of(5.0));
+        public static final Autopilot kAlignController = new Autopilot(kAlignProfile);
+
+        public static enum TowerAlignGoal {
+            // TODO: decide if LEFT and RIGHT should have an alignment setpoint or just an entry angle
+            LEFT(
+                    new APTarget(new Pose2d(FieldConstants.kTowerX,
+                            FieldConstants.kTowerY.plus(FieldConstants.kTowerWidth.div(2))
+                                    .plus(DrivetrainConstants.kDrivetrainSizeX.div(2)),
+                            Rotation2d.k180deg)).withVelocity(0).withEntryAngle(Rotation2d.k180deg)),
+            RIGHT(
+                    new APTarget(new Pose2d(FieldConstants.kTowerX,
+                            FieldConstants.kTowerY.minus(FieldConstants.kTowerWidth.div(2))
+                                    .minus(DrivetrainConstants.kDrivetrainSizeX.div(2)),
+                            Rotation2d.k180deg)).withVelocity(0).withEntryAngle(Rotation2d.k180deg)),
+            MIDDLE_FRONT(
+                    new APTarget(new Pose2d(FieldConstants.kTowerX.plus(DrivetrainConstants.kDrivetrainSizeX.div(2)).plus(Inches.of(6)),
+                            FieldConstants.kTowerY, Rotation2d.k180deg)).withVelocity(0).withoutEntryAngle(),
+                    new APTarget(new Pose2d(FieldConstants.kTowerX, FieldConstants.kTowerY, Rotation2d.k180deg)).withVelocity(0).withoutEntryAngle()),
+            MIDDLE_BACK(
+                    new APTarget(new Pose2d(FieldConstants.kTowerX.minus(DrivetrainConstants.kDrivetrainSizeX.div(2)).minus(Inches.of(6)),
+                            FieldConstants.kTowerY, Rotation2d.kZero)).withVelocity(0).withoutEntryAngle(),
+                    new APTarget(new Pose2d(FieldConstants.kTowerX, FieldConstants.kTowerY, Rotation2d.kZero)).withVelocity(0).withoutEntryAngle());
+
+            public final APTarget[] targets;
+
+            private TowerAlignGoal(APTarget... targets) {
+                this.targets = targets;
+            }
+        }
     }
 }
