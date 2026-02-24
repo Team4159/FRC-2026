@@ -4,14 +4,14 @@ import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants;
+import frc.robot.Constants.HopperConstants;
 import frc.robot.Constants.HopperConstants.HopperState;
 
 public class Hopper extends SubsystemBase{
     private TalonFX hopperMotor;
 
     public Hopper(){
-        hopperMotor = new TalonFX(Constants.HopperConstants.HopperId);
+        hopperMotor = new TalonFX(HopperConstants.HopperId);
     }
     
     public void setHopperSpeed(double speed){
