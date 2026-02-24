@@ -4,21 +4,27 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.Seconds;
 
 import java.util.Map;
 
 import com.ctre.phoenix6.swerve.utility.PhoenixPIDController;
 
+import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.LEDPattern;
@@ -168,6 +174,19 @@ public final class Constants {
     public static final double g = 9.80;
 
     public static final double hubZ = Units.inchesToMeters(56.4);
+  }
+
+  public static final class JoeLookupTableConstants{
+    public static final record ShotData(Angle angle, Time time){
+      public double getAngleRadians(){return angle.in(Radians);}
+      public double getTimeSeconds(){return time.in(Seconds);}
+    }
+    //stores desired angle and estimated time (from stationary) given a distance from the hub
+    public static final Map<Distance, ShotData> joeLookupTable = Map.of(
+      Inches.of(12), new ShotData(Degrees.of(85), Seconds.of(1)),
+      Inches.of(18), new ShotData(Degrees.of(80), Seconds.of(1.5)),
+      Inches.of(24), new ShotData(Degrees.of(75), Seconds.of(2))
+    );
   }
 
   public static final class LEDConstants{
