@@ -5,7 +5,9 @@ import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.InvertedValue;  
+
+
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -15,18 +17,14 @@ import frc.robot.Constants.HoodConstants;
 import frc.robot.Constants.ShooterConstants;
 
 public class Shooter extends SubsystemBase{
-    private TalonFX hoodMotor;
-    private TalonFX feederMotor;
-    private TalonFX motorOne;
-    private TalonFX motorTwo;
-    private TalonFX motorThree;
+    private TalonFX hoodMotor, feederMotor, motorOne, motorTwo, motorThree, motorFour;
 
     private final PositionVoltage hoodPositionVoltage;
     private final VelocityVoltage shooterVelocityVoltage;
 
     public Shooter() {
         Slot0Configs hoodConfig = new Slot0Configs();
-        hoodConfig.kP = HoodConstants.kP;
+        hoodConfig.kP = HoodConstants.kP;  
         hoodConfig.kI = HoodConstants.kI;
         hoodConfig.kD = HoodConstants.kD;
 
@@ -41,6 +39,7 @@ public class Shooter extends SubsystemBase{
         motorOne = new TalonFX(ShooterConstants.ShooterIDOne);
         motorTwo = new TalonFX(ShooterConstants.ShooterIDTwo);
         motorThree = new TalonFX(ShooterConstants.ShooterIDThree);
+        motorFour = new TalonFX(ShooterConstants.ShooterIDFour);
         
         motorOne.getConfigurator().apply(new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive));
         
@@ -48,6 +47,7 @@ public class Shooter extends SubsystemBase{
         motorOne.getConfigurator().apply(shooterConfig);
         motorTwo.getConfigurator().apply(shooterConfig);
         motorThree.getConfigurator().apply(shooterConfig);
+        motorFour.getConfigurator().apply(shooterConfig);
         
         hoodPositionVoltage = new PositionVoltage(0);
         shooterVelocityVoltage = new VelocityVoltage(0);
@@ -58,6 +58,7 @@ public class Shooter extends SubsystemBase{
         motorOne.setControl(shooterVelocityVoltage);
         motorTwo.setControl(shooterVelocityVoltage);
         motorThree.setControl(shooterVelocityVoltage);
+        motorFour.setControl(shooterVelocityVoltage);
     }
     public void setFeederSpeed(double speed){
         feederMotor.set(speed);
