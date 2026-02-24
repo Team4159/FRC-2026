@@ -236,17 +236,21 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     }
 
     /**
-     * @return the alliance relative translation input (-left joystick y input,
+     * @return the field relative translation input (-left joystick y input,
      *         -left
      *         joystick x input), from magnitude range -1 to 1. no deadzone is
      *         applied
      */
     public Translation2d getRawInputTranslation() {
-        return new Translation2d(inputX.get(), inputY.get());
+        Translation2d rawInput = new Translation2d(inputX.get(), inputY.get());
+        if (DriverStation.getAlliance().orElse(Alliance.Blue).equals(Alliance.Red)) {
+            rawInput = rawInput.times(-1);
+        }
+        return rawInput;
     }
 
     /**
-     * @return the alliance relative translation input (-left joystick y input,
+     * @return the field relative translation input (-left joystick y input,
      *         -left
      *         joystick x input), from magnitude range -1 to 1. a deadzone is
      *         applied.
@@ -258,9 +262,6 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         filteredInputVector = filteredInputVector.div(kPrimaryTranslationRadius);
         if (filteredInputVector.norm() > 1) {
             filteredInputVector = filteredInputVector.div(filteredInputVector.norm());
-        }
-        if (DriverStation.getAlliance().orElse(Alliance.Blue).equals(Alliance.Red)) {
-            filteredInputVector = filteredInputVector.times(-1);
         }
         return new Translation2d(filteredInputVector);
     }
