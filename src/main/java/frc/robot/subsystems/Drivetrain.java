@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import static frc.robot.Constants.OperatorConstants.*;
 import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
 import static frc.robot.Constants.DrivetrainConstants.*;
 
 import java.util.Optional;
@@ -10,6 +11,7 @@ import java.util.function.Supplier;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest.ForwardPerspectiveValue;
+import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.MathUtil;
@@ -22,9 +24,14 @@ import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.FieldUtil;
+import frc.lib.HIDRumble;
+import frc.lib.HIDRumble.RumbleRequest;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.OperatorConstants.DriveMode;
@@ -32,6 +39,8 @@ import frc.robot.generated.CommandSwerveDrivetrain;
 import frc.robot.generated.TunerConstants;
 
 public class Drivetrain extends CommandSwerveDrivetrain {
+
+    private final Pigeon2 pigeon = new Pigeon2(kPigeonId, "Drivetrain");
 
     public final SwerveRequest.FieldCentric fieldCentricDrive = new SwerveRequest.FieldCentric()
             .withForwardPerspective(ForwardPerspectiveValue.BlueAlliance)
@@ -46,6 +55,10 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     public final SwerveRequest.PointWheelsAt pointDrive = new SwerveRequest.PointWheelsAt();
     public final SwerveRequest.Idle idleDrive = new SwerveRequest.Idle();
 
+    public final Trigger crashTrigger = new Trigger(
+            () -> Math.hypot(pigeon.getAccelerationX().getValue().in(MetersPerSecondPerSecond),
+                    pigeon.getAccelerationY().getValue().in(MetersPerSecondPerSecond)) >= FieldConstants.g * 2);
+
     private final Supplier<Double> inputX;
     private final Supplier<Double> inputY;
     private final Supplier<Double> inputRotation;
@@ -59,6 +72,9 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         this.inputX = () -> -controller.getLeftY();
         this.inputY = () -> -controller.getLeftX();
         this.inputRotation = () -> -controller.getRightX();
+
+        crashTrigger.onTrue(Commands
+                .runOnce(() -> HIDRumble.rumble(controller.getHID(), new RumbleRequest(RumbleType.kRightRumble, 0.2))));
     }
 
     public class Drive extends Command {
