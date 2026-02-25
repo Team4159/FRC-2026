@@ -77,7 +77,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         this.inputRotation = () -> -controller.getRightX();
 
         crashTrigger.onTrue(Commands
-                .runOnce(() -> HIDRumble.rumble(controller.getHID(), new RumbleRequest(RumbleType.kRightRumble, 0.2))));
+                .runOnce(() -> HIDRumble.rumble(controller.getHID(), new RumbleRequest(RumbleType.kRightRumble, 0.5, 0.5))));
     }
 
     public class Drive extends Command {

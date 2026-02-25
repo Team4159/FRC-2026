@@ -143,36 +143,40 @@ public class HIDRumble {
     }
 
     public static class RumbleRequest {
-        public final double start, lifespan, strength;
+        public final double start, duration, strength;
         public final RumbleType rumbleType;
         public final int priority;
 
-        public RumbleRequest(RumbleType rumbleType, double strength, int priority, double lifespan) {
+        public RumbleRequest(RumbleType rumbleType, double strength, double lifespan, int priority) {
             this.start = Timer.getFPGATimestamp();
             this.rumbleType = rumbleType;
             this.strength = MathUtil.clamp(strength, 0, 1);
+            this.duration = Math.max(0, lifespan);
             this.priority = priority;
-            this.lifespan = Math.max(0, lifespan);
         }
 
         public RumbleRequest(RumbleType rumbleType, double strength) {
-            this(rumbleType, strength, kDefaultRequestPriority, kDefaultRequestDuration);
+            this(rumbleType, strength, kDefaultRequestDuration, kDefaultRequestPriority);
         }
 
         public RumbleRequest(double strength) {
-            this(RumbleType.kBothRumble, strength, kDefaultRequestPriority, kDefaultRequestDuration);
+            this(RumbleType.kBothRumble, strength, kDefaultRequestDuration, kDefaultRequestPriority);
         }
 
         public RumbleRequest(RumbleType rumbleType, double strength, int priority) {
-            this(rumbleType, strength, priority, kDefaultRequestDuration);
+            this(rumbleType, strength, kDefaultRequestDuration, priority);
+        }
+
+        public RumbleRequest(RumbleType rumbleType, double strength, double lifespan) {
+            this(rumbleType, strength, lifespan, kDefaultRequestPriority);
         }
 
         public RumbleRequest(double strength, int priority) {
-            this(RumbleType.kBothRumble, strength, priority, kDefaultRequestDuration);
+            this(RumbleType.kBothRumble, strength, kDefaultRequestDuration, priority);
         }
 
         public boolean isExpired() {
-            return Timer.getFPGATimestamp() - start > lifespan;
+            return Timer.getFPGATimestamp() - start > duration;
         }
     }
 }
