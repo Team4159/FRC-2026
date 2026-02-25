@@ -66,6 +66,7 @@ public class RobotContainer {
     private final AutoFactory autoFactory;
     private final AutoRoutines autoRoutines;
     private final AutoChooser autoChooser = new AutoChooser();
+    private final ConfigurableAuto configurableAuto;
 
     public RobotContainer() {
         //set auto command for drivetrain
@@ -73,6 +74,8 @@ public class RobotContainer {
         //Choreo Auto
         autoFactory = drivetrain.createAutoFactory();
         autoRoutines = new AutoRoutines(autoFactory, drivetrain);
+
+        configurableAuto = new ConfigurableAuto(autoFactory, drivetrain, shooter, null, hopper, leds);
 
         autoChooser.addRoutine("SimplePath", autoRoutines::simplePathAuto);
         autoChooser.addRoutine("Left", autoRoutines::leftAuto);

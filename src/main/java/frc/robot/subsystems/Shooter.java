@@ -1,13 +1,14 @@
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
+
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;  
-
-
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -32,7 +33,6 @@ public class Shooter extends SubsystemBase{
         shooterConfig.kP = ShooterConstants.kP;
         shooterConfig.kI = ShooterConstants.kI;
         shooterConfig.kD = ShooterConstants.kD;
-
 
         hoodMotor = new TalonFX(HoodConstants.HoodId);
         feederMotor = new TalonFX(FeederConstants.FeederID);
@@ -60,6 +60,27 @@ public class Shooter extends SubsystemBase{
         motorThree.setControl(shooterVelocityVoltage);
         motorFour.setControl(shooterVelocityVoltage);
     }
+
+    /** @return the estimated initial speed of the ball after being shot from the shooter */
+    public double getFuelSpeed(){
+        double motorOmega = 
+            motorOne.getVelocity().getValue().in(RadiansPerSecond)
+          + motorTwo.getVelocity().getValue().in(RadiansPerSecond)
+          + motorThree.getVelocity().getValue().in(RadiansPerSecond)
+          + motorFour.getVelocity().getValue().in(RadiansPerSecond);
+
+        double shooterOmega = motorOmega * ShooterConstants.ratio;
+
+        double wheelTangentialSpeed = shooterOmega * ShooterConstants.kShooterWheelRadius.in(Meters);
+        double rollerTangentialSpeed = shooterOmega * ShooterConstants.kShooterRollerRadius.in(Meters);
+
+        return ShooterConstants.kShooterEfficiency * (wheelTangentialSpeed + rollerTangentialSpeed)/2;
+    }
+
+    public void test(){
+        System.out.println("test");
+    }
+
     public void setFeederSpeed(double speed){
         feederMotor.set(speed);
     }

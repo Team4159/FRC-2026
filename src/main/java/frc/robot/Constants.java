@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
@@ -138,6 +139,12 @@ public final class Constants {
     public static final double launchVelocity = Units.feetToMeters(29);//convert from ft/s to m/s
     public static final double ratio = 1;
     public static final double shootHeight = Units.inchesToMeters(40);
+
+    public static final Distance kShooterWheelRadius = Inches.of(2);
+    /** TODO: find the correct distance */
+    public static final Distance kShooterRollerRadius = Inches.of(0.75);
+
+    public static final double kShooterEfficiency = 0.9;
 
     /** units: radians */
     public static final double maxPitch = Units.degreesToRadians(85);
