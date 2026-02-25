@@ -11,6 +11,7 @@ import java.util.function.Supplier;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest.ForwardPerspectiveValue;
+import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
@@ -40,7 +41,9 @@ import frc.robot.generated.TunerConstants;
 
 public class Drivetrain extends CommandSwerveDrivetrain {
 
-    private final Pigeon2 pigeon = new Pigeon2(kPigeonId, "Drivetrain");
+    private static final CANBus kDrivetrainCANBus = new CANBus("Drivetrain");
+    
+    private final Pigeon2 pigeon = new Pigeon2(kPigeonId, kDrivetrainCANBus);
 
     public final SwerveRequest.FieldCentric fieldCentricDrive = new SwerveRequest.FieldCentric()
             .withForwardPerspective(ForwardPerspectiveValue.BlueAlliance)
