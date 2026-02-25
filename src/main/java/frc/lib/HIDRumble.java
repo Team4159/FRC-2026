@@ -147,11 +147,11 @@ public class HIDRumble {
         public final RumbleType rumbleType;
         public final int priority;
 
-        public RumbleRequest(RumbleType rumbleType, double strength, double lifespan, int priority) {
+        public RumbleRequest(RumbleType rumbleType, double strength, double duration, int priority) {
             this.start = Timer.getFPGATimestamp();
             this.rumbleType = rumbleType;
             this.strength = MathUtil.clamp(strength, 0, 1);
-            this.duration = Math.max(0, lifespan);
+            this.duration = Math.max(0, duration);
             this.priority = priority;
         }
 
@@ -167,8 +167,8 @@ public class HIDRumble {
             this(rumbleType, strength, kDefaultRequestDuration, priority);
         }
 
-        public RumbleRequest(RumbleType rumbleType, double strength, double lifespan) {
-            this(rumbleType, strength, lifespan, kDefaultRequestPriority);
+        public RumbleRequest(RumbleType rumbleType, double strength, double duration) {
+            this(rumbleType, strength, duration, kDefaultRequestPriority);
         }
 
         public RumbleRequest(double strength, int priority) {
