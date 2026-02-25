@@ -4,53 +4,49 @@
 
 package frc.robot;
 
-import static edu.wpi.first.units.Units.*;
-
-import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
-import com.ctre.phoenix6.swerve.SwerveRequest;
-
 import choreo.auto.AutoChooser;
 import choreo.auto.AutoFactory;
-import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.Constants.OperatorConstants;
+import frc.robot.Constants.AlignConstants.TowerAlignGoal;
+import frc.robot.Constants.OperatorConstants.DriveMode;
 import frc.robot.Constants.FeederConstants.FeederState;
 import frc.robot.Constants.HopperConstants.HopperState;
 import frc.robot.commands.AutoAim;
-import frc.robot.generated.TunerConstants;
+import frc.robot.commands.AutoAlign;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.LEDs;
 import frc.robot.subsystems.Hopper;
 import frc.robot.subsystems.Shooter;
 
 public class RobotContainer {
-    private double MaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top
-                                                                                        // speed
-    private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second
-                                                                                      // max angular velocity
+    private final Telemetry logger = new Telemetry();
 
-    /* Setting up bindings for necessary control of the swerve drive platform */
-    private final SwerveRequest.FieldCentric fieldCentricDrive = new SwerveRequest.FieldCentric()
-            .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
-    private final SwerveRequest.RobotCentric robotCentricDrive = new SwerveRequest.RobotCentric()
-            .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
-    private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
-    private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
-    private final SwerveRequest.Idle idle = new SwerveRequest.Idle();
-
-    private final Telemetry logger = new Telemetry(MaxSpeed);
-
+    private final CommandXboxController primaryController = new CommandXboxController(
+            OperatorConstants.kPrimaryControllerPort);
+    private final Trigger primaryZeroTrigger = primaryController.back();
+    private final Trigger primaryIntakeModeTrigger = primaryController.b();
+    private final Trigger primaryRadialModeTrigger = primaryController.y();
+    private final Trigger primaryRobotManualAlignModeTrigger = primaryController.leftBumper();
+    private final Trigger primaryRobotRelativeTrigger = primaryController.leftTrigger();
+    private final Trigger primaryReduceSpeedTrigger = primaryController.rightTrigger();
+    private final Trigger primaryDriverAssistTrigger = primaryController.rightBumper();
+    private final Trigger primaryLeftClimbAlignTrigger = primaryController.povLeft();
+    private final Trigger primaryAutoAimTrigger = primaryController.a();
     //Controllers
-    private final CommandXboxController primaryController = new CommandXboxController(0);
+    private final Trigger primaryRightClimbAlignTrigger = primaryController.povRight();
     private final CommandXboxController secondary = new CommandXboxController(1);
 
     //Primary Triggers
-    private final Trigger robotCentricDriveTrigger = primaryController.leftStick();
-    private final Trigger AutoAimTrigger = primaryController.rightBumper();
+    //private final Trigger primaryMiddleFrontClimbAlignTrigger = primaryController.povUp();
+    //private final Trigger primaryMiddleBackClimbAlignTrigger = primaryController.povDown();
 
     //Secondary Triggers
     private final Trigger feedHopper = secondary.x();
@@ -81,51 +77,41 @@ public class RobotContainer {
         autoChooser.addRoutine("Left", autoRoutines::leftAuto);
         autoChooser.addRoutine("Right", autoRoutines::rightAuto);
         SmartDashboard.putData("Auto Chooser", autoChooser);
-
         configureBindings();
     }
 
     private void configureBindings() {
         // Note that X is defined as forward according to WPILib convention,
         // and Y is defined as to the left according to WPILib convention.
-        drivetrain.setDefaultCommand(
-                // Drivetrain will execute this command periodically
-                drivetrain.applyRequest(() -> {
-                    double x = drivetrain.getInputX() * MaxSpeed;
-                    double y = drivetrain.getInputY() * MaxSpeed;
-                    double rotation = drivetrain.getInputRotation() * MaxAngularRate;
-                    if (robotCentricDriveTrigger.getAsBoolean()) {
-                        return robotCentricDrive.withVelocityX(x)
-                                .withVelocityY(y)
-                                .withRotationalRate(rotation);
-                    } else {
-                        return fieldCentricDrive.withVelocityX(x)
-                                .withVelocityY(y)
-                                .withRotationalRate(rotation);
-                    }
-                }));
+        drivetrain.setDefaultCommand(drivetrain.new Drive(DriveMode.FREE,
+                () -> primaryRobotRelativeTrigger.getAsBoolean()));
+        primaryAutoAimTrigger.whileTrue(new AutoAim(drivetrain, shooter, hopper, leds, false));
 
-        AutoAimTrigger.whileTrue(new AutoAim(drivetrain, shooter, hopper, leds, false));
         // Idle while the robot is disabled. This ensures the configured
         // neutral mode is applied to the drive motors while disabled.
         RobotModeTriggers.disabled().whileTrue(
-                drivetrain.applyRequest(() -> idle).ignoringDisable(true));
+                drivetrain.new Drive(DriveMode.IDLE).ignoringDisable(true));
 
-        primaryController.a().whileTrue(drivetrain.applyRequest(() -> brake));
-        primaryController.b().whileTrue(drivetrain.applyRequest(() ->
-            point.withModuleDirection(new Rotation2d(-primaryController.getLeftY(), -primaryController.getLeftX()))
-        ));
-        
-        //TODO: run sysid when robot is built
-        // Run SysId routines when holding back/start and X/Y.
-        // Note that each routine should be run exactly once in a single log.
-        // primaryController.back().and(primaryController.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
-        // primaryController.back().and(primaryController.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
-        // primaryController.start().and(primaryController.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
-        // primaryController.start().and(primaryController.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
+        // test mode
+        primaryController.a().and(DriverStation::isTest).whileTrue(drivetrain.new Drive(DriveMode.BRAKE));
+        primaryController.b().and(DriverStation::isTest).whileTrue(drivetrain.new Drive(DriveMode.POINT));
+
+        // teleop mode
+        primaryRobotManualAlignModeTrigger.and(DriverStation::isTeleop).whileTrue(drivetrain.new Drive(DriveMode.MANUAL_ALIGN,
+                () -> primaryRobotRelativeTrigger.getAsBoolean()));
+        primaryIntakeModeTrigger.and(DriverStation::isTeleop).whileTrue(drivetrain.new Drive(DriveMode.INTAKE));
+        primaryRadialModeTrigger.and(DriverStation::isTeleop).whileTrue(drivetrain.new Drive(DriveMode.RADIAL));
+        primaryReduceSpeedTrigger.and(DriverStation::isTeleop).onChange(
+                Commands.runOnce(() -> drivetrain.enableReduceSpeed(primaryReduceSpeedTrigger.getAsBoolean())));
+        primaryDriverAssistTrigger.and(DriverStation::isTeleop).onChange(
+                Commands.runOnce(() -> drivetrain.enableDriveAssist(!primaryDriverAssistTrigger.getAsBoolean())));
+        primaryLeftClimbAlignTrigger.and(DriverStation::isTeleop).onTrue(new AutoAlign(drivetrain, TowerAlignGoal.LEFT, primaryRobotRelativeTrigger));
+        primaryRightClimbAlignTrigger.and(DriverStation::isTeleop).onTrue(new AutoAlign(drivetrain, TowerAlignGoal.RIGHT, primaryRobotRelativeTrigger));
+        //primaryMiddleFrontClimbAlignTrigger.and(DriverStation::isTeleop).onTrue(new AutoAlign(drivetrain, TowerAlignGoal.MIDDLE_FRONT, primaryRobotRelativeTrigger));
+        //primaryMiddleBackClimbAlignTrigger.and(DriverStation::isTeleop).onTrue(new AutoAlign(drivetrain, TowerAlignGoal.MIDDLE_BACK, primaryRobotRelativeTrigger));
 
         // Reset the field-centric heading on left bumper press.
-        primaryController.leftBumper().onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
+        primaryZeroTrigger.onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
 
         drivetrain.registerTelemetry(logger::telemeterize);
 
