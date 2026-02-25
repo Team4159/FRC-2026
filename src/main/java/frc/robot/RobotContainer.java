@@ -33,8 +33,8 @@ public class RobotContainer {
     private final Trigger primaryDriverAssistTrigger = primaryController.rightBumper();
     private final Trigger primaryLeftClimbAlignTrigger = primaryController.povLeft();
     private final Trigger primaryRightClimbAlignTrigger = primaryController.povRight();
-    private final Trigger primaryMiddleFrontClimbAlignTrigger = primaryController.povUp();
-    private final Trigger primaryMiddleBackClimbAlignTrigger = primaryController.povDown();
+    //private final Trigger primaryMiddleFrontClimbAlignTrigger = primaryController.povUp();
+    //private final Trigger primaryMiddleBackClimbAlignTrigger = primaryController.povDown();
 
     public final Drivetrain drivetrain = new Drivetrain(primaryController);
 
@@ -79,8 +79,8 @@ public class RobotContainer {
                 Commands.runOnce(() -> drivetrain.enableDriveAssist(!primaryDriverAssistTrigger.getAsBoolean())));
         primaryLeftClimbAlignTrigger.and(DriverStation::isTeleop).onTrue(new AutoAlign(drivetrain, TowerAlignGoal.LEFT, primaryRobotRelativeTrigger));
         primaryRightClimbAlignTrigger.and(DriverStation::isTeleop).onTrue(new AutoAlign(drivetrain, TowerAlignGoal.RIGHT, primaryRobotRelativeTrigger));
-        primaryMiddleFrontClimbAlignTrigger.and(DriverStation::isTeleop).onTrue(new AutoAlign(drivetrain, TowerAlignGoal.MIDDLE_FRONT, primaryRobotRelativeTrigger));
-        primaryMiddleBackClimbAlignTrigger.and(DriverStation::isTeleop).onTrue(new AutoAlign(drivetrain, TowerAlignGoal.MIDDLE_BACK, primaryRobotRelativeTrigger));
+        //primaryMiddleFrontClimbAlignTrigger.and(DriverStation::isTeleop).onTrue(new AutoAlign(drivetrain, TowerAlignGoal.MIDDLE_FRONT, primaryRobotRelativeTrigger));
+        //primaryMiddleBackClimbAlignTrigger.and(DriverStation::isTeleop).onTrue(new AutoAlign(drivetrain, TowerAlignGoal.MIDDLE_BACK, primaryRobotRelativeTrigger));
 
         // Reset the field-centric heading on left bumper press.
         primaryZeroTrigger.onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
