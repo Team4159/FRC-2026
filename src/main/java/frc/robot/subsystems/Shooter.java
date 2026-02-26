@@ -5,6 +5,7 @@ import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
@@ -23,25 +24,19 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Shooter extends SubsystemBase {
 
-    private interface VelocityControlRequest {
-        ControlRequest withVelocity(AngularVelocity velocity);
-
-        ControlRequest withVelocity(double velocity);
-    }
-
     private enum ShooterState {
-        STARTUP(new VelocityVoltage(0)),
-        STEADY(new VelocityTorqueCurrentFOC(0));
+        STARTUP(new VelocityVoltage(0)::withVelocity),
+        STEADY(new VelocityVoltage(0)::withVelocity);
 
-        public final VelocityControlRequest controlRequest;
+        public final Function<AngularVelocity, ControlRequest> controlRequestSupplier;
 
-        private ShooterState(ControlRequest controlRequest) {
-            this.controlRequest = (VelocityControlRequest) controlRequest;
+        private ShooterState(Function<AngularVelocity, ControlRequest> controlRequestSupplier) {
+            this.controlRequestSupplier = controlRequestSupplier;
         }
     }
 
     private static final AngularVelocity kSteadyTolerance = RotationsPerSecond.of(0.0);
-    private static final AngularVelocity kRevVelocity = RotationsPerSecond.of(10.0);
+    private static final AngularVelocity kRevVelocity = RotationsPerSecond.of(1000.0);
 
     private final TalonFX leftTopMotor = new TalonFX(9);
     private final TalonFX leftBottomMotor = new TalonFX(10);
@@ -83,7 +78,8 @@ public class Shooter extends SubsystemBase {
     }
 
     public void setState(ShooterState state, AngularVelocity velocity) {
-        var controlRequest = state.controlRequest.withVelocity(velocity);
+        SmartDashboard.putString("Shooter State", state.name());
+        var controlRequest = state.controlRequestSupplier.apply(velocity);
         leftTopMotor.setControl(controlRequest);
         leftBottomMotor.setControl(controlRequest);
         rightTopMotor.setControl(controlRequest);
