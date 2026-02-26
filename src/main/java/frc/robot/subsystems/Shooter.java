@@ -121,7 +121,7 @@ public class Shooter extends SubsystemBase {
                 steady = true;
                 stop();
             } else if (steady) {
-                setState(ShooterState.STEADY, 
+                setState(ShooterState.STEADY, targetVelocity);
             } else {
                 setState(ShooterState.STARTUP, targetVelocity);
             }
