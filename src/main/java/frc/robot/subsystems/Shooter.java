@@ -4,6 +4,7 @@ import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Volts;
+import static frc.robot.Constants.ShooterConstants.*;
 
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -12,6 +13,7 @@ import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.ControlRequest;
 import com.ctre.phoenix6.controls.DutyCycleOut;
+import com.ctre.phoenix6.controls.StrictFollower;
 import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -26,7 +28,7 @@ public class Shooter extends SubsystemBase {
 
     private enum ShooterState {
         STARTUP(new VelocityVoltage(0)::withVelocity),
-        STEADY(new VelocityVoltage(0)::withVelocity);
+        STEADY(new VelocityTorqueCurrentFOC(0)::withVelocity);
 
         public final Function<AngularVelocity, ControlRequest> controlRequestSupplier;
 
@@ -35,42 +37,47 @@ public class Shooter extends SubsystemBase {
         }
     }
 
-    private static final AngularVelocity kSteadyTolerance = RotationsPerSecond.of(0.0);
     private static final AngularVelocity kRevVelocity = RotationsPerSecond.of(1000.0);
 
-    private final TalonFX leftTopMotor = new TalonFX(9);
-    private final TalonFX leftBottomMotor = new TalonFX(10);
-    private final TalonFX rightTopMotor = new TalonFX(11);
-    private final TalonFX rightBottomMotor = new TalonFX(12);
+    // Top left motor is the leader motor
+    private final TalonFX topLeftMotor = new TalonFX(kTopLeftMotorId);
+    private final TalonFX bottomLeftMotor = new TalonFX(kBottomLeftMotorId);
+    private final TalonFX topRightMotor = new TalonFX(kTopRightMotorId);
+    private final TalonFX bottomRightMotor = new TalonFX(kBottomRightMotorId);
+    private final TalonFX leaderMotor = topLeftMotor;
     {
         TalonFXConfiguration allConfig = new TalonFXConfiguration();
         allConfig.Slot0.withKP(999999999999.0);
         allConfig.TorqueCurrent.withPeakForwardTorqueCurrent(Amps.of(40.0)).withPeakReverseTorqueCurrent(Amps.of(0.0));
         allConfig.Voltage.withPeakForwardVoltage(Volts.of(12.0)).withPeakReverseVoltage(Volts.of(0.0));
-        leftTopMotor.getConfigurator().apply(allConfig);
-        leftBottomMotor.getConfigurator().apply(allConfig);
-        rightTopMotor.getConfigurator().apply(allConfig);
-        rightBottomMotor.getConfigurator().apply(allConfig);
+        topLeftMotor.getConfigurator().apply(allConfig);
+        bottomLeftMotor.getConfigurator().apply(allConfig);
+        topRightMotor.getConfigurator().apply(allConfig);
+        bottomRightMotor.getConfigurator().apply(allConfig);
 
         MotorOutputConfigs leftOutputConfigs = new MotorOutputConfigs();
         leftOutputConfigs.withInverted(InvertedValue.CounterClockwise_Positive);
-        leftTopMotor.getConfigurator().apply(leftOutputConfigs);
-        leftBottomMotor.getConfigurator().apply(leftOutputConfigs);
+        topLeftMotor.getConfigurator().apply(leftOutputConfigs);
+        bottomLeftMotor.getConfigurator().apply(leftOutputConfigs);
 
         MotorOutputConfigs rightOutputConfigs = new MotorOutputConfigs();
         rightOutputConfigs.withInverted(InvertedValue.Clockwise_Positive);
-        rightTopMotor.getConfigurator().apply(rightOutputConfigs);
-        rightBottomMotor.getConfigurator().apply(rightOutputConfigs);
+        topRightMotor.getConfigurator().apply(rightOutputConfigs);
+        bottomRightMotor.getConfigurator().apply(rightOutputConfigs);
+
+        bottomLeftMotor.setControl(new StrictFollower(9));
+        topRightMotor.setControl(new StrictFollower(9));
+        bottomRightMotor.setControl(new StrictFollower(9));
     }
 
-    private final TalonFX kickerMotor = new TalonFX(20);
+    private final TalonFX feederMotor = new TalonFX(kFeederMotorId);
     {
-        kickerMotor.getConfigurator().apply(new MotorOutputConfigs().withInverted(InvertedValue.CounterClockwise_Positive));
+        feederMotor.getConfigurator().apply(new MotorOutputConfigs().withInverted(InvertedValue.CounterClockwise_Positive));
     }
 
     @Override
     public void periodic() {
-        SmartDashboard.putNumber("Shooter Velocity", leftBottomMotor.getVelocity(true).getValue().in(RPM));
+        SmartDashboard.putNumber("Shooter Velocity", bottomLeftMotor.getVelocity(true).getValue().in(RPM));
     }
 
     public Shooter() {
@@ -80,28 +87,22 @@ public class Shooter extends SubsystemBase {
     public void setState(ShooterState state, AngularVelocity velocity) {
         SmartDashboard.putString("Shooter State", state.name());
         var controlRequest = state.controlRequestSupplier.apply(velocity);
-        leftTopMotor.setControl(controlRequest);
-        leftBottomMotor.setControl(controlRequest);
-        rightTopMotor.setControl(controlRequest);
-        rightBottomMotor.setControl(controlRequest);
+        leaderMotor.setControl(controlRequest);
     }
 
     public void stop() {
-        leftTopMotor.stopMotor();
-        leftBottomMotor.stopMotor();
-        rightTopMotor.stopMotor();
-        rightBottomMotor.stopMotor();
+        leaderMotor.stopMotor();
     }
 
     private final DutyCycleOut kickerControlRequest = new DutyCycleOut(0);
 
     public void setKickerSpeed(double speed) {
         kickerControlRequest.withOutput(speed);
-        kickerMotor.setControl(kickerControlRequest);
+        feederMotor.setControl(kickerControlRequest);
     }
 
     public class Shoot extends Command {
-        private Supplier<AngularVelocity> velocitySupplier;
+        private final Supplier<AngularVelocity> velocitySupplier;
         private boolean steady;
 
         public Shoot(Supplier<AngularVelocity> velocitySupplier) {
@@ -117,14 +118,14 @@ public class Shooter extends SubsystemBase {
 
         @Override
         public void execute() {
-            AngularVelocity motorVelocity = leftBottomMotor.getVelocity(true).getValue();
+            AngularVelocity motorVelocity = leaderMotor.getVelocity(true).getValue();
             AngularVelocity targetVelocity = velocitySupplier.get();
-            if (!steady && motorVelocity.in(RPM) >= targetVelocity.in(RPM) - kSteadyTolerance.in(RPM)) {
+            if (!steady && motorVelocity.compareTo(targetVelocity) >= 0) {
                 steady = true;
             }
             if (steady) {
-                if (motorVelocity.in(RPM) > targetVelocity.in(RPM)) {
-                    setState(ShooterState.STEADY, RPM.of(0.0));
+                if (motorVelocity.compareTo(targetVelocity) >= 0) {
+                    stop();
                 } else {
                     setState(ShooterState.STEADY, kRevVelocity);
                 }

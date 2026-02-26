@@ -121,6 +121,11 @@ public final class Constants {
     }
 
     public static class ShooterConstants {
+        public static final int kTopLeftMotorId = 9;
+        public static final int kBottomLeftMotorId = 10;
+        public static final int kTopRightMotorId = 11;
+        public static final int kBottomRightMotorId = 12;
+        public static final int kFeederMotorId = 20;
         // TODO: find ball launch velocity
         /** units: m/s */
         public static final double launchVelocity = Units.feetToMeters(29); // convert from ft/s to m/s
@@ -242,5 +247,4 @@ public final class Constants {
             }
         }
     }
-
 }

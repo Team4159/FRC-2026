@@ -8,7 +8,6 @@ import static edu.wpi.first.units.Units.RPM;
 
 import choreo.auto.AutoChooser;
 import choreo.auto.AutoFactory;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -96,7 +95,7 @@ public class RobotContainer {
         //primaryMiddleFrontClimbAlignTrigger.and(DriverStation::isTeleop).onTrue(new AutoAlign(drivetrain, TowerAlignGoal.MIDDLE_FRONT, primaryRobotRelativeTrigger));
         //primaryMiddleBackClimbAlignTrigger.and(DriverStation::isTeleop).onTrue(new AutoAlign(drivetrain, TowerAlignGoal.MIDDLE_BACK, primaryRobotRelativeTrigger));
 
-        secondarySpinTrigger.and(DriverStation::isTeleop).whileTrue(shooter.new Shoot(() -> RPM.of(3000.0)));
+        secondarySpinTrigger.and(DriverStation::isTeleop).whileTrue(shooter.new Shoot(() -> RPM.of(500.0)));
         secondaryKickTrigger.and(DriverStation::isTeleop).onTrue(Commands.runOnce(() -> shooter.setKickerSpeed(1)));
         secondaryKickTrigger.and(DriverStation::isTeleop).onFalse(Commands.runOnce(() -> shooter.setKickerSpeed(0)));
 
