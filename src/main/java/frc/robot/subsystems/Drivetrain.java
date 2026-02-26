@@ -120,7 +120,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         }
 
         private Optional<ChassisSpeeds> driveAssist() {
-            if (!driveAssistEnabled || DriverStation.isTest()) {
+            if (!driveAssistEnabled || !DriverStation.isTeleop()) {
                 return Optional.empty();
             }
             Pose2d robotPose = getState().Pose;
