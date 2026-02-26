@@ -164,7 +164,7 @@ public final class Constants {
 
         public static final int kPigeonId = 1;
 
-        public static final PhoenixPIDController AutoAimRotationController = new PhoenixPIDController(15, 0, 0);
+        public static final PhoenixPIDController AutoAimRotationController = new PhoenixPIDController(5, 0, 0);
         static {
             AutoAimRotationController.enableContinuousInput(-Math.PI, Math.PI);
         }
