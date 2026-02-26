@@ -185,7 +185,8 @@ public final class Constants {
         public static final Autopilot kAlignController = new Autopilot(kAlignProfile);
 
         public static enum TowerAlignGoal {
-            // TODO: decide if LEFT and RIGHT should have an alignment setpoint or just an entry angle
+            // TODO: decide if LEFT and RIGHT should have an alignment setpoint or just an
+            // entry angle
             LEFT(
                     new APTarget(new Pose2d(FieldConstants.kTowerX,
                             FieldConstants.kTowerY.plus(FieldConstants.kTowerWidth.div(2))
@@ -197,13 +198,18 @@ public final class Constants {
                                     .minus(DrivetrainConstants.kDrivetrainSizeX.div(2)),
                             Rotation2d.k180deg)).withVelocity(0).withEntryAngle(Rotation2d.k180deg)),
             MIDDLE_FRONT(
-                    new APTarget(new Pose2d(FieldConstants.kTowerX.plus(DrivetrainConstants.kDrivetrainSizeX.div(2)).plus(Inches.of(6)),
+                    new APTarget(new Pose2d(
+                            FieldConstants.kTowerX.plus(DrivetrainConstants.kDrivetrainSizeX.div(2)).plus(Inches.of(6)),
                             FieldConstants.kTowerY, Rotation2d.k180deg)).withVelocity(0).withoutEntryAngle(),
-                    new APTarget(new Pose2d(FieldConstants.kTowerX, FieldConstants.kTowerY, Rotation2d.k180deg)).withVelocity(0).withoutEntryAngle()),
+                    new APTarget(new Pose2d(FieldConstants.kTowerX, FieldConstants.kTowerY, Rotation2d.k180deg))
+                            .withVelocity(0).withoutEntryAngle()),
             MIDDLE_BACK(
-                    new APTarget(new Pose2d(FieldConstants.kTowerX.minus(DrivetrainConstants.kDrivetrainSizeX.div(2)).minus(Inches.of(6)),
+                    new APTarget(new Pose2d(
+                            FieldConstants.kTowerX.minus(DrivetrainConstants.kDrivetrainSizeX.div(2))
+                                    .minus(Inches.of(6)),
                             FieldConstants.kTowerY, Rotation2d.kZero)).withVelocity(0).withoutEntryAngle(),
-                    new APTarget(new Pose2d(FieldConstants.kTowerX, FieldConstants.kTowerY, Rotation2d.kZero)).withVelocity(0).withoutEntryAngle());
+                    new APTarget(new Pose2d(FieldConstants.kTowerX, FieldConstants.kTowerY, Rotation2d.kZero))
+                            .withVelocity(0).withoutEntryAngle());
 
             public final APTarget[] targets;
 
@@ -212,4 +218,29 @@ public final class Constants {
             }
         }
     }
+
+    public static class IntakeConstants {
+        public static final double kI = 0;
+        public static final double kD = 0;
+        public static final double kP = 0.01;
+
+        public static final int kIntakeLocationId = 13; // I don't know the port, change once known.
+        public static final int kIntakeSpinId = 14;
+
+        public static final double kLocationGearRatio = 1.0 / 2.0;
+        public static final double kSpinGearRatio = 1.0 / 5.0;
+
+        public static enum IntakeState {
+            DOWN_ON(0.25, 0.5), DOWN_OFF(0.25, 0), UP_OFF(0, 0), STOP(0, 0);
+
+            public final double rotationLocation;
+            public final double spinSpeed;
+
+            private IntakeState(double location, double speed) {
+                rotationLocation = location;
+                spinSpeed = speed;
+            }
+        }
+    }
+
 }

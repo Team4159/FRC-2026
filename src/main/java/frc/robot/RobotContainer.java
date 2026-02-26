@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.RPM;
+
 import choreo.auto.AutoChooser;
 import choreo.auto.AutoFactory;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -19,6 +21,8 @@ import frc.robot.Constants.AlignConstants.TowerAlignGoal;
 import frc.robot.Constants.OperatorConstants.DriveMode;
 import frc.robot.commands.AutoAlign;
 import frc.robot.subsystems.Drivetrain;
+import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.Shooter;
 
 public class RobotContainer {
     private final Telemetry logger = new Telemetry();
@@ -37,7 +41,13 @@ public class RobotContainer {
     //private final Trigger primaryMiddleFrontClimbAlignTrigger = primaryController.povUp();
     //private final Trigger primaryMiddleBackClimbAlignTrigger = primaryController.povDown();
 
+    private final CommandXboxController secondaryController = new CommandXboxController(1);
+    private final Trigger secondarySpinTrigger = secondaryController.rightBumper();
+    private final Trigger secondaryKickTrigger = secondaryController.rightTrigger();
+
     public final Drivetrain drivetrain = new Drivetrain(primaryController);
+    public final Shooter shooter = new Shooter();
+    public final Intake intake = new Intake();
 
     /* Path follower */
     private final AutoFactory autoFactory;
@@ -82,6 +92,9 @@ public class RobotContainer {
         primaryRightClimbAlignTrigger.and(DriverStation::isTeleop).onTrue(new AutoAlign(drivetrain, TowerAlignGoal.RIGHT, primaryRobotRelativeTrigger));
         //primaryMiddleFrontClimbAlignTrigger.and(DriverStation::isTeleop).onTrue(new AutoAlign(drivetrain, TowerAlignGoal.MIDDLE_FRONT, primaryRobotRelativeTrigger));
         //primaryMiddleBackClimbAlignTrigger.and(DriverStation::isTeleop).onTrue(new AutoAlign(drivetrain, TowerAlignGoal.MIDDLE_BACK, primaryRobotRelativeTrigger));
+
+        secondarySpinTrigger.and(DriverStation::isTeleop).whileTrue(shooter.new Shoot(() -> RPM.of(3000.0)));
+        secondaryKickTrigger.and(DriverStation::isTeleop).whileTrue(shooter.new Shoot(() -> RPM.of(3500.0)));
 
         // Reset the field-centric heading on left bumper press.
         primaryZeroTrigger.onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
