@@ -93,7 +93,7 @@ public class Shooter extends SubsystemBase {
 
     private final DutyCycleOut kickerControlRequest = new DutyCycleOut(0);
 
-    public void setIntakeSpeed(double speed) {
+    public void setKickerSpeed(double speed) {
         kickerControlRequest.withOutput(speed);
         kickerMotor.setControl(kickerControlRequest);
     }

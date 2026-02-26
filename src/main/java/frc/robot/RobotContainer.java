@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.AlignConstants.TowerAlignGoal;
+import frc.robot.Constants.IntakeConstants.IntakeState;
 import frc.robot.Constants.OperatorConstants.DriveMode;
 import frc.robot.commands.AutoAlign;
 import frc.robot.subsystems.Drivetrain;
@@ -44,6 +45,8 @@ public class RobotContainer {
     private final CommandXboxController secondaryController = new CommandXboxController(1);
     private final Trigger secondarySpinTrigger = secondaryController.rightBumper();
     private final Trigger secondaryKickTrigger = secondaryController.rightTrigger();
+    private final Trigger secondaryIntakeTrigger = secondaryController.leftTrigger();
+
 
     public final Drivetrain drivetrain = new Drivetrain(primaryController);
     public final Shooter shooter = new Shooter();
@@ -94,7 +97,11 @@ public class RobotContainer {
         //primaryMiddleBackClimbAlignTrigger.and(DriverStation::isTeleop).onTrue(new AutoAlign(drivetrain, TowerAlignGoal.MIDDLE_BACK, primaryRobotRelativeTrigger));
 
         secondarySpinTrigger.and(DriverStation::isTeleop).whileTrue(shooter.new Shoot(() -> RPM.of(3000.0)));
-        secondaryKickTrigger.and(DriverStation::isTeleop).whileTrue(shooter.new Shoot(() -> RPM.of(3500.0)));
+        secondaryKickTrigger.and(DriverStation::isTeleop).onTrue(Commands.runOnce(() -> shooter.setKickerSpeed(1)));
+        secondaryKickTrigger.and(DriverStation::isTeleop).onFalse(Commands.runOnce(() -> shooter.setKickerSpeed(0)));
+
+        intake.setDefaultCommand(intake.new ChangeStates(IntakeState.UP_OFF));
+        secondaryIntakeTrigger.and(DriverStation::isTeleop).onTrue(intake.new ChangeStates(IntakeState.DOWN_ON));
 
         // Reset the field-centric heading on left bumper press.
         primaryZeroTrigger.onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
