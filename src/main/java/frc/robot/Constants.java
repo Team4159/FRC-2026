@@ -27,6 +27,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import frc.robot.Constants.DrivetrainConstants;
 import frc.robot.generated.TunerConstants;
 
 /**
@@ -103,21 +104,21 @@ public final class Constants {
         public static final Matrix<N3, N1> kMultiTagStdDevs = VecBuilder.fill(0.5, 0.5, 1);
 
         public final static Transform3d leftShooterCamTransform = new Transform3d(
-                Units.inchesToMeters(-0.1647),
-                Units.inchesToMeters(8.8160),
-                Units.inchesToMeters(20.3287),
+                Units.inchesToMeters(-1.2887),
+                Units.inchesToMeters(8.8466),
+                Units.inchesToMeters(21.1190),
                 new Rotation3d(
                         0,
                         Units.degreesToRadians(-30),
                         Units.degreesToRadians(-5)));
         public final static Transform3d rightShooterCamTransform = new Transform3d(
-                Units.inchesToMeters(-0.1647),
-                Units.inchesToMeters(-8.8160),
-                Units.inchesToMeters(20.3287),
+                Units.inchesToMeters(-1.2887),
+                Units.inchesToMeters(-8.8466),
+                Units.inchesToMeters(21.1190),
                 new Rotation3d(
                         0,
                         Units.degreesToRadians(-30),
-                        Units.degreesToRadians(5)));
+                        Units.degreesToRadians(-5)));
     }
 
     public static class ShooterConstants {
