@@ -49,7 +49,7 @@ import frc.robot.generated.TunerConstants;
 public class Drivetrain extends CommandSwerveDrivetrain {
 
     private static final CANBus kDrivetrainCANBus = new CANBus("Drivetrain");
-    
+
     private final Pigeon2 pigeon = new Pigeon2(kPigeonId, kDrivetrainCANBus);
 
     public final SwerveRequest.FieldCentric fieldCentricDrive = new SwerveRequest.FieldCentric()
@@ -58,6 +58,10 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     public final SwerveRequest.RobotCentric robotCentricDrive = new SwerveRequest.RobotCentric()
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
     public final SwerveRequest.FieldCentricFacingAngle fieldCentricFacingAngleDrive = new SwerveRequest.FieldCentricFacingAngle()
+            .withForwardPerspective(ForwardPerspectiveValue.BlueAlliance)
+            .withDriveRequestType(DriveRequestType.OpenLoopVoltage)
+            .withHeadingPID(15, 0, 0);
+    public final SwerveRequest.RobotCentricFacingAngle robotCentricFacingAngleDrive = new SwerveRequest.RobotCentricFacingAngle()
             .withForwardPerspective(ForwardPerspectiveValue.BlueAlliance)
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage)
             .withHeadingPID(15, 0, 0);
@@ -79,6 +83,9 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     private boolean autoPathAutoAimMode = false;
     private AutoAim autoAimCommand;
     
+
+    private Optional<Rotation2d> desiredAngle = Optional.empty();
+
     public Drivetrain(CommandXboxController controller) {
         super(TunerConstants.DrivetrainConstants, TunerConstants.FrontLeft, TunerConstants.FrontRight,
                 TunerConstants.BackLeft, TunerConstants.BackRight);
@@ -87,7 +94,8 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         this.inputRotation = () -> -controller.getRightX();
 
         crashTrigger.onTrue(Commands
-                .runOnce(() -> HIDRumble.rumble(controller.getHID(), new RumbleRequest(RumbleType.kRightRumble, 0.5, 0.5))));
+                .runOnce(() -> HIDRumble.rumble(controller.getHID(),
+                        new RumbleRequest(RumbleType.kRightRumble, 0.5, 0.5))));
     }
 
     public class Drive extends Command {
@@ -130,7 +138,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         }
 
         private Optional<ChassisSpeeds> driveAssist() {
-            if (!driveAssistEnabled || DriverStation.isTest()) {
+            if (!driveAssistEnabled || !DriverStation.isTeleop()) {
                 return Optional.empty();
             }
             Pose2d robotPose = getState().Pose;
@@ -172,9 +180,20 @@ public class Drivetrain extends CommandSwerveDrivetrain {
             return () -> switch (driveMode) {
                 case FREE -> {
                     if (isInputIdle()) {
-                        yield brakeDrive;
+                        if (desiredAngle.isPresent()) {
+                            if (Math.abs(Math.abs(getState().Pose.getRotation().minus(desiredAngle.get()).getDegrees())) < 1.0) {
+                                yield brakeDrive;
+                            }
+                        } else {
+                            yield brakeDrive;
+                        }
                     }
                     if (robotRelativeSupplier.getAsBoolean()) {
+                        if (desiredAngle.isPresent()) {
+                            yield robotCentricFacingAngleDrive.withVelocityX(getSpeedX())
+                                    .withVelocityY(getSpeedY())
+                                    .withTargetDirection(desiredAngle.get());
+                        }
                         yield robotCentricDrive.withVelocityX(getSpeedX())
                                 .withVelocityY(getSpeedY())
                                 .withRotationalRate(getSpeedRotation());
@@ -182,6 +201,11 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                     var assistSpeed = driveAssist();
                     var velocityY = assistSpeed.isEmpty() ? getSpeedY()
                             : assistSpeed.get().vyMetersPerSecond;
+                    if (desiredAngle.isPresent()) {
+                        yield fieldCentricFacingAngleDrive.withVelocityX(getSpeedX())
+                                .withVelocityY(velocityY)
+                                .withTargetDirection(desiredAngle.get());
+                    }
                     yield fieldCentricDrive.withVelocityX(getSpeedX())
                             .withVelocityY(velocityY)
                             .withRotationalRate(getSpeedRotation());
@@ -246,22 +270,38 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                     Translation2d tangentialVector = new Translation2d(
                             radialVector.getY(),
                             radialVector.getX());
+                    double velocityX = getMaxTranslationSpeed()
+                            * (radialInput * radialVector.getX() - tangentialInput * tangentialVector.getX());
+                    double velocityY = getMaxTranslationSpeed()
+                            * (radialInput * radialVector.getY() + tangentialInput * tangentialVector.getY());
+                    if (desiredAngle.isPresent()) {
+                        yield fieldCentricFacingAngleDrive
+                                .withVelocityX(velocityX)
+                                .withVelocityY(velocityY)
+                                .withTargetDirection(desiredAngle.get());
+                    }
                     yield fieldCentricDrive
-                            .withVelocityX(getMaxTranslationSpeed()
-                                    * (radialInput * radialVector.getX() - tangentialInput * tangentialVector.getX()))
-                            .withVelocityY(getMaxTranslationSpeed()
-                                    * (radialInput * radialVector.getY() + tangentialInput * tangentialVector.getY()));
+                            .withVelocityX(velocityX)
+                            .withVelocityY(velocityY);
                 }
             };
         }
     }
 
     public void enableReduceSpeed(boolean enabled) {
-        reduceSpeedEnabled = enabled;
+        this.reduceSpeedEnabled = enabled;
     }
 
     public void enableDriveAssist(boolean enabled) {
-        driveAssistEnabled = enabled;
+        this.driveAssistEnabled = enabled;
+    }
+
+    public void setDesiredAngle(Rotation2d desiredAngle) {
+        this.desiredAngle = Optional.of(desiredAngle);
+    }
+
+    public void clearDesiredAngle() {
+        this.desiredAngle = Optional.empty();
     }
 
     /**

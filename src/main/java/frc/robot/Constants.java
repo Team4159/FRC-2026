@@ -303,7 +303,7 @@ public final class Constants {
                     new APTarget(new Pose2d(FieldConstants.kTowerX,
                             FieldConstants.kTowerY.plus(FieldConstants.kTowerWidth.div(2))
                                     .plus(DrivetrainConstants.kDrivetrainSizeX.div(2)),
-                            Rotation2d.k180deg)).withVelocity(0).withEntryAngle(Rotation2d.k180deg)),
+                            Rotation2d.kZero)).withVelocity(0).withEntryAngle(Rotation2d.kZero)),
             RIGHT(
                     new APTarget(new Pose2d(FieldConstants.kTowerX,
                             FieldConstants.kTowerY.minus(FieldConstants.kTowerWidth.div(2))
