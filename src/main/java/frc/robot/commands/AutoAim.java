@@ -87,19 +87,6 @@ public class AutoAim extends Command {
         ledStatusSupplier = () -> {return autoAimStatus.ledStatus;};
         this.autonomousMode = autonomousMode;
         if(!autonomousMode) addRequirements(drivetrain);
-
-        //LOOKUP TABLE INITIAL DATA (JOE)
-        double[] times = new double[10];
-        double[] angles = new double[10];
-
-        for(int i = 0; i < 10; i++){
-            double angle = getDesiredHoodPitchDistance(i * 0.05);
-            angles[i] = angle;
-            times[i] = getTimeOfFlight(angle, getLaunchVelocity());
-        }
-
-        SmartDashboard.putNumberArray("angles", angles);
-        SmartDashboard.putNumberArray("times", angles);
     }
 
     @Override
@@ -221,31 +208,6 @@ public class AutoAim extends Command {
         // distance from robot to target
         Translation2d robotTranslation = adjustedRobotPose.getTranslation();
         double distance = robotTranslation.getDistance(target.getTranslation());
-        double launchVelocity = getLaunchVelocity();
-        double desiredPitch = 
-            Math.atan((Math.pow(launchVelocity, 2)
-                + Math.sqrt(Math.pow(launchVelocity, 4)
-                        - Math.pow(FieldConstants.g * distance, 2)
-                        - 2 * FieldConstants.g * height
-                                * Math.pow(launchVelocity, 2)))
-                / (FieldConstants.g * distance));
-        autoAimStatus = AutoAimStatus.SHOOT;
-
-        if(Double.isNaN(desiredPitch)){
-            //equation can only return angles from 45-90 deg (in radians of course), anything lower than that will be NaN
-            //the minimum possible hood angle on the physical shooter is 45, so no additional calculation is needed, just set to 45
-            desiredPitch = Units.degreesToRadians(45);
-            autoAimStatus = AutoAimStatus.OUTOFRANGE;
-        }
-        if(desiredPitch > Constants.ShooterConstants.maxPitch){
-            desiredPitch = Constants.ShooterConstants.maxPitch;
-        }
-        SmartDashboard.putNumber("pitch", Units.radiansToDegrees(desiredPitch));
-        return desiredPitch;
-    }
-
-    /** @return the desired pitch for the hood based on the adjusted robot position */
-    private double getDesiredHoodPitchDistance(double distance){
         double launchVelocity = getLaunchVelocity();
         double desiredPitch = 
             Math.atan((Math.pow(launchVelocity, 2)
