@@ -12,7 +12,10 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.PrintCommand;
+import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
+import frc.robot.Constants.AutoConstants;
+import frc.robot.commands.AutoAim;
 import frc.robot.lib.InstantCommandRunWhenDisabled;
 import frc.robot.lib.PoseTrajectory;
 import frc.robot.subsystems.Drivetrain;
@@ -29,9 +32,12 @@ public class ConfigurableAuto {
     private final AutoFactory factory;
     private final Drivetrain drivetrain;
     private final Shooter shooter;
+    //TODO: implement intake
     private final Intake intake;
     private final Hopper hopper;
     private final LEDs leds;
+
+    private AutoRoutine generatedRoutine;
 
     public ConfigurableAuto(AutoFactory factory, Drivetrain drivetrain, Shooter shooter, Intake intake, Hopper hopper, LEDs leds) {
         //auto factory
@@ -54,6 +60,7 @@ public class ConfigurableAuto {
         displayChoosers();
     }
 
+    /** displays sendable chooser options for configuration and the generate button */
     public void displayChoosers(){
         //side chooser
         sideChooser.addOption("Left", "L");
@@ -92,7 +99,7 @@ public class ConfigurableAuto {
         System.out.println("test");
     }
 
-    public AutoRoutine generateRoutine(boolean display){
+    private AutoRoutine generateRoutine(boolean display){
         System.out.println("generateroutine");
         final AutoRoutine routine = factory.newRoutine("Generated Auto");
 
@@ -119,6 +126,9 @@ public class ConfigurableAuto {
             routine.active().onTrue(
                 startToIntake1Traj.resetOdometry().andThen(startToIntake1Traj.cmd())
                 .andThen(intake1ToShoot1Traj.cmd())
+                .andThen(new ParallelDeadlineGroup(
+                    new WaitCommand(AutoConstants.ShootTime), 
+                    new AutoAim(drivetrain, shooter, hopper, leds, display)))
                 .andThen(shoot1ToClimbTraj.cmd())
             );
 
@@ -133,8 +143,14 @@ public class ConfigurableAuto {
             routine.active().onTrue(
                 startToIntake1Traj.resetOdometry().andThen(startToIntake1Traj.cmd())
                 .andThen(intake1ToShoot1Traj.cmd())
+                .andThen(new ParallelDeadlineGroup(
+                    new WaitCommand(AutoConstants.ShootTime), 
+                    new AutoAim(drivetrain, shooter, hopper, leds, display)))
                 .andThen(shoot1ToIntake2Traj.cmd())
                 .andThen(intake2ToShoot2Traj.cmd())
+                .andThen(new ParallelDeadlineGroup(
+                    new WaitCommand(AutoConstants.ShootTime), 
+                    new AutoAim(drivetrain, shooter, hopper, leds, display)))
                 .andThen(shoot2ToClimbTraj.cmd())
             );
 
@@ -147,8 +163,14 @@ public class ConfigurableAuto {
             routine.active().onTrue(
                 startToIntake1Traj.resetOdometry().andThen(startToIntake1Traj.cmd())
                 .andThen(intake1ToShoot1Traj.cmd())
+                .andThen(new ParallelDeadlineGroup(
+                    new WaitCommand(AutoConstants.ShootTime), 
+                    new AutoAim(drivetrain, shooter, hopper, leds, display)))
                 .andThen(shoot1ToIntake2Traj.cmd())
                 .andThen(intake2ToShoot2Traj.cmd())
+                .andThen(new ParallelDeadlineGroup(
+                    new WaitCommand(AutoConstants.ShootTime), 
+                    new AutoAim(drivetrain, shooter, hopper, leds, display)))
             );
 
             if(display){
@@ -159,7 +181,16 @@ public class ConfigurableAuto {
         startToIntake1Traj.atTime("enableAutoAim").onTrue(new InstantCommand(() -> drivetrain.setAutoPathAutoAimMode(true)));
         startToIntake1Traj.atTime("disableAutoAim").onTrue(new InstantCommand(() -> drivetrain.setAutoPathAutoAimMode(false)));
         
+        //store the routine so don't need to generate at the start of auto
+        generatedRoutine = routine;
         return routine;
+    }
+
+    /** returns the generated routine if it exists otherwise it generates the routine and returns it
+     */
+    public AutoRoutine getRoutine(){
+        if(generatedRoutine == null) return generateRoutine(true);
+        return generatedRoutine;
     }
 
     /**

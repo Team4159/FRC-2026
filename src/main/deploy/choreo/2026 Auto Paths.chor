@@ -4,6 +4,13 @@
  "type":"Swerve",
  "variables":{
   "expressions":{
+   "fieldWidth":{
+    "dimension":"Length",
+    "var":{
+     "exp":"317.69 in",
+     "val":8.069326
+    }
+   },
    "maxAccel":{
     "dimension":"LinAcc",
     "var":{
@@ -25,6 +32,76 @@
     "heading":{
      "exp":"rClimb.heading",
      "val":0.014106085110156194
+    }
+   },
+   "lScore":{
+    "x":{
+     "exp":"rScore.x",
+     "val":3.054912805557251
+    },
+    "y":{
+     "exp":"fieldWidth - rScore.y",
+     "val":7.0497461126098635
+    },
+    "heading":{
+     "exp":"360 deg - rScore.heading",
+     "val":5.18022771574833
+    }
+   },
+   "lStart":{
+    "x":{
+     "exp":"0.45867684483528137 m",
+     "val":0.45867684483528137
+    },
+    "y":{
+     "exp":"fieldWidth - rStart.y",
+     "val":7.618162976289749
+    },
+    "heading":{
+     "exp":"360 deg - rStart.heading",
+     "val":4.71238898038469
+    }
+   },
+   "lcIntakeEnd":{
+    "x":{
+     "exp":"rcIntakeEnd.x",
+     "val":6.0
+    },
+    "y":{
+     "exp":"fieldWidth - rcIntakeEnd.y",
+     "val":4.7835059926757815
+    },
+    "heading":{
+     "exp":"360 deg - rcIntakeEnd.heading",
+     "val":4.483185307179586
+    }
+   },
+   "lfIntakeEnd":{
+    "x":{
+     "exp":"rfIntakeEnd.x",
+     "val":7.67844820022583
+    },
+    "y":{
+     "exp":"fieldWidth - rfIntakeEnd.y",
+     "val":4.7835059926757815
+    },
+    "heading":{
+     "exp":"360 deg - rfIntakeEnd.heading",
+     "val":4.483185307179586
+    }
+   },
+   "lmIntakeEnd":{
+    "x":{
+     "exp":"rmIntakeEnd.x",
+     "val":6.75
+    },
+    "y":{
+     "exp":"fieldWidth - rmIntakeEnd.y",
+     "val":4.7835059926757815
+    },
+    "heading":{
+     "exp":"360 deg - rmIntakeEnd.heading",
+     "val":4.483185307179586
     }
    },
    "rClimb":{

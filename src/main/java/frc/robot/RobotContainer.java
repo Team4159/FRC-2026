@@ -121,6 +121,6 @@ public class RobotContainer {
 
     public Command getAutonomousCommand() {
         /* Run the routine selected from the auto chooser */
-        return autoChooser.selectedCommand();
+        return configurableAuto.getRoutine().cmd();
     }
 }

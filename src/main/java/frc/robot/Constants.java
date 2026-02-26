@@ -281,6 +281,11 @@ public final class Constants {
         public static final double hubZ = Units.inchesToMeters(56.4);
     }
 
+    public static class AutoConstants {
+      /** units: seconds */
+      public static final double ShootTime = 3;
+    }
+
     public static class AlignConstants {
         public static final APConstraints kAlignConstraints = new APConstraints()
                 .withVelocity(kMaxTranslationSpeed)
