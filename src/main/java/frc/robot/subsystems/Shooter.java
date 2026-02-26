@@ -37,8 +37,6 @@ public class Shooter extends SubsystemBase {
         }
     }
 
-    private static final AngularVelocity kRevVelocity = RotationsPerSecond.of(1000.0);
-
     // Top left motor is the leader motor
     private final TalonFX topLeftMotor = new TalonFX(kTopLeftMotorId);
     private final TalonFX bottomLeftMotor = new TalonFX(kBottomLeftMotorId);
@@ -113,22 +111,19 @@ public class Shooter extends SubsystemBase {
         @Override
         public void initialize() {
             steady = false;
-            setState(ShooterState.STARTUP, kRevVelocity);
         }
 
         @Override
         public void execute() {
             AngularVelocity motorVelocity = leaderMotor.getVelocity(true).getValue();
             AngularVelocity targetVelocity = velocitySupplier.get();
-            if (!steady && motorVelocity.compareTo(targetVelocity) >= 0) {
+            if (motorVelocity.compareTo(targetVelocity) >= 0) {
                 steady = true;
-            }
-            if (steady) {
-                if (motorVelocity.compareTo(targetVelocity) >= 0) {
-                    stop();
-                } else {
-                    setState(ShooterState.STEADY, kRevVelocity);
-                }
+                stop();
+            } else if (steady) {
+                setState(ShooterState.STEADY, 
+            } else {
+                setState(ShooterState.STARTUP, targetVelocity);
             }
         }
 
