@@ -1,6 +1,8 @@
 package frc.robot.commands;
 
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.Radians;
 
 import java.io.Console;
 
@@ -16,6 +18,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -25,6 +28,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Constants;
 import frc.robot.Constants.FieldConstants;
+import frc.robot.Constants.JoeLookupTableConstants;
 import frc.robot.Constants.FeederConstants.FeederState;
 import frc.robot.Constants.HopperConstants.HopperState;
 import frc.robot.Constants.ShooterConstants.AutoAimStatus;
@@ -109,7 +113,7 @@ public class AutoAim extends Command {
     @Override
     public void execute() {
         //calculate desired pitch for hood angle
-        double desiredHoodAngle = JoeLookupTable.getShotData(Meters.of(getDistanceFromHub())).getAngleRadians();
+        double desiredHoodAngle = getAdjustedHoodPitch(JoeLookupTable.getShotData(Meters.of(getDistanceFromHub())).getAngleRadians(), getDistanceFromHub());
         double timeOfFlight = JoeLookupTable.getShotData(Meters.of(getDistanceFromHub())).getTimeSeconds();
 
         double robotRelativeBallVelocityHorizontal = getLaunchVelocity() * Math.cos(desiredHoodAngle);
@@ -188,52 +192,14 @@ public class AutoAim extends Command {
         //this is so that the desired omega can be used in the command that controls swerve in auto period
         desiredOmega = omega;
     }
-
-    /** @param hoodPitch the current pitch of the hood
-     * @param launchVelocity the current launch velocity (magnitude of linear velocity for the fuel)
-     * @return the time of flight (TOF) of the fuel when shot at hoodPitch with launchVelocity. takes the height difference of the shooter and hub into account.
-     */
-    // private double getTimeOfFlight(double hoodPitch, double launchVelocity){
-    //     //initial y component of launch velocity
-    //     double vy = launchVelocity * Math.sin(hoodPitch);
-    //     //the calculation is based on delta y = vy * TOF - (1/2)g * TOF^2 (where g is a positive constant)
-    //     //the delta y for TOF would be the height
-    //     //the equation then becomes 0 = -(1/2)g * TOF^2 + vy * TOF - height -> 0 = (1/2)g * TOF^2 - vy * TOF + height
-    //     //then use quadratic formula and always add the radical to get the 2nd time the fuel is at the target height (so that it is on the way down)
-    //     double radical = Math.sqrt(Math.pow(vy, 2) - 2 * Constants.FieldConstants.g * height);
-    //     double numerator = vy + radical;
-    //     double time = numerator/Constants.FieldConstants.g;
-    //     SmartDashboard.putNumber("time of flight", time);
-    //     return time;
-    // }
  
-    /** @return the desired pitch for the hood based on the adjusted robot position */
-    // private double getDesiredHoodPitch(){
-    //     // distance from robot to target
-    //     Translation2d robotTranslation = adjustedRobotPose.getTranslation();
-    //     double distance = robotTranslation.getDistance(target.getTranslation());
-    //     double launchVelocity = getLaunchVelocity();
-    //     double desiredPitch = 
-    //         Math.atan((Math.pow(launchVelocity, 2)
-    //             + Math.sqrt(Math.pow(launchVelocity, 4)
-    //                     - Math.pow(FieldConstants.g * distance, 2)
-    //                     - 2 * FieldConstants.g * height
-    //                             * Math.pow(launchVelocity, 2)))
-    //             / (FieldConstants.g * distance));
-    //     autoAimStatus = AutoAimStatus.SHOOT;
-
-    //     if(Double.isNaN(desiredPitch)){
-    //         //equation can only return angles from 45-90 deg (in radians of course), anything lower than that will be NaN
-    //         //the minimum possible hood angle on the physical shooter is 45, so no additional calculation is needed, just set to 45
-    //         desiredPitch = Units.degreesToRadians(45);
-    //         autoAimStatus = AutoAimStatus.OUTOFRANGE;
-    //     }
-    //     if(desiredPitch > Constants.ShooterConstants.maxPitch){
-    //         desiredPitch = Constants.ShooterConstants.maxPitch;
-    //     }
-    //     SmartDashboard.putNumber("pitch", Units.radiansToDegrees(desiredPitch));
-    //     return desiredPitch;
-    // }
+    /** @return the adjusted hood pitch based on wheel velocity
+     * @param distance distance from hub
+    */
+    private double getAdjustedHoodPitch(double maxSpeedPitch, double distance){
+        double error = Units.feetToMeters(29) - getLaunchVelocity();
+        return maxSpeedPitch - error * (JoeLookupTableConstants.kShooterVelocityCorrection + distance * JoeLookupTableConstants.kShooterDistanceVelocityCorrection);
+    }
 
     private double getDistanceFromHub(){
         return drivetrain.getState().Pose.getTranslation().getDistance(target.getTranslation());

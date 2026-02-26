@@ -1,44 +1,45 @@
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
+
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.InvertedValue;  
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants;
+import frc.robot.Constants.FeederConstants;
 import frc.robot.Constants.FeederConstants.FeederState;
+import frc.robot.Constants.HoodConstants;
+import frc.robot.Constants.ShooterConstants;
 
 public class Shooter extends SubsystemBase{
-    private TalonFX hoodMotor;
-    private TalonFX feederMotor;
-    private TalonFX motorOne;
-    private TalonFX motorTwo;
-    private TalonFX motorThree;
+    private TalonFX hoodMotor, feederMotor, motorOne, motorTwo, motorThree, motorFour;
 
     private final PositionVoltage hoodPositionVoltage;
     private final VelocityVoltage shooterVelocityVoltage;
 
     public Shooter() {
         Slot0Configs hoodConfig = new Slot0Configs();
-        hoodConfig.kP = Constants.HoodConstants.kP;
-        hoodConfig.kI = Constants.HoodConstants.kI;
-        hoodConfig.kD = Constants.HoodConstants.kD;
+        hoodConfig.kP = HoodConstants.kP;  
+        hoodConfig.kI = HoodConstants.kI;
+        hoodConfig.kD = HoodConstants.kD;
 
         Slot0Configs shooterConfig = new Slot0Configs();
-        shooterConfig.kP = Constants.ShooterConstants.kP;
-        shooterConfig.kI = Constants.ShooterConstants.kI;
-        shooterConfig.kD = Constants.ShooterConstants.kD;
+        shooterConfig.kP = ShooterConstants.kP;
+        shooterConfig.kI = ShooterConstants.kI;
+        shooterConfig.kD = ShooterConstants.kD;
 
-
-        hoodMotor = new TalonFX(Constants.HoodConstants.HoodId);
-        feederMotor = new TalonFX(Constants.FeederConstants.FeederID);
-        motorOne = new TalonFX(Constants.ShooterConstants.ShooterIDOne);
-        motorTwo = new TalonFX(Constants.ShooterConstants.ShooterIDTwo);
-        motorThree = new TalonFX(Constants.ShooterConstants.ShooterIDThree);
+        hoodMotor = new TalonFX(HoodConstants.HoodId);
+        feederMotor = new TalonFX(FeederConstants.FeederID);
+        motorOne = new TalonFX(ShooterConstants.ShooterIDOne);
+        motorTwo = new TalonFX(ShooterConstants.ShooterIDTwo);
+        motorThree = new TalonFX(ShooterConstants.ShooterIDThree);
+        motorFour = new TalonFX(ShooterConstants.ShooterIDFour);
         
         motorOne.getConfigurator().apply(new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive));
         
@@ -46,6 +47,7 @@ public class Shooter extends SubsystemBase{
         motorOne.getConfigurator().apply(shooterConfig);
         motorTwo.getConfigurator().apply(shooterConfig);
         motorThree.getConfigurator().apply(shooterConfig);
+        motorFour.getConfigurator().apply(shooterConfig);
         
         hoodPositionVoltage = new PositionVoltage(0);
         shooterVelocityVoltage = new VelocityVoltage(0);
@@ -56,7 +58,29 @@ public class Shooter extends SubsystemBase{
         motorOne.setControl(shooterVelocityVoltage);
         motorTwo.setControl(shooterVelocityVoltage);
         motorThree.setControl(shooterVelocityVoltage);
+        motorFour.setControl(shooterVelocityVoltage);
     }
+
+    /** @return the estimated initial speed of the ball after being shot from the shooter */
+    public double getFuelSpeed(){
+        double motorOmega = 
+            motorOne.getVelocity().getValue().in(RadiansPerSecond)
+          + motorTwo.getVelocity().getValue().in(RadiansPerSecond)
+          + motorThree.getVelocity().getValue().in(RadiansPerSecond)
+          + motorFour.getVelocity().getValue().in(RadiansPerSecond);
+
+        double shooterOmega = motorOmega * ShooterConstants.ratio;
+
+        double wheelTangentialSpeed = shooterOmega * ShooterConstants.kShooterWheelRadius.in(Meters);
+        double rollerTangentialSpeed = shooterOmega * ShooterConstants.kShooterRollerRadius.in(Meters);
+
+        return ShooterConstants.kShooterEfficiency * (wheelTangentialSpeed + rollerTangentialSpeed)/2;
+    }
+
+    public void test(){
+        System.out.println("test");
+    }
+
     public void setFeederSpeed(double speed){
         feederMotor.set(speed);
     }

@@ -1,6 +1,7 @@
 package frc.robot.lib;
 
 import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.Seconds;
 
@@ -8,6 +9,7 @@ import java.util.Set;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.JoeLookupTableConstants;
 import frc.robot.Constants.JoeLookupTableConstants.ShotData;
 
@@ -44,7 +46,12 @@ public class JoeLookupTable {
         double secondBestFitTime = secondBestFitShotData.getTimeSeconds();
 
         //get the interpolation point
-        double linearInterpolation = distance.minus(bestFitDistance).abs(Inches) / bestFitDistance.plus(secondBestFitDistance).abs(Inches);
+        double linearInterpolation = 
+            distance.minus(bestFitDistance).abs(Inches) / 
+            (bestFitDistance.minus(distance).abs(Inches) + secondBestFitDistance.minus(distance).abs(Inches));
+
+        SmartDashboard.putNumber("linear interpolation", linearInterpolation);
+        SmartDashboard.putNumber("bestFitDistance", bestFitDistance.in(Meters));
 
         //return a new ShotData object with the interpolated time and angle.
         return new ShotData(

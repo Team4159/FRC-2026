@@ -10,34 +10,48 @@ import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.Seconds;
+import static edu.wpi.first.units.Units.*;
+import static frc.robot.Constants.DrivetrainConstants.kMaxTranslationSpeed;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import com.ctre.phoenix6.swerve.utility.PhoenixPIDController;
+import com.therekrab.autopilot.APConstraints;
+import com.therekrab.autopilot.APProfile;
+import com.therekrab.autopilot.APTarget;
+import com.therekrab.autopilot.Autopilot;
 
 import edu.wpi.first.math.Pair;
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import frc.robot.generated.TunerConstants;
 import edu.wpi.first.wpilibj.LEDPattern;
 import edu.wpi.first.wpilibj.util.Color;
-import frc.robot.Constants.LEDConstants.LEDStatus;
 
 /**
- * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
- * constants. This class should not be used for any other purpose. All constants should be declared
+ * The Constants class provides a convenient place for teams to hold robot-wide
+ * numerical or boolean
+ * constants. This class should not be used for any other purpose. All constants
+ * should be declared
  * globally (i.e. public static). Do not put anything functional in this class.
  *
- * <p>It is advised to statically import this class (or one of its inner classes) wherever the
+ * <p>
+ * It is advised to statically import this class (or one of its inner classes)
+ * wherever the
  * constants are needed, to reduce verbosity.
  */
 public final class Constants {
@@ -45,7 +59,8 @@ public final class Constants {
     public static final double kI = 0;
     public static final double kD = 0;
     public static final double kP = 0.01;
-    public static final int HoodId = 3; //fix this
+    // oriinal hood id was 3, but i had to change it because it was messing with the drivetrain
+    public static final int HoodId = 11; //fix this
   }
 
   public static class ClimberConstants {
@@ -111,18 +126,59 @@ public final class Constants {
     }
   }
 
-  public static class OperatorConstants {
-    public static final int kDriverControllerPort = 0;
-    public static final double kDriverControllerTranslationDeadband = 0.2;
-    public static final double kDriverControllerRotationDeadband = 0.2;
-  }
+    public static class OperatorConstants {
+        public static final int kPrimaryControllerPort = 0;
 
-  public static class DrivetrainConstants {
-    public static final PhoenixPIDController AutoAimRotationController = new PhoenixPIDController(15, 0, 0);
-    static {
-      AutoAimRotationController.enableContinuousInput(-Math.PI, Math.PI);
+        // controller joystick constants
+        public static final double kPrimaryTranslationDeadband = 0.1;
+        public static final double kPrimaryRotationDeadband = 0.1;
+        public static final double kPrimaryTranslationExponent = 2.0;
+        public static final double kPrimaryRotationExponent = 2.0;
+        public static final double kPrimaryTranslationRadius = 0.99;
+        public static final double kPrimaryRotationRadius = 0.99;
+
+        public static enum DriveMode {
+            FREE,
+            MANUAL_ALIGN,
+            BRAKE,
+            POINT,
+            IDLE,
+            INTAKE,
+            RADIAL,
+        }
+
+        // drive assist constants
+        public static final Distance kTrenchAssistPassPositionTolerance = Meters.of(0.45);
+        public static final double kTrenchAssistApproachInputTolerance = 0.2;
+        public static final Distance kTrenchAssistAlignPositionTolerance = Meters.of(0.15);
+        public static final double kTrenchAssistAlignStrength = 0.8;
+        public static final double kTrenchAssistAlignInfluence = 0.15;
+
+        // drive mode constants
+        public static final double kPrimaryReduceSpeedTranslationFactor = 0.5;
+        public static final double kPrimaryReduceSpeedRotationFactor = 1;
+
+        public static final double kPrimaryRadialModeDeadband = 0.2;
+
+        public static final double kPrimaryAlignModeDeadband = 0.65;
+        public static final double kPrimaryAlignModeSpeedTranslationFactor = 0.2;
+        public static final double kPrimaryAlignModeSpeedRotationFactor = 0.1;
     }
-  }
+
+    public static class DrivetrainConstants {
+        public static final Distance kDrivetrainSizeX = Inches.of(34.0);
+        public static final Distance kDrivetrainSizeY = Inches.of(34.0);
+
+        public static final double kMaxTranslationSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
+        public static final double kMaxRotationSpeed = RotationsPerSecond.of(0.75).in(RadiansPerSecond);
+
+        public static final int kPigeonId = 1;
+
+        public static final PhoenixPIDController AutoAimRotationController = new PhoenixPIDController(5, 0, 0);
+        static {
+            AutoAimRotationController.enableContinuousInput(-Math.PI, Math.PI);
+        }
+    }
 
   public static class ShooterConstants {
     //Motor Config and PID
@@ -141,6 +197,12 @@ public final class Constants {
     public static final double ratio = 1;
     public static final double shootHeight = Units.inchesToMeters(40);
 
+    public static final Distance kShooterWheelRadius = Inches.of(2);
+    /** TODO: find the correct distance */
+    public static final Distance kShooterRollerRadius = Inches.of(0.75);
+
+    public static final double kShooterEfficiency = 0.9;
+
     /** units: radians */
     public static final double maxPitch = Units.degreesToRadians(85);
 
@@ -149,39 +211,100 @@ public final class Constants {
     public static final Transform2d shooterOffset = new Transform2d(0, 0, new Rotation2d());
 
     public static enum AutoAimStatus{
-      SHOOT(LEDStatus.GREEN_BLINK),
-      OUTOFRANGE(LEDStatus.RED_BLINK),
-      WAITING(LEDStatus.YELLOW_BLINK);
+      SHOOT(LEDConstants.LEDStatus.GREEN_BLINK),
+      OUTOFRANGE(LEDConstants.LEDStatus.RED_BLINK),
+      WAITING(LEDConstants.LEDStatus.YELLOW_BLINK);
 
-      public LEDStatus ledStatus;
-      private AutoAimStatus(LEDStatus ledStatus){
+      public LEDConstants.LEDStatus ledStatus;
+      private AutoAimStatus(LEDConstants.LEDStatus ledStatus){
         this.ledStatus = ledStatus;
       }
     }
   }
 
   public static class PhotonVisionConstants {
-    public static Transform3d leftShooterCamTransform = new Transform3d(-0.1647, 8.8160, 20.3287,new Rotation3d(0,-30,-5));
-    public static Transform3d rightShooterCamTransform = new Transform3d(-0.1647, -8.8160, 20.8237, new Rotation3d(0, -30, 5));
-  }
 
-  public static class FieldConstants {
-    public static final Map<DriverStation.Alliance, Pose2d> hubLocations = Map.of(
-      Alliance.Blue, new Pose2d(Units.inchesToMeters(182.11), Units.inchesToMeters(158.84), new Rotation2d()),
-      Alliance.Red, new Pose2d(Units.inchesToMeters(651.22 - 182.11), Units.inchesToMeters(158.84), new Rotation2d())
-    );
+        // TODO: tune stddev values
+        public static final Matrix<N3, N1> kSingleTagStdDevs = VecBuilder.fill(4, 4, 8);
+        public static final Matrix<N3, N1> kMultiTagStdDevs = VecBuilder.fill(0.5, 0.5, 1);
 
-    /** Units:m/s^2 */
-    public static final double g = 9.80;
+        public final static Transform3d leftShooterCamTransform = new Transform3d(
+                Units.inchesToMeters(-0.1647),
+                Units.inchesToMeters(8.8160),
+                Units.inchesToMeters(20.3287),
+                new Rotation3d(
+                        0,
+                        Units.degreesToRadians(-30),
+                        Units.degreesToRadians(-5)));
+        public final static Transform3d rightShooterCamTransform = new Transform3d(
+                Units.inchesToMeters(-0.1647),
+                Units.inchesToMeters(-8.8160),
+                Units.inchesToMeters(20.3287),
+                new Rotation3d(
+                        0,
+                        Units.degreesToRadians(-30),
+                        Units.degreesToRadians(5)));
+    }
 
-    public static final double hubZ = Units.inchesToMeters(56.4);
-  }
+    public static class FieldConstants {
+        public static final Map<DriverStation.Alliance, Pose2d> hubLocations = Map.of(
+                Alliance.Blue, new Pose2d(Units.inchesToMeters(182.11), Units.inchesToMeters(158.84), new Rotation2d()),
+                Alliance.Red,
+                new Pose2d(Units.inchesToMeters(651.22 - 182.11), Units.inchesToMeters(158.84), new Rotation2d()));
+
+        public static enum FieldZone {
+            FIELD(Inches.of(651.22), Inches.of(317.69)),
+            ALLIANCE(Inches.of(156.61), Inches.of(317.69)),
+            TRENCH(Inches.of(140.0), Inches.of(49.96));
+
+            public final Distance width, height;
+
+            private FieldZone(Distance width, Distance height) {
+                this.width = width;
+                this.height = height;
+            }
+        }
+
+        public static enum TrenchZone {
+            BLUE_LEFT(Inches.of(182.11), Inches.of(24.97)),
+            BLUE_RIGHT(Inches.of(182.11), Inches.of(317.69 - 24.97)),
+            RED_LEFT(Inches.of(651.22 - 182.11), Inches.of(24.97)),
+            RED_RIGHT(Inches.of(651.22 - 182.11), Inches.of(317.69 - 24.97));
+
+            public final Distance x, y;
+
+            private TrenchZone(Distance x, Distance y) {
+                this.x = x;
+                this.y = y;
+            }
+        }
+
+        public static Distance kTrenchX = Inches.of(182.11);
+
+        public static Distance kTowerX = Inches.of(41.755);
+        public static Distance kTowerY = Inches.of(147.47);
+        public static Distance kTowerWidth = Inches.of(35.2);
+
+        /** Units:m/s^2 */
+        public static final double g = 9.80;
+
+        public static final double hubZ = Units.inchesToMeters(56.4);
+    }
 
   public static final class JoeLookupTableConstants{
+
     public static final record ShotData(Angle angle, Time time){
       public double getAngleRadians(){return angle.in(Radians);}
       public double getTimeSeconds(){return time.in(Seconds);}
     }
+
+    /**adjust the angle of the hood down by this much (in radians) for each meter/second slow the calculated tangential speed is*/
+    public static final double kShooterVelocityCorrection = 0.05;
+    /**adjust the angle of the hood down by this much (in radians for each meter/second slow the calculated tangential speed is
+     * multiplied by the distance from the hub (higher distance needs more correction)
+    */
+    public static final double kShooterDistanceVelocityCorrection = 0.01;
+
     //stores desired angle and estimated time (from stationary) given a distance from the hub
     public static final Map<Distance, ShotData> joeLookupTable = Map.ofEntries(
       Map.entry(Meters.of(0),   new ShotData(Degrees.of(85),     Seconds.of(1.7277))),
@@ -206,6 +329,51 @@ public final class Constants {
       Map.entry(Meters.of(9.5), new ShotData(Degrees.of(45),     Seconds.of(1.176)))
     );
   }
+
+    public static class AutoConstants {
+      /** units: seconds */
+      public static final double ShootTime = 3;
+    }
+
+    public static class AlignConstants {
+        public static final APConstraints kAlignConstraints = new APConstraints()
+                .withVelocity(kMaxTranslationSpeed)
+                .withAcceleration(5.0)
+                .withJerk(2.0);
+        public static final APProfile kAlignProfile = new APProfile(kAlignConstraints)
+                .withErrorXY(Centimeters.of(2.0))
+                .withErrorTheta(Degrees.of(1.0))
+                .withBeelineRadius(Centimeters.of(5.0));
+        public static final Autopilot kAlignController = new Autopilot(kAlignProfile);
+
+        public static enum TowerAlignGoal {
+            // TODO: decide if LEFT and RIGHT should have an alignment setpoint or just an entry angle
+            LEFT(
+                    new APTarget(new Pose2d(FieldConstants.kTowerX,
+                            FieldConstants.kTowerY.plus(FieldConstants.kTowerWidth.div(2))
+                                    .plus(DrivetrainConstants.kDrivetrainSizeX.div(2)),
+                            Rotation2d.kZero)).withVelocity(0).withEntryAngle(Rotation2d.kZero)),
+            RIGHT(
+                    new APTarget(new Pose2d(FieldConstants.kTowerX,
+                            FieldConstants.kTowerY.minus(FieldConstants.kTowerWidth.div(2))
+                                    .minus(DrivetrainConstants.kDrivetrainSizeX.div(2)),
+                            Rotation2d.k180deg)).withVelocity(0).withEntryAngle(Rotation2d.k180deg)),
+            MIDDLE_FRONT(
+                    new APTarget(new Pose2d(FieldConstants.kTowerX.plus(DrivetrainConstants.kDrivetrainSizeX.div(2)).plus(Inches.of(6)),
+                            FieldConstants.kTowerY, Rotation2d.k180deg)).withVelocity(0).withoutEntryAngle(),
+                    new APTarget(new Pose2d(FieldConstants.kTowerX, FieldConstants.kTowerY, Rotation2d.k180deg)).withVelocity(0).withoutEntryAngle()),
+            MIDDLE_BACK(
+                    new APTarget(new Pose2d(FieldConstants.kTowerX.minus(DrivetrainConstants.kDrivetrainSizeX.div(2)).minus(Inches.of(6)),
+                            FieldConstants.kTowerY, Rotation2d.kZero)).withVelocity(0).withoutEntryAngle(),
+                    new APTarget(new Pose2d(FieldConstants.kTowerX, FieldConstants.kTowerY, Rotation2d.kZero)).withVelocity(0).withoutEntryAngle());
+
+            public final APTarget[] targets;
+
+            private TowerAlignGoal(APTarget... targets) {
+                this.targets = targets;
+            }
+        }
+    }
 
   public static final class LEDConstants{
     
