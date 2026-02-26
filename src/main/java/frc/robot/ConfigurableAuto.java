@@ -128,7 +128,7 @@ public class ConfigurableAuto {
                 .andThen(intake1ToShoot1Traj.cmd())
                 .andThen(new ParallelDeadlineGroup(
                     new WaitCommand(AutoConstants.ShootTime), 
-                    new AutoAim(drivetrain, shooter, hopper, leds, display)))
+                    new AutoAim(drivetrain, shooter, hopper, leds, false)))
                 .andThen(shoot1ToClimbTraj.cmd())
             );
 
@@ -145,12 +145,12 @@ public class ConfigurableAuto {
                 .andThen(intake1ToShoot1Traj.cmd())
                 .andThen(new ParallelDeadlineGroup(
                     new WaitCommand(AutoConstants.ShootTime), 
-                    new AutoAim(drivetrain, shooter, hopper, leds, display)))
+                    new AutoAim(drivetrain, shooter, hopper, leds, false)))
                 .andThen(shoot1ToIntake2Traj.cmd())
                 .andThen(intake2ToShoot2Traj.cmd())
                 .andThen(new ParallelDeadlineGroup(
                     new WaitCommand(AutoConstants.ShootTime), 
-                    new AutoAim(drivetrain, shooter, hopper, leds, display)))
+                    new AutoAim(drivetrain, shooter, hopper, leds, false)))
                 .andThen(shoot2ToClimbTraj.cmd())
             );
 
@@ -165,12 +165,12 @@ public class ConfigurableAuto {
                 .andThen(intake1ToShoot1Traj.cmd())
                 .andThen(new ParallelDeadlineGroup(
                     new WaitCommand(AutoConstants.ShootTime), 
-                    new AutoAim(drivetrain, shooter, hopper, leds, display)))
+                    new AutoAim(drivetrain, shooter, hopper, leds, false)))
                 .andThen(shoot1ToIntake2Traj.cmd())
                 .andThen(intake2ToShoot2Traj.cmd())
                 .andThen(new ParallelDeadlineGroup(
                     new WaitCommand(AutoConstants.ShootTime), 
-                    new AutoAim(drivetrain, shooter, hopper, leds, display)))
+                    new AutoAim(drivetrain, shooter, hopper, leds, false)))
             );
 
             if(display){
