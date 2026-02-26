@@ -2,6 +2,8 @@ package frc.robot.commands;
 
 import static edu.wpi.first.units.Units.Meters;
 
+import java.io.Console;
+
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.MathSharedStore;
@@ -173,6 +175,9 @@ public class AutoAim extends Command {
         double omega = Constants.DrivetrainConstants.AutoAimRotationController.calculate(
                 drivetrain.getState().Pose.getRotation().getRadians(), desiredAngle, Timer.getFPGATimestamp());
         //set ChassisSpeeds
+
+        System.out.println("drivetrain x: " + drivetrain.getInputX());
+        System.out.println("drivetrain y: " + drivetrain.getInputY());
         ChassisSpeeds chassisSpeeds = new ChassisSpeeds(
                 drivetrain.getInputX(),
                 drivetrain.getInputY(),

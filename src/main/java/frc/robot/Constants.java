@@ -11,6 +11,7 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.Seconds;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import com.ctre.phoenix6.swerve.utility.PhoenixPIDController;
@@ -112,8 +113,8 @@ public final class Constants {
 
   public static class OperatorConstants {
     public static final int kDriverControllerPort = 0;
-    public static final double kDriverControllerTranslationDeadband = 0.1;
-    public static final double kDriverControllerRotationDeadband = 0.1;
+    public static final double kDriverControllerTranslationDeadband = 0.2;
+    public static final double kDriverControllerRotationDeadband = 0.2;
   }
 
   public static class DrivetrainConstants {
@@ -182,10 +183,27 @@ public final class Constants {
       public double getTimeSeconds(){return time.in(Seconds);}
     }
     //stores desired angle and estimated time (from stationary) given a distance from the hub
-    public static final Map<Distance, ShotData> joeLookupTable = Map.of(
-      Inches.of(12), new ShotData(Degrees.of(85), Seconds.of(1)),
-      Inches.of(18), new ShotData(Degrees.of(80), Seconds.of(1.5)),
-      Inches.of(24), new ShotData(Degrees.of(75), Seconds.of(2))
+    public static final Map<Distance, ShotData> joeLookupTable = Map.ofEntries(
+      Map.entry(Meters.of(0),   new ShotData(Degrees.of(85),     Seconds.of(1.7277))),
+      Map.entry(Meters.of(0.5), new ShotData(Degrees.of(85),     Seconds.of(1.7277))),
+      Map.entry(Meters.of(1),   new ShotData(Degrees.of(85),     Seconds.of(1.7277))),
+      Map.entry(Meters.of(1.5), new ShotData(Degrees.of(84.292), Seconds.of(1.726))),
+      Map.entry(Meters.of(2),   new ShotData(Degrees.of(82.347), Seconds.of(1.718))),
+      Map.entry(Meters.of(2.5), new ShotData(Degrees.of(80.364), Seconds.of(1.708))),
+      Map.entry(Meters.of(3),   new ShotData(Degrees.of(78.329), Seconds.of(1.697))),
+      Map.entry(Meters.of(3.5), new ShotData(Degrees.of(76.226), Seconds.of(1.682))),
+      Map.entry(Meters.of(4),   new ShotData(Degrees.of(74.034), Seconds.of(1.664))),
+      Map.entry(Meters.of(4.5), new ShotData(Degrees.of(71.726), Seconds.of(1.642))),
+      Map.entry(Meters.of(5),   new ShotData(Degrees.of(68.689), Seconds.of(1.591))),
+      Map.entry(Meters.of(5.5), new ShotData(Degrees.of(65.879), Seconds.of(1.556))),
+      Map.entry(Meters.of(6),   new ShotData(Degrees.of(62.686), Seconds.of(1.512))),
+      Map.entry(Meters.of(6.5), new ShotData(Degrees.of(58.808), Seconds.of(1.451))),
+      Map.entry(Meters.of(7),   new ShotData(Degrees.of(53.122), Seconds.of(1.349))),
+      Map.entry(Meters.of(7.5), new ShotData(Degrees.of(45),     Seconds.of(1.176))),
+      Map.entry(Meters.of(8),   new ShotData(Degrees.of(45),     Seconds.of(1.176))),
+      Map.entry(Meters.of(8.5), new ShotData(Degrees.of(45),     Seconds.of(1.176))),
+      Map.entry(Meters.of(9),   new ShotData(Degrees.of(45),     Seconds.of(1.176))),
+      Map.entry(Meters.of(9.5), new ShotData(Degrees.of(45),     Seconds.of(1.176)))
     );
   }
 
