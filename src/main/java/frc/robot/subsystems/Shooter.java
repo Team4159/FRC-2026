@@ -2,7 +2,6 @@ package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.RPM;
-import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 import static frc.robot.Constants.ShooterConstants.*;
 
@@ -63,9 +62,9 @@ public class Shooter extends SubsystemBase {
         topRightMotor.getConfigurator().apply(rightOutputConfigs);
         bottomRightMotor.getConfigurator().apply(rightOutputConfigs);
 
-        bottomLeftMotor.setControl(new StrictFollower(9));
-        topRightMotor.setControl(new StrictFollower(9));
-        bottomRightMotor.setControl(new StrictFollower(9));
+        bottomLeftMotor.setControl(new StrictFollower(leaderMotor.getDeviceID()));
+        topRightMotor.setControl(new StrictFollower(leaderMotor.getDeviceID()));
+        bottomRightMotor.setControl(new StrictFollower(leaderMotor.getDeviceID()));
     }
 
     private final TalonFX feederMotor = new TalonFX(kFeederMotorId);
