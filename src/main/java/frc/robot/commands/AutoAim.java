@@ -1,5 +1,8 @@
 package frc.robot.commands;
 
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.RPM;
+
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.MathSharedStore;
@@ -12,6 +15,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -99,6 +103,7 @@ public class AutoAim extends Command {
         timeOffset = MathSharedStore.getTimestamp();
 
         CommandScheduler.getInstance().schedule(leds.new ChangeLEDStatusSupplier(ledStatusSupplier));
+        shooter.setSpeed(RPM.of(3000));
     }
 
     @Override
@@ -139,7 +144,7 @@ public class AutoAim extends Command {
         rotateSwerve(desiredRobotAngle);
 
         //set the desired hood angle
-        shooter.adjustHood(desiredHoodAngle);
+        //shooter.adjustHood(desiredHoodAngle);
 
         if(autoAimStatus == AutoAimStatus.SHOOT){
             shooter.setFeederSpeed(FeederState.FEED.percentage);
@@ -164,6 +169,12 @@ public class AutoAim extends Command {
         //only feed (shown by shooting fuel in simulation) if the status is "SHOOT"
         if(autoAimStatus.name() == AutoAimStatus.SHOOT.name())
             sim_shootFuel(vx, vy, vz);
+    }
+
+    @Override
+    public void end(boolean i){
+        shooter.stopShooter();
+        shooter.adjustHood(Degrees.of(85));
     }
 
     /** @param desiredAngle the desired field relative angle for the drivetrain
@@ -216,7 +227,11 @@ public class AutoAim extends Command {
                         - 2 * FieldConstants.g * height
                                 * Math.pow(launchVelocity, 2)))
                 / (FieldConstants.g * distance));
-        autoAimStatus = AutoAimStatus.SHOOT;
+        
+        if(shooter.getShooterVelocity().minus(RPM.of(3200)).abs(RPM) < 200)
+            autoAimStatus = AutoAimStatus.SHOOT;
+        else
+            autoAimStatus = AutoAimStatus.WAITING;
 
         if(Double.isNaN(desiredPitch)){
             //equation can only return angles from 45-90 deg (in radians of course), anything lower than that will be NaN
@@ -233,8 +248,10 @@ public class AutoAim extends Command {
 
     /** @return currently returns theoretical max that declines at a rate of 0.1 m/s (to simulate shooter slowing down over time), but when implemented with shooter will return current launch velocity based on shooter angular velocity */
     private double getLaunchVelocity(){
-        //currently returns theoretical max that declines at a rate of 0.1 m/s
-        return Units.feetToMeters(29) - (MathSharedStore.getTimestamp() - timeOffset) * 0.1;
+        if(RobotBase.isSimulation())
+            //currently returns theoretical max that declines at a rate of 0.1 m/s
+            return Units.feetToMeters(29) - (MathSharedStore.getTimestamp() - timeOffset) * 0.1;
+        return shooter.getFuelSpeed();
     }
 
     /** 

@@ -4,13 +4,17 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.Rotations;
+
 import choreo.auto.AutoChooser;
 import choreo.auto.AutoFactory;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
@@ -20,11 +24,14 @@ import frc.robot.Constants.AlignConstants.TowerAlignGoal;
 import frc.robot.Constants.OperatorConstants.DriveMode;
 import frc.robot.Constants.FeederConstants.FeederState;
 import frc.robot.Constants.HopperConstants.HopperState;
+import frc.robot.Constants.IntakeConstants.IntakeState;
 import frc.robot.commands.AutoAim;
 import frc.robot.commands.AutoAlign;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.LEDs;
+import frc.robot.subsystems.PhotonVision;
 import frc.robot.subsystems.Hopper;
+import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
 
 public class RobotContainer {
@@ -50,14 +57,26 @@ public class RobotContainer {
     //private final Trigger primaryMiddleBackClimbAlignTrigger = primaryController.povDown();
 
     //Secondary Triggers
-    private final Trigger feedHopper = secondary.x();
-    private final Trigger reverseFeederHopper = secondary.y();
+    private final Trigger feedHopper = secondary.rightBumper();
+    private final Trigger reverseFeederHopper = secondary.rightTrigger(0.1);
+
+    private final Trigger intakeTrigger = secondary.leftBumper();
+    private final Trigger stowIntakeTrigger = secondary.leftTrigger();
+
+    private final Trigger shootTrigger = secondary.x();
+
+    private final Trigger manualHoodIncrease = secondary.povUp();
+    private final Trigger manualHoodDecrease = secondary.povDown();
+
+    private final Trigger logData = secondary.a();
 
     //Subsystems
+    private final Intake intake = new Intake();
     private final Shooter shooter = new Shooter();
     private final Hopper hopper = new Hopper();
     private final LEDs leds = new LEDs();
     private final Drivetrain drivetrain = new Drivetrain(primaryController);
+    private final PhotonVision photonVision = new PhotonVision(drivetrain);
 
     /* Path follower */
     private final AutoFactory autoFactory;
@@ -66,7 +85,7 @@ public class RobotContainer {
     private final ConfigurableAuto configurableAuto;
 
     public RobotContainer() {
-        //set auto command for drivetrain
+        //set auto command for drivetrai
         drivetrain.setAutonomousAutoAimCommand(new AutoAim(drivetrain, shooter, hopper, leds, true));
         //Choreo Auto
         autoFactory = drivetrain.createAutoFactory();
@@ -116,8 +135,19 @@ public class RobotContainer {
 
         drivetrain.registerTelemetry(logger::telemeterize);
 
-        feedHopper.onTrue(new ParallelCommandGroup(shooter.new ChangeState(FeederState.FEED), hopper.new ChangeState(HopperState.FEED)));
-        reverseFeederHopper.onTrue(new ParallelCommandGroup(shooter.new ChangeState(FeederState.UNSTUCKFEEDER), hopper.new ChangeState(HopperState.REVERSE)));
+        feedHopper.whileTrue(new ParallelCommandGroup(shooter.new ChangeState(FeederState.FEED), hopper.new ChangeState(HopperState.FEED)));
+        reverseFeederHopper.whileTrue(new ParallelCommandGroup(shooter.new ChangeState(FeederState.UNSTUCKFEEDER), hopper.new ChangeState(HopperState.REVERSE)));
+
+        intakeTrigger.whileTrue(intake.new ChangeStates(IntakeState.DOWN_ON));
+        stowIntakeTrigger.whileTrue(intake.new ChangeStates(IntakeState.STOP));
+
+        shootTrigger.whileTrue(shooter.new ChangeVelocity(RPM.of(3200)));
+        //.onFalse(shooter.new ChangeVelocity(RPM.of(0)));
+
+        manualHoodIncrease.whileTrue(new InstantCommand(() -> shooter.incrementSetpoint(Degrees.of(5))));
+        manualHoodDecrease.whileTrue(new InstantCommand(() -> shooter.incrementSetpoint(Degrees.of(-5))));
+
+        logData.onTrue(new InstantCommand(() -> shooter.logData(drivetrain.getDistanceFromHub())));
     }
 
     public Command getAutonomousCommand() {

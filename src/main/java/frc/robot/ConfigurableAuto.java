@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.Constants.AutoConstants;
+import frc.robot.Constants.IntakeConstants.IntakeState;
 import frc.robot.commands.AutoAim;
 import frc.robot.lib.InstantCommandRunWhenDisabled;
 import frc.robot.lib.PoseTrajectory;
@@ -178,8 +179,14 @@ public class ConfigurableAuto {
             }
         }
 
-        startToIntake1Traj.atTime("enableAutoAim").onTrue(new InstantCommand(() -> drivetrain.setAutoPathAutoAimMode(true)));
-        startToIntake1Traj.atTime("disableAutoAim").onTrue(new InstantCommand(() -> drivetrain.setAutoPathAutoAimMode(false)));
+        //startToIntake1Traj.atTime("enableAutoAim").onTrue(new InstantCommand(() -> drivetrain.setAutoPathAutoAimMode(true)));
+        //startToIntake1Traj.atTime("disableAutoAim").onTrue(new InstantCommand(() -> drivetrain.setAutoPathAutoAimMode(false)));
+
+        startToIntake1Traj.atTime("intake").onTrue(intake.new ChangeStates(IntakeState.DOWN_ON));
+        startToIntake1Traj.atTime("stopIntake").onTrue(intake.new ChangeStates(IntakeState.STOP));
+
+        shoot1ToIntake2Traj.atTime("intake").onTrue(intake.new ChangeStates(IntakeState.DOWN_ON));
+        shoot1ToIntake2Traj.atTime("stopIntake").onTrue(intake.new ChangeStates(IntakeState.STOP));
         
         //store the routine so don't need to generate at the start of auto
         generatedRoutine = routine;

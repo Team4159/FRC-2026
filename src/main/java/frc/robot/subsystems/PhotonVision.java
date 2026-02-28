@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,6 +16,8 @@ import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.PhotonVisionConstants;
 
@@ -28,7 +31,10 @@ public class PhotonVision extends SubsystemBase{
     private Matrix<N3, N1> kSingleTagStdDevs = PhotonVisionConstants.kSingleTagStdDevs;
     private Matrix<N3, N1> kMultiTagStdDevs = PhotonVisionConstants.kMultiTagStdDevs;
 
+    private Field2d visionf2d;
+
     public PhotonVision(Drivetrain drivetrain){
+        visionf2d = new Field2d();
         this.drivetrain = drivetrain;
         //cameras
         leftShooterCam = new PhotonCamera("leftShooter");
@@ -36,6 +42,8 @@ public class PhotonVision extends SubsystemBase{
         //estimators
         leftShooterEstimator = new PhotonPoseEstimator(aprilTagFieldLayout, PhotonVisionConstants.leftShooterCamTransform);
         rightShooterEstimator = new PhotonPoseEstimator(aprilTagFieldLayout, PhotonVisionConstants.rightShooterCamTransform);
+
+
     }
 
 
@@ -49,7 +57,7 @@ public class PhotonVision extends SubsystemBase{
             leftShooterEstimate = leftShooterEstimator.estimateCoprocMultiTagPose(leftShooterCamResult);
             //multitag no longer defaults to single tag when no others are available so we have this
             if(!leftShooterEstimate.isPresent()){
-                leftShooterEstimate = rightShooterEstimator.estimateLowestAmbiguityPose(leftShooterCamResult);
+                leftShooterEstimate = leftShooterEstimator.estimateLowestAmbiguityPose(leftShooterCamResult);
             }
             //check if estimate exists
             if(leftShooterEstimate.isPresent()){
@@ -77,7 +85,11 @@ public class PhotonVision extends SubsystemBase{
                 drivetrain.setVisionMeasurementStdDevs(calculateEstimationStdDevs(rightShooterEstimate, rightShooterCamResult.targets, rightShooterEstimator));
                 //send the pose estimate to the pose estimator
                 drivetrain.addVisionMeasurement(rightShooterEstimate.get().estimatedPose.toPose2d(), rightShooterEstimate.get().timestampSeconds);
+
+                visionf2d.setRobotPose(rightShooterEstimate.get().estimatedPose.toPose2d());
+                SmartDashboard.putData("vision f2d", visionf2d);
             }
+
         }
     }
 

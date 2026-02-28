@@ -53,7 +53,9 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     private final Pigeon2 pigeon = new Pigeon2(kPigeonId, kDrivetrainCANBus);
 
     public final SwerveRequest.FieldCentric fieldCentricDrive = new SwerveRequest.FieldCentric()
-            .withForwardPerspective(ForwardPerspectiveValue.BlueAlliance)
+            .withForwardPerspective(ForwardPerspectiveValue.OperatorPerspective)
+            .withDeadband(0)
+            .withRotationalDeadband(0)
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
     public final SwerveRequest.RobotCentric robotCentricDrive = new SwerveRequest.RobotCentric()
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
@@ -114,7 +116,6 @@ public class Drivetrain extends CommandSwerveDrivetrain {
 
         @Override
         public void execute() {
-            System.out.println("driveCommand");
             setControl(driveSupplier.get());
         }
 
@@ -470,6 +471,13 @@ public class Drivetrain extends CommandSwerveDrivetrain {
      */
     public boolean isInputIdle() {
         return getInputTranslation().getNorm() == 0.0 && getInputRotation() == 0.0;
+    }
+
+    public double getDistanceFromHub(){
+        Pose2d target = FieldConstants.hubLocations.get(DriverStation.getAlliance().orElse(Alliance.Blue));
+        Translation2d robotTranslation = getState().Pose.getTranslation();
+        double distance = robotTranslation.getDistance(target.getTranslation());
+        return distance;
     }
 
 }
