@@ -20,8 +20,11 @@ import frc.robot.Constants.AlignConstants.TowerAlignGoal;
 import frc.robot.Constants.IntakeConstants.IntakeState;
 import frc.robot.Constants.OperatorConstants.DriveMode;
 import frc.robot.commands.AutoAlign;
+import frc.robot.commands.ChangeLED;
+import frc.robot.commands.ChangeLED.LEDStatus;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.LEDs;
 import frc.robot.subsystems.Shooter;
 
 public class RobotContainer {
@@ -48,8 +51,10 @@ public class RobotContainer {
 
 
     public final Drivetrain drivetrain = new Drivetrain(primaryController);
-    public final Shooter shooter = new Shooter();
     public final Intake intake = new Intake();
+
+    public final LEDs leds = new LEDs();
+    public final Shooter shooter = new Shooter();
 
     /* Path follower */
     private final AutoFactory autoFactory;
@@ -106,6 +111,9 @@ public class RobotContainer {
         primaryZeroTrigger.onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
 
         drivetrain.registerTelemetry(logger::telemeterize);
+
+
+        secondaryController.x().onTrue(new ChangeLED(LEDStatus.RAINBOW_SCROLL, leds));
     }
 
     public Command getAutonomousCommand() {
