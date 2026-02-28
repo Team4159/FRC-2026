@@ -65,6 +65,8 @@ public class ConfigurableAuto {
         //side chooser
         sideChooser.addOption("Left", "L");
         sideChooser.addOption("Right", "R");
+        sideChooser.addOption("Mid Left", "ML");
+        sideChooser.addOption("Mid Right", "MR");
 
         //intake chooser 1
         intakeChooser1.addOption("Far", "FarIntake");
@@ -108,6 +110,26 @@ public class ConfigurableAuto {
         final String shoot1 = shootChooser1.getSelected();
         final String intake2 = intakeChooser2.getSelected();
         final String shoot2 = shootChooser2.getSelected();
+
+        // if mid auto selected disregard other options since only 1 auto per mid side
+        if (direction.equals("ML") || direction.equals("MR")) {
+            final String startToShootName = direction + "StartToShoot";
+            final String shootToClimbName = direction + "ShootToClimb";
+
+            final AutoTrajectory startToShootTraj = routine.trajectory(startToShootName);
+            final AutoTrajectory shootToClimbTraj = routine.trajectory(shootToClimbName);
+
+            routine.active().onTrue(
+                startToShootTraj.resetOdometry()
+                .andThen(startToShootTraj.cmd())
+                .andThen(new ParallelDeadlineGroup(
+                    new WaitCommand(AutoConstants.ShootTime),
+                    new AutoAim(drivetrain, shooter, hopper, leds, false)))
+                .andThen(shootToClimbTraj.cmd())
+            );
+
+            return routine;
+        }
 
         final String startToIntake1Name = direction + "StartTo" + direction + intake1;
         final String intake1ToShoot1Name = direction + intake1 + "To" + direction + "Shoot";
