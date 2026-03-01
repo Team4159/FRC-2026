@@ -79,7 +79,7 @@ public final class Constants {
     public static final int FeederID = 20; //idk if this port is used yet plz check
 
     public static enum FeederState{
-      FEED(0.5), UNSTUCKFEEDER (-0.5), STOP(0);
+      FEED(1), UNSTUCKFEEDER (-1), STOP(0);
       public double percentage;
       private FeederState(double speed){
         percentage = speed;

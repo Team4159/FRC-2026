@@ -31,6 +31,7 @@ import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -62,11 +63,11 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     public final SwerveRequest.FieldCentricFacingAngle fieldCentricFacingAngleDrive = new SwerveRequest.FieldCentricFacingAngle()
             .withForwardPerspective(ForwardPerspectiveValue.BlueAlliance)
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage)
-            .withHeadingPID(15, 0, 0);
+            .withHeadingPID(5, 0, 0);
     public final SwerveRequest.RobotCentricFacingAngle robotCentricFacingAngleDrive = new SwerveRequest.RobotCentricFacingAngle()
             .withForwardPerspective(ForwardPerspectiveValue.BlueAlliance)
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage)
-            .withHeadingPID(15, 0, 0);
+            .withHeadingPID(5, 0, 0);
     public final SwerveRequest.SwerveDriveBrake brakeDrive = new SwerveRequest.SwerveDriveBrake();
     public final SwerveRequest.PointWheelsAt pointDrive = new SwerveRequest.PointWheelsAt();
     public final SwerveRequest.Idle idleDrive = new SwerveRequest.Idle();
@@ -98,6 +99,12 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         crashTrigger.onTrue(Commands
                 .runOnce(() -> HIDRumble.rumble(controller.getHID(),
                         new RumbleRequest(RumbleType.kRightRumble, 0.5, 0.5))));
+    }
+
+    @Override
+    public void periodic(){
+        super.periodic();
+        SmartDashboard.putNumber("distance from hub", getDistanceFromHub());
     }
 
     public class Drive extends Command {
@@ -289,6 +296,8 @@ public class Drivetrain extends CommandSwerveDrivetrain {
             };
         }
     }
+
+
 
     public void enableReduceSpeed(boolean enabled) {
         this.reduceSpeedEnabled = enabled;
