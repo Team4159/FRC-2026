@@ -4,15 +4,22 @@
 
 package frc.robot;
 
+import java.util.Optional;
+
 import choreo.auto.AutoChooser;
 import choreo.auto.AutoFactory;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.lib.FluentTrigger;
+import frc.lib.HIDRumble;
+import frc.lib.HIDRumble.RumbleRequest;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.AlignConstants.TowerAlignGoal;
 import frc.robot.Constants.OperatorConstants.DriveMode;
@@ -33,8 +40,11 @@ public class RobotContainer {
     private final Trigger primaryDriverAssistTrigger = primaryController.rightBumper();
     private final Trigger primaryLeftClimbAlignTrigger = primaryController.povLeft();
     private final Trigger primaryRightClimbAlignTrigger = primaryController.povRight();
-    //private final Trigger primaryMiddleFrontClimbAlignTrigger = primaryController.povUp();
-    //private final Trigger primaryMiddleBackClimbAlignTrigger = primaryController.povDown();
+    // private final Trigger primaryMiddleFrontClimbAlignTrigger =
+    // primaryController.povUp();
+    // private final Trigger primaryMiddleBackClimbAlignTrigger =
+    // primaryController.povDown();
+    private final Trigger primaryFacingAngleTrigger = primaryController.rightStick();
 
     public final Drivetrain drivetrain = new Drivetrain(primaryController);
 
@@ -69,21 +79,45 @@ public class RobotContainer {
         primaryController.b().and(DriverStation::isTest).whileTrue(drivetrain.new Drive(DriveMode.POINT));
 
         // teleop mode
-        primaryRobotManualAlignModeTrigger.and(DriverStation::isTeleop).whileTrue(drivetrain.new Drive(DriveMode.MANUAL_ALIGN,
-                () -> primaryRobotRelativeTrigger.getAsBoolean()));
+        primaryRobotManualAlignModeTrigger.and(DriverStation::isTeleop)
+                .whileTrue(drivetrain.new Drive(DriveMode.MANUAL_ALIGN,
+                        () -> primaryRobotRelativeTrigger.getAsBoolean()));
         primaryIntakeModeTrigger.and(DriverStation::isTeleop).whileTrue(drivetrain.new Drive(DriveMode.INTAKE));
         primaryRadialModeTrigger.and(DriverStation::isTeleop).whileTrue(drivetrain.new Drive(DriveMode.RADIAL));
         primaryReduceSpeedTrigger.and(DriverStation::isTeleop).onChange(
                 Commands.runOnce(() -> drivetrain.enableReduceSpeed(primaryReduceSpeedTrigger.getAsBoolean())));
         primaryDriverAssistTrigger.and(DriverStation::isTeleop).onChange(
                 Commands.runOnce(() -> drivetrain.enableDriveAssist(!primaryDriverAssistTrigger.getAsBoolean())));
-        primaryLeftClimbAlignTrigger.and(DriverStation::isTeleop).onTrue(new AutoAlign(drivetrain, TowerAlignGoal.LEFT, primaryRobotRelativeTrigger));
-        primaryRightClimbAlignTrigger.and(DriverStation::isTeleop).onTrue(new AutoAlign(drivetrain, TowerAlignGoal.RIGHT, primaryRobotRelativeTrigger));
-        //primaryMiddleFrontClimbAlignTrigger.and(DriverStation::isTeleop).onTrue(new AutoAlign(drivetrain, TowerAlignGoal.MIDDLE_FRONT, primaryRobotRelativeTrigger));
-        //primaryMiddleBackClimbAlignTrigger.and(DriverStation::isTeleop).onTrue(new AutoAlign(drivetrain, TowerAlignGoal.MIDDLE_BACK, primaryRobotRelativeTrigger));
+        primaryLeftClimbAlignTrigger.and(DriverStation::isTeleop)
+                .onTrue(new AutoAlign(drivetrain, TowerAlignGoal.LEFT, primaryRobotRelativeTrigger));
+        primaryRightClimbAlignTrigger.and(DriverStation::isTeleop)
+                .onTrue(new AutoAlign(drivetrain, TowerAlignGoal.RIGHT, primaryRobotRelativeTrigger));
+        // primaryMiddleFrontClimbAlignTrigger.and(DriverStation::isTeleop).onTrue(new
+        // AutoAlign(drivetrain, TowerAlignGoal.MIDDLE_FRONT,
+        // primaryRobotRelativeTrigger));
+        // primaryMiddleBackClimbAlignTrigger.and(DriverStation::isTeleop).onTrue(new
+        // AutoAlign(drivetrain, TowerAlignGoal.MIDDLE_BACK,
+        // primaryRobotRelativeTrigger));
+        FluentTrigger.build()
+                .setDefault(Commands.runOnce(drivetrain::clearDesiredRotation))
+                .bind(primaryFacingAngleTrigger.and(DriverStation::isTeleop),
+                        Commands.runOnce(() -> HIDRumble.rumble(primaryController.getHID(),
+                                new RumbleRequest(RumbleType.kLeftRumble, 0.25, 0.25)))
+                                .andThen(Commands.run(() -> {
+                                    Optional<Rotation2d> desiredRotation = drivetrain.getInputRotation();
+                                    if (desiredRotation.isEmpty()) {
+                                        return;
+                                    }
+                                    drivetrain.setDesiredRotation(desiredRotation.get());
+                                }))
+                                .finallyDo(() -> HIDRumble.rumble(primaryController.getHID(),
+                                        new RumbleRequest(RumbleType.kLeftRumble, 0.25, 0.25))));
 
         // Reset the field-centric heading on left bumper press.
-        primaryZeroTrigger.onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
+        primaryZeroTrigger.onTrue(Commands.runOnce(() -> {
+            HIDRumble.rumble(primaryController.getHID(), new RumbleRequest(RumbleType.kLeftRumble, 0.5, 0.25));
+            drivetrain.seedFieldCentric();
+        }));
 
         drivetrain.registerTelemetry(logger::telemeterize);
     }
