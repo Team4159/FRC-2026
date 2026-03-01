@@ -50,11 +50,13 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     public final SwerveRequest.FieldCentricFacingAngle fieldCentricFacingAngleDrive = new SwerveRequest.FieldCentricFacingAngle()
             .withForwardPerspective(ForwardPerspectiveValue.BlueAlliance)
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage)
-            .withHeadingPID(5, 0, 0);
+            .withHeadingPID(kAimKP, kAimKI, kAimKD)
+            .withTargetRateFeedforward(kAimFeedForward);
     public final SwerveRequest.RobotCentricFacingAngle robotCentricFacingAngleDrive = new SwerveRequest.RobotCentricFacingAngle()
             .withForwardPerspective(ForwardPerspectiveValue.BlueAlliance)
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage)
-            .withHeadingPID(5, 0, 0);
+            .withHeadingPID(kAimKP, kAimKI, kAimKD)
+            .withTargetRateFeedforward(kAimFeedForward);
     public final SwerveRequest.SwerveDriveBrake brakeDrive = new SwerveRequest.SwerveDriveBrake();
     public final SwerveRequest.PointWheelsAt pointDrive = new SwerveRequest.PointWheelsAt();
     public final SwerveRequest.Idle idleDrive = new SwerveRequest.Idle();
@@ -172,7 +174,8 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                     if (isInputIdle()) {
                         if (desiredRotation.isPresent()) {
                             if (Math.abs(Math
-                                    .abs(getState().Pose.getRotation().minus(desiredRotation.get()).getDegrees())) < 1.0) {
+                                    .abs(getState().Pose.getRotation().minus(desiredRotation.get())
+                                            .getDegrees())) < 1.0) {
                                 yield brakeDrive;
                             }
                         } else {
@@ -265,6 +268,12 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                             * (radialInput * radialVector.getX() - tangentialInput * tangentialVector.getX());
                     double velocityY = getMaxTranslationSpeed()
                             * (radialInput * radialVector.getY() + tangentialInput * tangentialVector.getY());
+                    double velocityMagnitude = Math.hypot(velocityX, velocityY);
+                    if (velocityMagnitude > getMaxTranslationSpeed()) {
+                        double correctingFactor = getMaxTranslationSpeed() / velocityMagnitude;
+                        velocityX *= correctingFactor;
+                        velocityY *= correctingFactor;
+                    }
                     if (desiredRotation.isPresent()) {
                         yield fieldCentricFacingAngleDrive
                                 .withVelocityX(velocityX)

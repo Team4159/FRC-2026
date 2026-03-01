@@ -88,10 +88,16 @@ public final class Constants {
         public static final double kMaxTranslationSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
         public static final double kMaxRotationSpeed = RotationsPerSecond.of(0.75).in(RadiansPerSecond);
 
-        public static final PhoenixPIDController AutoAimRotationController = new PhoenixPIDController(15, 0, 0);
+        public static final double kAimKP = 5.0;
+        public static final double kAimKI = 0.0;
+        public static final double kAimKD = 0.0;
+        public static final double kAimFeedForward = 0.0;
+
+        public static final PhoenixPIDController AutoAimRotationController = new PhoenixPIDController(kAimKP, kAimKI, kAimKD);
         static {
             AutoAimRotationController.enableContinuousInput(-Math.PI, Math.PI);
         }
+
     }
 
     public static class PhotonVisionConstants {
