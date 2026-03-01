@@ -17,7 +17,7 @@ import frc.robot.Constants.HoodConstants;
 import frc.robot.Constants.ShooterConstants;
 
 public class Shooter extends SubsystemBase{
-    private TalonFX hoodMotor, feederMotor, motorOne, motorTwo, motorThree;
+    private TalonFX hoodMotor, feederMotor, motorOne, motorTwo, motorThree, motorFour;
 
     private final PositionVoltage hoodPositionVoltage;
     private final VelocityVoltage shooterVelocityVoltage;
@@ -39,6 +39,7 @@ public class Shooter extends SubsystemBase{
         motorOne = new TalonFX(ShooterConstants.ShooterIDOne);
         motorTwo = new TalonFX(ShooterConstants.ShooterIDTwo);
         motorThree = new TalonFX(ShooterConstants.ShooterIDThree);
+        motorFour = new TalonFX(ShooterConstants.ShooterIDFour);
         
         motorOne.getConfigurator().apply(new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive));
         
@@ -46,6 +47,7 @@ public class Shooter extends SubsystemBase{
         motorOne.getConfigurator().apply(shooterConfig);
         motorTwo.getConfigurator().apply(shooterConfig);
         motorThree.getConfigurator().apply(shooterConfig);
+        motorFour.getConfigurator().apply(shooterConfig);
         
         hoodPositionVoltage = new PositionVoltage(0);
         shooterVelocityVoltage = new VelocityVoltage(0);
@@ -56,6 +58,7 @@ public class Shooter extends SubsystemBase{
         motorOne.setControl(shooterVelocityVoltage);
         motorTwo.setControl(shooterVelocityVoltage);
         motorThree.setControl(shooterVelocityVoltage);
+        motorFour.setControl(shooterVelocityVoltage);
     }
     public void setFeederSpeed(double speed){
         feederMotor.set(speed);
