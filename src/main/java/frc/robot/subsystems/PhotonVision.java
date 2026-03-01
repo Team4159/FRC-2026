@@ -37,49 +37,65 @@ public class PhotonVision extends SubsystemBase{
         //estimators
         leftShooterEstimator = new PhotonPoseEstimator(aprilTagFieldLayout, Constants.PhotonVisionConstants.leftShooterCamTransform);
         rightShooterEstimator = new PhotonPoseEstimator(aprilTagFieldLayout, Constants.PhotonVisionConstants.rightShooterCamTransform);
+
+        //run left & right camera processing independently at ~100
+        addPeriodic(() -> processingCamera(leftShooterCam, leftShooterEstimator), 0.01);
+        addPeriodic(() -> processingCamera(rightShooterCam, rightShooterEstimator), 0.01);
+    }
+
+    private void processingCamera(PhotonCamera camera, PhotonPoseEstimator estimator) {
+        // async call for the most relevant frame
+        camera.getLatestResultAsync().thenAccept(result -> {
+            
+            // if there is a valid pose tthen itt sends it to drivetrain
+            if(result.hasTargets()) {
+                Optional<EstimatedRobotPose> pose = estimator.estimateCoprocMultiTagPose(result);
+                pose.ifPresent(p -> drivetrain.addVisionMeasurement(p.estimatedPose.toPose2d(), p.timestampSeconds));
+            }
+        });
     }
 
 
     @Override
     public void periodic(){
-        //left camera
-        Optional<EstimatedRobotPose> leftShooterEstimate = Optional.empty();
-        //loops through all unread camera results
-        for(PhotonPipelineResult leftShooterCamResult : leftShooterCam.getAllUnreadResults()){
-            //get pose estimate
-            leftShooterEstimate = leftShooterEstimator.estimateCoprocMultiTagPose(leftShooterCamResult);
-            //multitag no longer defaults to single tag when no others are available so we have this
-            if(!leftShooterEstimate.isPresent()){
-                leftShooterEstimate = rightShooterEstimator.estimateLowestAmbiguityPose(leftShooterCamResult);
-            }
-            //check if estimate exists
-            if(leftShooterEstimate.isPresent()){
-                //set standard deviation
-                drivetrain.setVisionMeasurementStdDevs(calculateEstimationStdDevs(leftShooterEstimate, leftShooterCamResult.targets, leftShooterEstimator));
-                //send the pose estimate to the pose estimator
-                drivetrain.addVisionMeasurement(leftShooterEstimate.get().estimatedPose.toPose2d(), leftShooterEstimate.get().timestampSeconds);
-            }
+        // //left camera
+        // Optional<EstimatedRobotPose> leftShooterEstimate = Optional.empty();
+        // //loops through all unread camera results
+        // for(PhotonPipelineResult leftShooterCamResult : leftShooterCam.getAllUnreadResults()){
+        //     //get pose estimate
+        //     leftShooterEstimate = leftShooterEstimator.estimateCoprocMultiTagPose(leftShooterCamResult);
+        //     //multitag no longer defaults to single tag when no others are available so we have this
+        //     if(!leftShooterEstimate.isPresent()){
+        //         leftShooterEstimate = rightShooterEstimator.estimateLowestAmbiguityPose(leftShooterCamResult);
+        //     }
+        //     //check if estimate exists
+        //     if(leftShooterEstimate.isPresent()){
+        //         //set standard deviation
+        //         drivetrain.setVisionMeasurementStdDevs(calculateEstimationStdDevs(leftShooterEstimate, leftShooterCamResult.targets, leftShooterEstimator));
+        //         //send the pose estimate to the pose estimator
+        //         drivetrain.addVisionMeasurement(leftShooterEstimate.get().estimatedPose.toPose2d(), leftShooterEstimate.get().timestampSeconds);
+        //     }
 
-        }
+        // }
 
-        //right camera
-        Optional<EstimatedRobotPose> rightShooterEstimate = Optional.empty();
-        //loops through all unread camera results
-        for(PhotonPipelineResult rightShooterCamResult : rightShooterCam.getAllUnreadResults()){
-            //get pose estimate
-            rightShooterEstimate = rightShooterEstimator.estimateCoprocMultiTagPose(rightShooterCamResult);
-            //multitag no longer defaults to single tag when no others are available so we have this
-            if(!rightShooterEstimate.isPresent()){
-                rightShooterEstimate = rightShooterEstimator.estimateLowestAmbiguityPose(rightShooterCamResult);
-            }
-            //check if estimate exists
-            if(rightShooterEstimate.isPresent()){
-                //set standard deviation
-                drivetrain.setVisionMeasurementStdDevs(calculateEstimationStdDevs(rightShooterEstimate, rightShooterCamResult.targets, rightShooterEstimator));
-                //send the pose estimate to the pose estimator
-                drivetrain.addVisionMeasurement(rightShooterEstimate.get().estimatedPose.toPose2d(), rightShooterEstimate.get().timestampSeconds);
-            }
-        }
+        // //right camera
+        // Optional<EstimatedRobotPose> rightShooterEstimate = Optional.empty();
+        // //loops through all unread camera results
+        // for(PhotonPipelineResult rightShooterCamResult : rightShooterCam.getAllUnreadResults()){
+        //     //get pose estimate
+        //     rightShooterEstimate = rightShooterEstimator.estimateCoprocMultiTagPose(rightShooterCamResult);
+        //     //multitag no longer defaults to single tag when no others are available so we have this
+        //     if(!rightShooterEstimate.isPresent()){
+        //         rightShooterEstimate = rightShooterEstimator.estimateLowestAmbiguityPose(rightShooterCamResult);
+        //     }
+        //     //check if estimate exists
+        //     if(rightShooterEstimate.isPresent()){
+        //         //set standard deviation
+        //         drivetrain.setVisionMeasurementStdDevs(calculateEstimationStdDevs(rightShooterEstimate, rightShooterCamResult.targets, rightShooterEstimator));
+        //         //send the pose estimate to the pose estimator
+        //         drivetrain.addVisionMeasurement(rightShooterEstimate.get().estimatedPose.toPose2d(), rightShooterEstimate.get().timestampSeconds);
+        //     }
+        // }
     }
 
     // private Vector<N3> calculateEstimationStdDevs(
