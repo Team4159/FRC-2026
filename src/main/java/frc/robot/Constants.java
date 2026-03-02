@@ -294,8 +294,8 @@ public final class Constants {
     public static class AlignConstants {
         public static final APConstraints kAlignConstraints = new APConstraints()
                 .withVelocity(kMaxTranslationSpeed)
-                .withAcceleration(5.0)
-                .withJerk(2.0);
+                .withAcceleration(6.0)
+                .withJerk(3.0);
         public static final APProfile kAlignProfile = new APProfile(kAlignConstraints)
                 .withErrorXY(Centimeters.of(2.0))
                 .withErrorTheta(Degrees.of(1.0))

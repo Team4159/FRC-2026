@@ -93,7 +93,7 @@ public class RobotContainer {
         // Note that X is defined as forward according to WPILib convention,
         // and Y is defined as to the left according to WPILib convention.
         drivetrain.setDefaultCommand(drivetrain.new Drive(DriveMode.FREE,
-                () -> primaryRobotRelativeTrigger.getAsBoolean()));
+                primaryRobotRelativeTrigger::getAsBoolean));
         primaryAutoAimTrigger.whileTrue(new AutoAim(drivetrain, shooter, hopper, leds, false));
 
         // Idle while the robot is disabled. This ensures the configured
@@ -108,7 +108,7 @@ public class RobotContainer {
         // teleop mode
         primaryRobotManualAlignModeTrigger.and(DriverStation::isTeleop)
                 .whileTrue(drivetrain.new Drive(DriveMode.MANUAL_ALIGN,
-                        () -> primaryRobotRelativeTrigger.getAsBoolean()));
+                        primaryRobotRelativeTrigger::getAsBoolean));
         primaryIntakeModeTrigger.and(DriverStation::isTeleop).whileTrue(drivetrain.new Drive(DriveMode.INTAKE));
         primaryRadialModeTrigger.and(DriverStation::isTeleop).whileTrue(drivetrain.new Drive(DriveMode.RADIAL));
         primaryReduceSpeedTrigger.and(DriverStation::isTeleop).onChange(
