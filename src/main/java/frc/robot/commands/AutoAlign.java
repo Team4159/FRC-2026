@@ -63,7 +63,7 @@ public class AutoAlign extends Command {
         Rotation2d targetDirection = result.targetAngle();
 
         drivetrain.setControl(
-                drivetrain.fieldCentricFacingAngleDrive
+                drivetrain.alignFacingAngleDrive
                         .withVelocityX(velocityX)
                         .withVelocityY(velocityY)
                         .withTargetDirection(targetDirection));

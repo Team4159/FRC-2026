@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.commands.AutoAim;
+import frc.robot.lib.Elastic;
 import frc.robot.lib.InstantCommandRunWhenDisabled;
 import frc.robot.lib.PoseTrajectory;
 import frc.robot.subsystems.Drivetrain;
@@ -67,26 +68,31 @@ public class ConfigurableAuto {
         sideChooser.addOption("Right", "R");
         sideChooser.addOption("Mid Left", "ML");
         sideChooser.addOption("Mid Right", "MR");
+        sideChooser.setDefaultOption("None", "None");
 
         //intake chooser 1
         intakeChooser1.addOption("Far", "FarIntake");
         intakeChooser1.addOption("Mid", "MidIntake");
         intakeChooser1.addOption("Close", "CloseIntake");
+        intakeChooser1.setDefaultOption("None", "None");
 
         //shoot chooser 1
         shootChooser1.addOption("Shoot", "Shoot");
         shootChooser1.addOption("Shoot and Climb Left", "LClimb");
         shootChooser1.addOption("Shoot and Climb Right", "RClimb");
+        shootChooser1.setDefaultOption("None", "None");
 
         //intake chooser 2
         intakeChooser2.addOption("Far", "FarIntake");
         intakeChooser2.addOption("Mid", "MidIntake");
         intakeChooser2.addOption("Close", "CloseIntake");
+        intakeChooser2.setDefaultOption("None", "None");
 
         //shoot chooser 2
         shootChooser2.addOption("Shoot", "Shoot");
         shootChooser2.addOption("Shoot and Climb Left", "LClimb");
         shootChooser2.addOption("Shoot and Climb Right", "RClimb");
+        shootChooser2.setDefaultOption("None", "None");
 
         //display on smartdashboard -> elastic
         SmartDashboard.putData("side", sideChooser);
@@ -102,10 +108,16 @@ public class ConfigurableAuto {
     }
 
     private AutoRoutine generateRoutine(boolean display){
-        System.out.println("generateroutine");
         final AutoRoutine routine = factory.newRoutine("Generated Auto");
 
+        //if there direction is none return the default routine (does absolutely nothing)
         final String direction = sideChooser.getSelected();
+        if(direction.equals("None")) {
+            Elastic.Notification notification = new Elastic.Notification(Elastic.NotificationLevel.INFO, "Empty auto generated", "this auto will do absolutely nothing");
+            Elastic.sendNotification(notification);
+            return routine;
+        }
+
         final String intake1 = intakeChooser1.getSelected();
         final String shoot1 = shootChooser1.getSelected();
         final String intake2 = intakeChooser2.getSelected();
@@ -128,6 +140,14 @@ public class ConfigurableAuto {
                 .andThen(shootToClimbTraj.cmd())
             );
 
+            if(display){
+                updateField(startToShootTraj, shootToClimbTraj);
+            }
+
+            generatedRoutine = routine;
+
+            displayGenerationStatus(startToShootTraj, shootToClimbTraj);
+
             return routine;
         }
 
@@ -143,6 +163,7 @@ public class ConfigurableAuto {
 
         System.out.println(shoot2);
 
+        //if shoot1 is climb, disregard shoot1tointake2 and intake2toshoot2
         if(shoot1.contains("Climb")){
             final AutoTrajectory shoot1ToClimbTraj = routine.trajectory(direction + "ShootTo" + shoot1);
             routine.active().onTrue(
@@ -153,6 +174,8 @@ public class ConfigurableAuto {
                     new AutoAim(drivetrain, shooter, hopper, leds, false)))
                 .andThen(shoot1ToClimbTraj.cmd())
             );
+
+            displayGenerationStatus(startToIntake1Traj, intake1ToShoot1Traj, shoot1ToClimbTraj);
 
             if(display){
                 updateField(startToIntake1Traj, intake1ToShoot1Traj, shoot1ToClimbTraj);
@@ -176,6 +199,8 @@ public class ConfigurableAuto {
                 .andThen(shoot2ToClimbTraj.cmd())
             );
 
+            displayGenerationStatus(startToIntake1Traj, intake1ToShoot1Traj, shoot1ToIntake2Traj, intake2ToShoot2Traj, shoot2ToClimbTraj);
+
             if(display){
                 updateField(startToIntake1Traj, intake1ToShoot1Traj, shoot1ToIntake2Traj, intake2ToShoot2Traj, shoot2ToClimbTraj);
             }
@@ -195,6 +220,8 @@ public class ConfigurableAuto {
                     new AutoAim(drivetrain, shooter, hopper, leds, false)))
             );
 
+            displayGenerationStatus(startToIntake1Traj, intake1ToShoot1Traj, shoot1ToIntake2Traj, intake2ToShoot2Traj);
+
             if(display){
                 updateField(startToIntake1Traj, intake1ToShoot1Traj, shoot1ToIntake2Traj, intake2ToShoot2Traj);
             }
@@ -205,6 +232,7 @@ public class ConfigurableAuto {
         
         //store the routine so don't need to generate at the start of auto
         generatedRoutine = routine;
+
         return routine;
     }
 
@@ -213,6 +241,32 @@ public class ConfigurableAuto {
     public AutoRoutine getRoutine(){
         if(generatedRoutine == null) return generateRoutine(true);
         return generatedRoutine;
+    }
+
+    /** throws an elastic error message if 1 or more of the paths dont exist
+     * @return true if there is at least 1 missing path, false if all paths exist
+     */
+    public boolean checkForErrors(AutoTrajectory... trajectories){
+        boolean errors = false;
+        for(AutoTrajectory trajectory : trajectories){
+            if(trajectory.getRawTrajectory().getPoses().length == 0){
+                String invalidTrajectoryName = trajectory.getRawTrajectory().name();
+                Elastic.Notification notification = new Elastic.Notification(Elastic.NotificationLevel.ERROR, "Auto Path Generation Failed", invalidTrajectoryName + " is invalid with current settings");
+                Elastic.sendNotification(notification);
+            }
+        }
+        return errors;
+    }
+
+    public void displayGenerationStatus(AutoTrajectory... trajectories){
+        if(checkForErrors(trajectories)){
+            Elastic.Notification notification = new Elastic.Notification(Elastic.NotificationLevel.INFO, "Auto Path Generated With Errors", "this just means some paths are missing/invalid");
+            Elastic.sendNotification(notification);
+        }
+        else{
+            Elastic.Notification notification = new Elastic.Notification(Elastic.NotificationLevel.INFO, "Auto Path Generated", "");
+            Elastic.sendNotification(notification);
+        }
     }
 
     /**

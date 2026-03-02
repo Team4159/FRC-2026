@@ -118,6 +118,7 @@ public final class Constants {
 
     public static class OperatorConstants {
         public static final int kPrimaryControllerPort = 0;
+        public static final int kSecondaryControllerPort = 1;
 
         // controller joystick constants
         public static final double kPrimaryTranslationDeadband = 0.1;
@@ -162,12 +163,16 @@ public final class Constants {
         public static final double kMaxTranslationSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
         public static final double kMaxRotationSpeed = RotationsPerSecond.of(0.75).in(RadiansPerSecond);
 
-        public static final int kPigeonId = 1;
+        public static final double kAimKP = 5.0;
+        public static final double kAimKI = 0.0;
+        public static final double kAimKD = 0.0;
+        public static final double kAimFeedForward = 0.0;
 
-        public static final PhoenixPIDController AutoAimRotationController = new PhoenixPIDController(5, 0, 0);
+        public static final PhoenixPIDController AutoAimRotationController = new PhoenixPIDController(kAimKP, kAimKI, kAimKD);
         static {
             AutoAimRotationController.enableContinuousInput(-Math.PI, Math.PI);
         }
+
     }
 
   public static class ShooterConstants {
@@ -219,17 +224,17 @@ public final class Constants {
         public static final Matrix<N3, N1> kMultiTagStdDevs = VecBuilder.fill(0.5, 0.5, 1);
 
         public final static Transform3d leftShooterCamTransform = new Transform3d(
-                Units.inchesToMeters(-0.1647),
-                Units.inchesToMeters(8.8160),
-                Units.inchesToMeters(20.3287),
+                Units.inchesToMeters(-1.2887),
+                Units.inchesToMeters(8.8466),
+                Units.inchesToMeters(21.1190),
                 new Rotation3d(
                         0,
                         Units.degreesToRadians(-30),
                         Units.degreesToRadians(-5)));
         public final static Transform3d rightShooterCamTransform = new Transform3d(
-                Units.inchesToMeters(-0.1647),
-                Units.inchesToMeters(-8.8160),
-                Units.inchesToMeters(20.3287),
+                Units.inchesToMeters(-1.2887),
+                Units.inchesToMeters(-8.8466),
+                Units.inchesToMeters(21.1190),
                 new Rotation3d(
                         0,
                         Units.degreesToRadians(-30),
