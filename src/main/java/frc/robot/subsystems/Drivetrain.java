@@ -57,6 +57,11 @@ public class Drivetrain extends CommandSwerveDrivetrain {
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage)
             .withHeadingPID(kAimKP, kAimKI, kAimKD)
             .withTargetRateFeedforward(kAimFeedForward);
+    public final SwerveRequest.RobotCentricFacingAngle alignFacingAngleDrive = new SwerveRequest.RobotCentricFacingAngle()
+            .withForwardPerspective(ForwardPerspectiveValue.BlueAlliance)
+            .withDriveRequestType(DriveRequestType.Velocity)
+            .withHeadingPID(kAimKP, kAimKI, kAimKD)
+            .withTargetRateFeedforward(kAimFeedForward);
     public final SwerveRequest.SwerveDriveBrake brakeDrive = new SwerveRequest.SwerveDriveBrake();
     public final SwerveRequest.PointWheelsAt pointDrive = new SwerveRequest.PointWheelsAt();
     public final SwerveRequest.Idle idleDrive = new SwerveRequest.Idle();
