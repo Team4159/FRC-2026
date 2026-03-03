@@ -346,10 +346,20 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         Translation2d rawInput = getRawInputTranslation();
         Vector<N2> filteredInputVector = rawInput.toVector();
         filteredInputVector = MathUtil.applyDeadband(filteredInputVector, kPrimaryTranslationDeadband, 1);
+
+        // apply max radius
         filteredInputVector = filteredInputVector.div(kPrimaryTranslationRadius);
+
+        // apply exponent
+        if (filteredInputVector.norm() > 0.0) {
+            filteredInputVector = filteredInputVector.unit().times(Math.pow(filteredInputVector.norm(), kPrimaryTranslationExponent));
+        }
+
+        // clamp values
         if (filteredInputVector.norm() > 1) {
             filteredInputVector = filteredInputVector.div(filteredInputVector.norm());
         }
+
         return new Translation2d(filteredInputVector);
     }
 
@@ -359,9 +369,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
      *         1. a deadzone and quadratic are applied for better control.
      */
     public double getInputX() {
-        double input = getInputTranslation().getX();
-        return Math.abs(Math.pow(input, kPrimaryTranslationExponent)) *
-                Math.signum(input);
+        return getInputTranslation().getX();
     }
 
     /**
@@ -370,9 +378,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
      *         1. a deadzone and quadratic are applied for better control.
      */
     public double getInputY() {
-        double input = getInputTranslation().getY();
-        return Math.abs(Math.pow(input, kPrimaryTranslationExponent)) *
-                Math.signum(input);
+        return getInputTranslation().getY();
     }
 
     /**
