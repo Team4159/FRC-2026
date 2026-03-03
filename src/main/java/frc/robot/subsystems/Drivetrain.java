@@ -6,7 +6,6 @@ import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
 import static frc.robot.Constants.DrivetrainConstants.*;
 
 import java.util.Optional;
-import java.util.Locale.FilteringMode;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
@@ -347,7 +346,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         if (filteredInputVector.norm() > 1) {
             filteredInputVector = filteredInputVector.div(filteredInputVector.norm());
         }
-        
+
         return new Translation2d(filteredInputVector);
     }
 
