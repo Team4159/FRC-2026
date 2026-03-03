@@ -47,7 +47,6 @@ public class AutoAlign extends Command {
         Pose2d drivetrainPose = drivetrainState.Pose;
         ChassisSpeeds drivetrainSpeeds = drivetrainState.Speeds;
 
-        System.out.println(AlignConstants.kAlignController.atTarget(drivetrainPose, currentTarget));
         if (AlignConstants.kAlignController.atTarget(drivetrainPose, currentTarget)) {
             progress++;
             if (progress >= goal.targets.length) {
