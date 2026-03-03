@@ -26,7 +26,7 @@ import frc.robot.subsystems.LEDs;
 import frc.robot.subsystems.Shooter;
 
 public class ConfigurableAuto {
-    private SendableChooser<String> sideChooser, intakeChooser1, shootChooser1, intakeChooser2, shootChooser2;
+    private SendableChooser<String> sideChooser, intakeChooser1, shootChooser1, intakeChooser2, shootChooser2, climbSideChooser;
 
     private Field2d generatedRoutineDisplay = new Field2d();
 
@@ -57,6 +57,7 @@ public class ConfigurableAuto {
         shootChooser1 = new SendableChooser<>();
         intakeChooser2 = new SendableChooser<>();
         shootChooser2 = new SendableChooser<>();
+        climbSideChooser = new SendableChooser<>();
 
         displayChoosers();
     }
@@ -66,6 +67,7 @@ public class ConfigurableAuto {
         //side chooser
         sideChooser.addOption("Left", "L");
         sideChooser.addOption("Right", "R");
+        sideChooser.addOption("Mid", "M");
         sideChooser.addOption("Mid Left", "ML");
         sideChooser.addOption("Mid Right", "MR");
         sideChooser.setDefaultOption("None", "None");
@@ -78,8 +80,7 @@ public class ConfigurableAuto {
 
         //shoot chooser 1
         shootChooser1.addOption("Shoot", "Shoot");
-        shootChooser1.addOption("Shoot and Climb Left", "LClimb");
-        shootChooser1.addOption("Shoot and Climb Right", "RClimb");
+        shootChooser1.addOption("Shoot and Climb", "Climb");
         shootChooser1.setDefaultOption("None", "None");
 
         //intake chooser 2
@@ -90,9 +91,11 @@ public class ConfigurableAuto {
 
         //shoot chooser 2
         shootChooser2.addOption("Shoot", "Shoot");
-        shootChooser2.addOption("Shoot and Climb Left", "LClimb");
-        shootChooser2.addOption("Shoot and Climb Right", "RClimb");
+        shootChooser2.addOption("Shoot and Climb", "Climb");
         shootChooser2.setDefaultOption("None", "None");
+
+        climbSideChooser.setDefaultOption("Left", "L");
+        climbSideChooser.addOption("Right", "R");
 
         //display on smartdashboard -> elastic
         SmartDashboard.putData("side", sideChooser);
@@ -100,6 +103,7 @@ public class ConfigurableAuto {
         SmartDashboard.putData("Shoot 1", shootChooser1);
         SmartDashboard.putData("Intake 2", intakeChooser2);
         SmartDashboard.putData("Shoot 2", shootChooser2);
+        SmartDashboard.putData("climb side", climbSideChooser);
         SmartDashboard.putData("generate", new InstantCommandRunWhenDisabled(() -> generateRoutine(true)));
     }
 
@@ -122,11 +126,12 @@ public class ConfigurableAuto {
         final String shoot1 = shootChooser1.getSelected();
         final String intake2 = intakeChooser2.getSelected();
         final String shoot2 = shootChooser2.getSelected();
+        final String climbSide = climbSideChooser.getSelected();
 
         // if mid auto selected disregard other options since only 1 auto per mid side
-        if (direction.equals("ML") || direction.equals("MR")) {
+        if (direction.contains("M")) {
             final String startToShootName = direction + "StartToShoot";
-            final String shootToClimbName = direction + "ShootToClimb";
+            final String shootToClimbName = direction + "ShootTo" + climbSide +"Climb";
 
             final AutoTrajectory startToShootTraj = routine.trajectory(startToShootName);
             final AutoTrajectory shootToClimbTraj = routine.trajectory(shootToClimbName);
@@ -165,7 +170,7 @@ public class ConfigurableAuto {
 
         //if shoot1 is climb, disregard shoot1tointake2 and intake2toshoot2
         if(shoot1.contains("Climb")){
-            final AutoTrajectory shoot1ToClimbTraj = routine.trajectory(direction + "ShootTo" + shoot1);
+            final AutoTrajectory shoot1ToClimbTraj = routine.trajectory(direction + "ShootTo" + climbSide + "Climb");
             routine.active().onTrue(
                 startToIntake1Traj.resetOdometry().andThen(startToIntake1Traj.cmd())
                 .andThen(intake1ToShoot1Traj.cmd())
@@ -183,7 +188,7 @@ public class ConfigurableAuto {
         }
         
         else if(shoot2.contains("Climb")){
-            final AutoTrajectory shoot2ToClimbTraj = routine.trajectory(direction + "ShootTo" + shoot2);
+            final AutoTrajectory shoot2ToClimbTraj = routine.trajectory(direction + "ShootTo" + climbSide + "Climb");
             System.out.println(shoot2ToClimbTraj);
             routine.active().onTrue(
                 startToIntake1Traj.resetOdometry().andThen(startToIntake1Traj.cmd())
