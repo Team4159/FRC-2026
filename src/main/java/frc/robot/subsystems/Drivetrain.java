@@ -90,9 +90,9 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         this.inputRotationX = () -> -controller.getRightY();
         this.inputRotationY = () -> -controller.getRightX();
 
-        controller.a().onTrue(Commands
+        crashTrigger.onTrue(Commands
                 .runOnce(() -> HIDRumble.rumble(controller.getHID(),
-                        new RumbleRequest(RumbleType.kRightRumble, 1, 0.25, 1))));
+                        new RumbleRequest(RumbleType.kRightRumble, 1, 0.5, 1))));
     }
 
     public class Drive extends Command {

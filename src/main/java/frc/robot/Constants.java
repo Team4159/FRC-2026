@@ -71,7 +71,7 @@ public final class Constants {
         public static final double kTrenchAssistAlignInfluence = 0.15;
 
         // drive mode constants
-        public static final double kPrimaryReduceSpeedTranslationFactor = 0.5;
+        public static final double kPrimaryReduceSpeedTranslationFactor = 0.25;
         public static final double kPrimaryReduceSpeedRotationFactor = 1;
 
         public static final double kPrimaryRadialModeDeadband = 0.2;
@@ -152,8 +152,8 @@ public final class Constants {
         }
 
         public static enum TrenchZone {
-            BLUE_LEFT(Inches.of(182.11), Inches.of(24.97)),
-            BLUE_RIGHT(Inches.of(182.11), Inches.of(317.69 - 24.97)),
+            BLUE_LEFT(Inches.of(182.11), Inches.of(317.69 - 24.97)),
+            BLUE_RIGHT(Inches.of(182.11), Inches.of(24.97)),
             RED_LEFT(Inches.of(651.22 - 182.11), Inches.of(24.97)),
             RED_RIGHT(Inches.of(651.22 - 182.11), Inches.of(317.69 - 24.97));
 

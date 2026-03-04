@@ -8,6 +8,7 @@ import java.util.Optional;
 
 import choreo.auto.AutoChooser;
 import choreo.auto.AutoFactory;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
@@ -22,6 +23,7 @@ import frc.lib.HIDRumble;
 import frc.lib.HIDRumble.RumbleRequest;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.AlignConstants.TowerAlignGoal;
+import frc.robot.Constants.FieldConstants.TrenchZone;
 import frc.robot.Constants.OperatorConstants.DriveMode;
 import frc.robot.commands.AutoAlign;
 import frc.robot.subsystems.Drivetrain;
@@ -89,9 +91,9 @@ public class RobotContainer {
         primaryDriverAssistTrigger.and(DriverStation::isTeleop).onChange(
                 Commands.runOnce(() -> drivetrain.enableDriveAssist(!primaryDriverAssistTrigger.getAsBoolean())));
         primaryLeftClimbAlignTrigger.and(DriverStation::isTeleop)
-                .onTrue(new AutoAlign(drivetrain, TowerAlignGoal.LEFT, primaryRobotRelativeTrigger));
+                .whileTrue(new AutoAlign(drivetrain, TowerAlignGoal.LEFT, primaryRobotRelativeTrigger));
         primaryRightClimbAlignTrigger.and(DriverStation::isTeleop)
-                .onTrue(new AutoAlign(drivetrain, TowerAlignGoal.RIGHT, primaryRobotRelativeTrigger));
+                .whileTrue(new AutoAlign(drivetrain, TowerAlignGoal.RIGHT, primaryRobotRelativeTrigger));
         // primaryMiddleFrontClimbAlignTrigger.and(DriverStation::isTeleop).onTrue(new
         // AutoAlign(drivetrain, TowerAlignGoal.MIDDLE_FRONT,
         // primaryRobotRelativeTrigger));
