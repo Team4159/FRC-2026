@@ -53,9 +53,9 @@ public class AutoAim extends Command {
                 drivetrain.getState().Pose.getRotation().getRadians(), desiredAngle,
                 Timer.getFPGATimestamp());
         ChassisSpeeds chassisSpeeds = new ChassisSpeeds(
-                drivetrain.getInputX()
+                drivetrain.getInputX(true)
                         * maxSpeed,
-                drivetrain.getInputY()
+                drivetrain.getInputY(true)
                         * maxSpeed,
                 omega);
         SmartDashboard.putNumber("omega", omega);

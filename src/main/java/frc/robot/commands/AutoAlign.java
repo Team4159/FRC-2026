@@ -1,7 +1,5 @@
 package frc.robot.commands;
 
-import java.util.function.BooleanSupplier;
-
 import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
 import com.therekrab.autopilot.APTarget;
 import com.therekrab.autopilot.Autopilot.APResult;
@@ -13,25 +11,21 @@ import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.lib.FieldUtil;
 import frc.robot.Constants.AlignConstants;
 import frc.robot.Constants.AlignConstants.TowerAlignGoal;
-import frc.robot.Constants.OperatorConstants.DriveMode;
 import frc.robot.subsystems.Drivetrain;
 
 public class AutoAlign extends Command {
     private final Drivetrain drivetrain;
     private final TowerAlignGoal goal;
-    private final BooleanSupplier robotRelativeModeSupplier;
 
     private APTarget currentTarget;
     private int progress;
 
-    public AutoAlign(Drivetrain drivetrain, TowerAlignGoal goal, BooleanSupplier robotRelativeDriveSuppier) {
+    public AutoAlign(Drivetrain drivetrain, TowerAlignGoal goal) {
         this.drivetrain = drivetrain;
         this.goal = goal;
-        this.robotRelativeModeSupplier = robotRelativeDriveSuppier;
         addRequirements(drivetrain);
     }
 
@@ -72,14 +66,6 @@ public class AutoAlign extends Command {
     @Override
     public boolean isFinished() {
         return progress >= goal.targets.length;
-    }
-
-    @Override
-    public void end(boolean interrupted) {
-        if (!interrupted) {
-            CommandScheduler.getInstance()
-                    .schedule(drivetrain.new Drive(DriveMode.MANUAL_ALIGN, robotRelativeModeSupplier));
-        }
     }
 
     private APTarget getNextTarget(int progress) {

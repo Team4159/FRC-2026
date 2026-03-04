@@ -89,9 +89,9 @@ public class RobotContainer {
         primaryDriverAssistTrigger.and(DriverStation::isTeleop).onChange(
                 Commands.runOnce(() -> drivetrain.enableDriveAssist(!primaryDriverAssistTrigger.getAsBoolean())));
         primaryLeftClimbAlignTrigger.and(DriverStation::isTeleop)
-                .whileTrue(new AutoAlign(drivetrain, TowerAlignGoal.LEFT, primaryRobotRelativeTrigger));
+                .whileTrue(new AutoAlign(drivetrain, TowerAlignGoal.LEFT));
         primaryRightClimbAlignTrigger.and(DriverStation::isTeleop)
-                .whileTrue(new AutoAlign(drivetrain, TowerAlignGoal.RIGHT, primaryRobotRelativeTrigger));
+                .whileTrue(new AutoAlign(drivetrain, TowerAlignGoal.RIGHT));
         // primaryMiddleFrontClimbAlignTrigger.and(DriverStation::isTeleop).onTrue(new
         // AutoAlign(drivetrain, TowerAlignGoal.MIDDLE_FRONT,
         // primaryRobotRelativeTrigger));

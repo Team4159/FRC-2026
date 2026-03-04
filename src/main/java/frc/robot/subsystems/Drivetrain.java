@@ -122,12 +122,12 @@ public class Drivetrain extends CommandSwerveDrivetrain {
             return kMaxRotationSpeed * (reduceSpeedEnabled ? kPrimaryReduceSpeedRotationFactor : 1);
         }
 
-        private double getSpeedX() {
-            return getInputX() * getMaxTranslationSpeed();
+        private double getSpeedX(boolean fieldRelative) {
+            return getInputX(fieldRelative) * getMaxTranslationSpeed();
         }
 
-        private double getSpeedY() {
-            return getInputY() * getMaxTranslationSpeed();
+        private double getSpeedY(boolean fieldRelative) {
+            return getInputY(fieldRelative) * getMaxTranslationSpeed();
         }
 
         private double getSpeedRotation() {
@@ -147,15 +147,15 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                 Distance errorY = trenchZone.get().y.minus(robotPose.getMeasureY());
 
                 boolean hasPassed = !errorX.isNear(Meters.zero(), OperatorConstants.kTrenchAssistPassPositionTolerance);
-                boolean isNotApproaching = (Math.signum(getInputX()) == -Math.signum(errorX.magnitude()))
-                        || Math.abs(getInputX()) <= OperatorConstants.kTrenchAssistApproachInputTolerance;
+                boolean isNotApproaching = (Math.signum(getInputX(true)) == -Math.signum(errorX.magnitude()))
+                        || Math.abs(getInputX(true)) <= OperatorConstants.kTrenchAssistApproachInputTolerance;
                 if (hasPassed && isNotApproaching) {
                     return Optional.empty();
                 }
 
                 double vy = kTrenchAssistAlignStrength * getMaxTranslationSpeed() * Math.signum(errorY.magnitude())
-                        * Math.abs(getInputX());
-                double influence = OperatorConstants.kTrenchAssistAlignInfluence * getSpeedY();
+                        * Math.abs(getInputX(true));
+                double influence = OperatorConstants.kTrenchAssistAlignInfluence * getSpeedY(true);
                 boolean insideTolerance = errorY.isNear(Meters.zero(),
                         OperatorConstants.kTrenchAssistAlignPositionTolerance);
                 boolean againstAlignment = (influence >= Math.abs(vy));
@@ -189,32 +189,32 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                     }
                     if (robotRelativeSupplier.getAsBoolean()) {
                         if (desiredRotation.isPresent()) {
-                            yield robotCentricFacingAngleDrive.withVelocityX(getSpeedX())
-                                    .withVelocityY(getSpeedY())
+                            yield robotCentricFacingAngleDrive.withVelocityX(getSpeedX(true))
+                                    .withVelocityY(getSpeedY(false))
                                     .withTargetDirection(desiredRotation.get());
                         }
-                        yield robotCentricDrive.withVelocityX(getSpeedX())
-                                .withVelocityY(getSpeedY())
+                        yield robotCentricDrive.withVelocityX(getSpeedX(false))
+                                .withVelocityY(getSpeedY(false))
                                 .withRotationalRate(getSpeedRotation());
                     }
                     var assistSpeed = driveAssist();
-                    var velocityY = assistSpeed.isEmpty() ? getSpeedY()
+                    var velocityY = assistSpeed.isEmpty() ? getSpeedY(true)
                             : assistSpeed.get().vyMetersPerSecond;
                     if (desiredRotation.isPresent()) {
-                        yield fieldCentricFacingAngleDrive.withVelocityX(getSpeedX())
+                        yield fieldCentricFacingAngleDrive.withVelocityX(getSpeedX(true))
                                 .withVelocityY(velocityY)
                                 .withTargetDirection(desiredRotation.get());
                     }
-                    yield fieldCentricDrive.withVelocityX(getSpeedX())
+                    yield fieldCentricDrive.withVelocityX(getSpeedX(true))
                             .withVelocityY(velocityY)
                             .withRotationalRate(getSpeedRotation());
                 }
                 case BRAKE -> brakeDrive;
                 case POINT -> pointDrive
-                        .withModuleDirection(new Rotation2d(getInputX(), getInputY()));
+                        .withModuleDirection(new Rotation2d(getInputX(false), getInputY(false)));
                 case IDLE -> idleDrive;
                 case MANUAL_ALIGN -> {
-                    Translation2d rawInput = getRawInputTranslation();
+                    Translation2d rawInput = getRawInputTranslation(!robotRelativeSupplier.getAsBoolean());
                     double x = Math.signum(MathUtil.applyDeadband(rawInput.getX(), kPrimaryAlignModeDeadband, 1));
                     double y = Math.signum(MathUtil.applyDeadband(rawInput.getY(), kPrimaryAlignModeDeadband, 1));
 
@@ -240,15 +240,15 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                 case INTAKE -> {
                     // TODO: decide whats the optimal deadzone or have some heuristic to check if
                     // the joystick was released
-                    if (Math.hypot(getInputX(), getInputY()) >= 0.2) {
+                    if (Math.hypot(getInputX(true), getInputY(true)) >= 0.2) {
                         yield fieldCentricFacingAngleDrive
-                                .withVelocityX(getSpeedX())
-                                .withVelocityY(getSpeedY())
-                                .withTargetDirection(new Rotation2d(getInputX(), getInputY()));
+                                .withVelocityX(getSpeedX(true))
+                                .withVelocityY(getSpeedY(true))
+                                .withTargetDirection(new Rotation2d(getInputX(true), getInputY(true)));
                     }
                     yield fieldCentricDrive
-                            .withVelocityX(getSpeedX())
-                            .withVelocityY(getSpeedY());
+                            .withVelocityX(getSpeedX(true))
+                            .withVelocityY(getSpeedY(true));
                 }
                 case RADIAL -> {
                     if (isInputIdle()) {
@@ -315,9 +315,9 @@ public class Drivetrain extends CommandSwerveDrivetrain {
      *         joystick x input), from magnitude range -1 to 1. no deadzone is
      *         applied
      */
-    public Translation2d getRawInputTranslation() {
+    public Translation2d getRawInputTranslation(boolean fieldRelative) {
         Translation2d rawInput = new Translation2d(inputX.get(), inputY.get());
-        if (DriverStation.getAlliance().orElse(Alliance.Blue).equals(Alliance.Red)) {
+        if (fieldRelative && DriverStation.getAlliance().orElse(Alliance.Blue).equals(Alliance.Red)) {
             rawInput = rawInput.times(-1);
         }
         return rawInput;
@@ -329,8 +329,8 @@ public class Drivetrain extends CommandSwerveDrivetrain {
      *         joystick x input), from magnitude range -1 to 1. a deadzone is
      *         applied.
      */
-    public Translation2d getInputTranslation() {
-        Translation2d rawInput = getRawInputTranslation();
+    public Translation2d getInputTranslation(boolean fieldRelative) {
+        Translation2d rawInput = getRawInputTranslation(fieldRelative);
         Vector<N2> filteredInputVector = rawInput.toVector();
         filteredInputVector = MathUtil.applyDeadband(filteredInputVector, kPrimaryTranslationDeadband, 1);
 
@@ -355,8 +355,8 @@ public class Drivetrain extends CommandSwerveDrivetrain {
      *         to
      *         1. a deadzone and quadratic are applied for better control.
      */
-    public double getInputX() {
-        return getInputTranslation().getX();
+    public double getInputX(boolean fieldRelative) {
+        return getInputTranslation(fieldRelative).getX();
     }
 
     /**
@@ -364,8 +364,8 @@ public class Drivetrain extends CommandSwerveDrivetrain {
      *         to
      *         1. a deadzone and quadratic are applied for better control.
      */
-    public double getInputY() {
-        return getInputTranslation().getY();
+    public double getInputY(boolean fieldRelative) {
+        return getInputTranslation(fieldRelative).getY();
     }
 
     /**
@@ -410,7 +410,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         if (desiredRotation.isPresent()) {
             noInputRotation = getInputRotation().isEmpty();
         }
-        return getInputTranslation().getNorm() == 0.0 && getInputRotationVelocity() == 0.0 && noInputRotation;
+        return getInputTranslation(false).getNorm() == 0.0 && getInputRotationVelocity() == 0.0 && noInputRotation;
     }
 
 }
