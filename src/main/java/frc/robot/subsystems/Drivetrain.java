@@ -57,7 +57,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage)
             .withHeadingPID(kAimKP, kAimKI, kAimKD)
             .withTargetRateFeedforward(kAimFeedForward);
-    public final SwerveRequest.FieldCentricFacingAngle alignFacingAngleDrive = new SwerveRequest.FieldCentricFacingAngle()
+    public final SwerveRequest.FieldCentricFacingAngle trajectoryFacingAngleDrive = new SwerveRequest.FieldCentricFacingAngle()
             .withForwardPerspective(ForwardPerspectiveValue.BlueAlliance)
             .withDriveRequestType(DriveRequestType.Velocity)
             .withHeadingPID(kAimKP, kAimKI, kAimKD)

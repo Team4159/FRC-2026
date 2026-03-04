@@ -8,7 +8,6 @@ import java.util.Optional;
 
 import choreo.auto.AutoChooser;
 import choreo.auto.AutoFactory;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
@@ -23,14 +22,11 @@ import frc.lib.HIDRumble;
 import frc.lib.HIDRumble.RumbleRequest;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.AlignConstants.TowerAlignGoal;
-import frc.robot.Constants.FieldConstants.TrenchZone;
 import frc.robot.Constants.OperatorConstants.DriveMode;
 import frc.robot.commands.AutoAlign;
 import frc.robot.subsystems.Drivetrain;
 
 public class RobotContainer {
-    private final Telemetry logger = new Telemetry();
-
     private final CommandXboxController primaryController = new CommandXboxController(
             OperatorConstants.kPrimaryControllerPort);
     private final Trigger primaryZeroTrigger = primaryController.back();
@@ -54,6 +50,8 @@ public class RobotContainer {
     private final AutoFactory autoFactory;
     private final AutoRoutines autoRoutines;
     private final AutoChooser autoChooser = new AutoChooser();
+
+    private final Telemetry logger = new Telemetry();
 
     public RobotContainer() {
         autoFactory = drivetrain.createAutoFactory();

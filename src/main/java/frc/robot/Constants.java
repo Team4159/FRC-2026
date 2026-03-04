@@ -178,10 +178,11 @@ public final class Constants {
     }
 
     public static class AlignConstants {
+        // TODO: tune acceleration and jerk for aligning
         public static final APConstraints kAlignConstraints = new APConstraints()
                 .withVelocity(kMaxTranslationSpeed)
-                .withAcceleration(6.0)
-                .withJerk(3.0);
+                .withAcceleration(7.0)
+                .withJerk(3.5);
         public static final APProfile kAlignProfile = new APProfile(kAlignConstraints)
                 .withErrorXY(Centimeters.of(2.0))
                 .withErrorTheta(Degrees.of(1.0))
@@ -194,7 +195,7 @@ public final class Constants {
                     new APTarget(new Pose2d(FieldConstants.kTowerX,
                             FieldConstants.kTowerY.plus(FieldConstants.kTowerWidth.div(2))
                                     .plus(DrivetrainConstants.kDrivetrainSizeX.div(2)),
-                            Rotation2d.kZero)).withVelocity(0).withEntryAngle(Rotation2d.kZero)),
+                            Rotation2d.kZero)).withVelocity(0).withoutEntryAngle()),
             RIGHT(
                     new APTarget(new Pose2d(FieldConstants.kTowerX,
                             FieldConstants.kTowerY.minus(FieldConstants.kTowerWidth.div(2))
