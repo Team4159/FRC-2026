@@ -68,7 +68,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
 
     public final Trigger crashTrigger = new Trigger(
             () -> Math.hypot(pigeon.getAccelerationX().getValue().in(MetersPerSecondPerSecond),
-                    pigeon.getAccelerationY().getValue().in(MetersPerSecondPerSecond)) >= FieldConstants.g * 2);
+                    pigeon.getAccelerationY().getValue().in(MetersPerSecondPerSecond)) >= FieldConstants.g * 3.0);
 
     private final Supplier<Double> inputX;
     private final Supplier<Double> inputY;
