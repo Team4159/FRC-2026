@@ -59,7 +59,8 @@ public final class Constants {
             BRAKE,
             POINT,
             IDLE,
-            INTAKE,
+            INTAKE_LEFT,
+            INTAKE_RIGHT,
             RADIAL,
         }
 

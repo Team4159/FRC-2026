@@ -30,7 +30,8 @@ public class RobotContainer {
     private final CommandXboxController primaryController = new CommandXboxController(
             OperatorConstants.kPrimaryControllerPort);
     private final Trigger primaryZeroTrigger = primaryController.back();
-    private final Trigger primaryIntakeModeTrigger = primaryController.b();
+    private final Trigger primaryIntakeLeftModeTrigger = primaryController.x();
+    private final Trigger primaryIntakeRightModeTrigger = primaryController.b();
     private final Trigger primaryRadialModeTrigger = primaryController.y();
     private final Trigger primaryRobotManualAlignModeTrigger = primaryController.leftBumper();
     private final Trigger primaryRobotRelativeTrigger = primaryController.leftTrigger();
@@ -82,7 +83,8 @@ public class RobotContainer {
         primaryRobotManualAlignModeTrigger.and(DriverStation::isTeleop)
                 .whileTrue(drivetrain.new Drive(DriveMode.MANUAL_ALIGN,
                         primaryRobotRelativeTrigger::getAsBoolean));
-        primaryIntakeModeTrigger.and(DriverStation::isTeleop).whileTrue(drivetrain.new Drive(DriveMode.INTAKE));
+        primaryIntakeLeftModeTrigger.and(DriverStation::isTeleop).whileTrue(drivetrain.new Drive(DriveMode.INTAKE_LEFT));
+        primaryIntakeRightModeTrigger.and(DriverStation::isTeleop).whileTrue(drivetrain.new Drive(DriveMode.INTAKE_RIGHT));
         primaryRadialModeTrigger.and(DriverStation::isTeleop).whileTrue(drivetrain.new Drive(DriveMode.RADIAL));
         primaryReduceSpeedTrigger.and(DriverStation::isTeleop).onChange(
                 Commands.runOnce(() -> drivetrain.enableReduceSpeed(primaryReduceSpeedTrigger.getAsBoolean())));

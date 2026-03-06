@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import static frc.robot.Constants.OperatorConstants.*;
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
 import static frc.robot.Constants.DrivetrainConstants.*;
@@ -237,14 +238,27 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                             .withVelocityY(velocityY)
                             .withRotationalRate(rotationalRate);
                 }
-                case INTAKE -> {
+                case INTAKE_LEFT -> {
                     // TODO: decide whats the optimal deadzone or have some heuristic to check if
                     // the joystick was released
                     if (Math.hypot(getInputX(true), getInputY(true)) >= 0.2) {
+                        Rotation2d rotation = new Rotation2d(getInputX(true), getInputY(true)).plus(new Rotation2d(Degrees.of(45.0)));
                         yield fieldCentricFacingAngleDrive
                                 .withVelocityX(getSpeedX(true))
                                 .withVelocityY(getSpeedY(true))
-                                .withTargetDirection(new Rotation2d(getInputX(true), getInputY(true)));
+                                .withTargetDirection(rotation);
+                    }
+                    yield fieldCentricDrive
+                            .withVelocityX(getSpeedX(true))
+                            .withVelocityY(getSpeedY(true));
+                }
+                case INTAKE_RIGHT -> {
+                    if (Math.hypot(getInputX(true), getInputY(true)) >= 0.2) {
+                        Rotation2d rotation = new Rotation2d(getInputX(true), getInputY(true)).minus(new Rotation2d(Degrees.of(45.0)));
+                        yield fieldCentricFacingAngleDrive
+                                .withVelocityX(getSpeedX(true))
+                                .withVelocityY(getSpeedY(true))
+                                .withTargetDirection(rotation);
                     }
                     yield fieldCentricDrive
                             .withVelocityX(getSpeedX(true))
