@@ -59,6 +59,11 @@ public class RobotContainer {
         autoChooser.addRoutine("SimplePath", autoRoutines::simplePathAuto);
         autoChooser.addRoutine("Left", autoRoutines::leftAuto);
         SmartDashboard.putData("Auto Chooser", autoChooser);
+
+        drivetrain.crashTrigger.onTrue(Commands
+                .runOnce(() -> HIDRumble.rumble(primaryController.getHID(),
+                        new RumbleRequest(RumbleType.kRightRumble, 1, 0.5, 1))));
+
         configureBindings();
     }
 

@@ -25,14 +25,10 @@ import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.FieldUtil;
-import frc.lib.HIDRumble;
-import frc.lib.HIDRumble.RumbleRequest;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.OperatorConstants.DriveMode;
@@ -91,10 +87,6 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         this.inputRotationVelocity = () -> -controller.getRightX();
         this.inputRotationX = () -> -controller.getRightY();
         this.inputRotationY = () -> -controller.getRightX();
-
-        crashTrigger.onTrue(Commands
-                .runOnce(() -> HIDRumble.rumble(controller.getHID(),
-                        new RumbleRequest(RumbleType.kRightRumble, 1, 0.5, 1))));
     }
 
     public class Drive extends Command {
