@@ -2,47 +2,66 @@ package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.Rotations;
 
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
+import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.InvertedValue;  
+import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
+import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.SensorDirectionValue;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.FeederConstants;
 import frc.robot.Constants.FeederConstants.FeederState;
-import frc.robot.Constants.HoodConstants;
 import frc.robot.Constants.ShooterConstants;
 
 public class Shooter extends SubsystemBase{
-    private TalonFX hoodMotor, feederMotor, motorOne, motorTwo, motorThree, motorFour;
+    private final TalonFX hoodMotor, feederMotor, motorOne, motorTwo, motorThree, motorFour;
+    private final CANcoder canCoder;
 
     private final PositionVoltage hoodPositionVoltage;
     private final VelocityVoltage shooterVelocityVoltage;
 
     public Shooter() {
-        Slot0Configs hoodConfig = new Slot0Configs();
-        hoodConfig.kP = HoodConstants.kP;  
-        hoodConfig.kI = HoodConstants.kI;
-        hoodConfig.kD = HoodConstants.kD;
+        CANcoderConfiguration canCoderConfig = new CANcoderConfiguration();
+        canCoderConfig.MagnetSensor.withAbsoluteSensorDiscontinuityPoint(Rotations.of(0.5));
+        canCoderConfig.MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
+        canCoderConfig.MagnetSensor.withMagnetOffset(Rotations.of(0));
+    
+        TalonFXConfiguration hoodConfig = new TalonFXConfiguration();
+        hoodConfig.Slot0.kP = ShooterConstants.kHoodP;  
+        hoodConfig.Slot0.kI = ShooterConstants.kHoodI;
+        hoodConfig.Slot0.kD = ShooterConstants.kHoodD;
+
+        hoodConfig.Feedback.FeedbackRemoteSensorID = ShooterConstants.HoodId;
+        hoodConfig.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
+        hoodConfig.Feedback.SensorToMechanismRatio = ShooterConstants.kSensorToMechanismRatio;
+        hoodConfig.Feedback.RotorToSensorRatio = ShooterConstants.kMotorToSensorRatio;
 
         Slot0Configs shooterConfig = new Slot0Configs();
         shooterConfig.kP = ShooterConstants.kP;
         shooterConfig.kI = ShooterConstants.kI;
         shooterConfig.kD = ShooterConstants.kD;
 
-        hoodMotor = new TalonFX(HoodConstants.HoodId);
+        hoodMotor = new TalonFX(ShooterConstants.HoodId);
         feederMotor = new TalonFX(FeederConstants.FeederID);
         motorOne = new TalonFX(ShooterConstants.ShooterIDOne);
         motorTwo = new TalonFX(ShooterConstants.ShooterIDTwo);
         motorThree = new TalonFX(ShooterConstants.ShooterIDThree);
         motorFour = new TalonFX(ShooterConstants.ShooterIDFour);
+        canCoder = new CANcoder(ShooterConstants.kHoodEncoderID);
         
         motorOne.getConfigurator().apply(new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive));
+        motorTwo.getConfigurator().apply(new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive));
         
+        canCoder.getConfigurator().apply(canCoderConfig);
         hoodMotor.getConfigurator().apply(hoodConfig);
         motorOne.getConfigurator().apply(shooterConfig);
         motorTwo.getConfigurator().apply(shooterConfig);

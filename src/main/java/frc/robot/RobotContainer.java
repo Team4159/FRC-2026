@@ -26,11 +26,13 @@ import frc.robot.Constants.AlignConstants.TowerAlignGoal;
 import frc.robot.Constants.OperatorConstants.DriveMode;
 import frc.robot.Constants.FeederConstants.FeederState;
 import frc.robot.Constants.HopperConstants.HopperState;
+import frc.robot.Constants.IntakeConstants.IntakeState;
 import frc.robot.commands.AutoAim;
 import frc.robot.commands.AutoAlign;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.LEDs;
 import frc.robot.subsystems.Hopper;
+import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
 
 public class RobotContainer {
@@ -58,10 +60,19 @@ public class RobotContainer {
     private final Trigger primaryFacingAngleTrigger = primaryController.rightStick();
 
     //Secondary Triggers
-    private final Trigger feedHopper = secondaryController.x();
-    private final Trigger reverseFeederHopper = secondaryController.y();
+    private final Trigger feedHopperTrigger = secondaryController.x();
+    private final Trigger reverseFeederHopperTrigger = secondaryController.y();
+
+    private final Trigger manualHoodPitchUpTrigger = secondaryController.povUp();
+    private final Trigger manualHoodPitchDownTrigger = secondaryController.povDown();
+
+    private final Trigger intakeTrigger = secondaryController.leftBumper();
+    private final Trigger outtakeTrigger = secondaryController.leftTrigger(0.1);
+    private final Trigger compressIntakeTrigger = secondaryController.a();
+    private final Trigger bounceIntakeTrigger = secondaryController.b();
 
     //Subsystems
+    private final Intake intake = new Intake();
     private final Shooter shooter = new Shooter();
     private final Hopper hopper = new Hopper();
     private final LEDs leds = new LEDs();
@@ -80,7 +91,7 @@ public class RobotContainer {
         autoFactory = drivetrain.createAutoFactory();
         autoRoutines = new AutoRoutines(autoFactory, drivetrain);
 
-        configurableAuto = new ConfigurableAuto(autoFactory, drivetrain, shooter, null, hopper, leds);
+        configurableAuto = new ConfigurableAuto(autoFactory, drivetrain, shooter, intake, hopper, leds);
 
         autoChooser.addRoutine("SimplePath", autoRoutines::simplePathAuto);
         autoChooser.addRoutine("Left", autoRoutines::leftAuto);
@@ -148,8 +159,14 @@ public class RobotContainer {
 
         drivetrain.registerTelemetry(logger::telemeterize);
 
-        feedHopper.onTrue(new ParallelCommandGroup(shooter.new ChangeState(FeederState.FEED), hopper.new ChangeState(HopperState.FEED)));
-        reverseFeederHopper.onTrue(new ParallelCommandGroup(shooter.new ChangeState(FeederState.UNSTUCKFEEDER), hopper.new ChangeState(HopperState.REVERSE)));
+        feedHopperTrigger.onTrue(new ParallelCommandGroup(shooter.new ChangeState(FeederState.FEED), hopper.new ChangeState(HopperState.FEED)));
+        reverseFeederHopperTrigger.onTrue(new ParallelCommandGroup(shooter.new ChangeState(FeederState.UNSTUCKFEEDER), hopper.new ChangeState(HopperState.REVERSE)));
+
+        //intake
+        intakeTrigger.whileTrue(intake.new ChangeStates(IntakeState.DOWN_ON));
+        outtakeTrigger.whileTrue(intake.new ChangeStates(IntakeState.DOWN_REV));
+        compressIntakeTrigger.whileTrue(intake.new CompressIntake());
+        bounceIntakeTrigger.whileTrue(intake.new BounceIntake());
     }
 
     public Command getAutonomousCommand() {

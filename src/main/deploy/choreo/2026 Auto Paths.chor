@@ -114,7 +114,7 @@
      "val":4.63
     },
     "heading":{
-     "exp":"rClimb.heading",
+     "exp":"0 deg",
      "val":0.0
     }
    },
@@ -198,8 +198,8 @@
      "val":2.8467822074890137
     },
     "heading":{
-     "exp":"0 deg",
-     "val":0.0
+     "exp":"180 deg",
+     "val":3.141592653589793
     }
    },
    "rScore":{

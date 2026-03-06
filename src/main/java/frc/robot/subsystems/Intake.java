@@ -1,10 +1,24 @@
 package frc.robot.subsystems;
 
-import com.ctre.phoenix6.configs.Slot0Configs;
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.Rotations;
+
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
+import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
+import com.ctre.phoenix6.signals.GravityTypeValue;
+import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.SensorDirectionValue;
 
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.IntakeConstants;
@@ -13,71 +27,124 @@ import frc.robot.Constants.IntakeConstants.IntakeState;
 public class Intake extends SubsystemBase {
     private final TalonFX locationMotor;
     private final TalonFX spinMotor;
+    private final CANcoder canCoder;
 
     private final PositionVoltage intakePositionVoltage;
-    private final VelocityVoltage intakeVelocityVoltage; 
+    // private final VelocityVoltage intakeVelocityVoltage; 
 
     public Intake() {
-        Slot0Configs locationConfig = new Slot0Configs();
+        CANcoderConfiguration canCoderConfig = new CANcoderConfiguration();
+        canCoderConfig.MagnetSensor.withAbsoluteSensorDiscontinuityPoint(Rotations.of(0.5));
+        canCoderConfig.MagnetSensor.SensorDirection = SensorDirectionValue.Clockwise_Positive;
+        canCoderConfig.MagnetSensor.withMagnetOffset(IntakeConstants.kEncoderOffset);
+    
+        TalonFXConfiguration angleConfig = new TalonFXConfiguration();
+        angleConfig.Slot0.kP = IntakeConstants.kAngleP;  
+        angleConfig.Slot0.kI = IntakeConstants.kAngleI;
+        angleConfig.Slot0.kD = IntakeConstants.kAngleD;
+        angleConfig.Slot0.kG = IntakeConstants.kAngleG;
+        angleConfig.Slot0.withGravityType(GravityTypeValue.Arm_Cosine);
+        //angleConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
-        locationConfig.kP = IntakeConstants.kP;
-        locationConfig.kI = IntakeConstants.kI;
-        locationConfig.kD = IntakeConstants.kD;
+        angleConfig.Feedback.FeedbackRemoteSensorID = IntakeConstants.kAngleEncoderId;
+        angleConfig.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
+        angleConfig.Feedback.SensorToMechanismRatio = IntakeConstants.kSensorToMechanismRatio;
+        angleConfig.Feedback.RotorToSensorRatio = IntakeConstants.kMotorToSensorRatio;
 
-        Slot0Configs spinConfig = new Slot0Configs();
-
-        spinConfig.kP = IntakeConstants.kP;
-        spinConfig.kI = IntakeConstants.kI;
-        spinConfig.kD = IntakeConstants.kD;  
-
-        locationMotor = new TalonFX(IntakeConstants.kIntakeLocationId);
+        
+        locationMotor = new TalonFX(IntakeConstants.kAngleId);
         spinMotor = new TalonFX(IntakeConstants.kIntakeSpinId);
+        canCoder = new CANcoder(IntakeConstants.kAngleEncoderId);
 
-        locationMotor.getConfigurator().apply(locationConfig);
-        spinMotor.getConfigurator().apply(spinConfig);
+        canCoder.getConfigurator().apply(canCoderConfig);
+        locationMotor.getConfigurator().apply(angleConfig);
+        //spinMotor.getConfigurator().apply(spinConfig);
 
         intakePositionVoltage = new PositionVoltage(0);
-        intakeVelocityVoltage = new VelocityVoltage(0);
+        setLocation(IntakeState.UP_OFF.rotationLocation);
+        //intakeVelocityVoltage = new VelocityVoltage(0);
     }
 
     public void setSpinSpeed(double speed) {
-        spinMotor.setControl(intakeVelocityVoltage.withVelocity(speed * IntakeConstants.kSpinGearRatio)); //I don't think I am properly accounting for gear ratio
+        spinMotor.set(speed);
     }
 
-    public void setLocation(double angle) {
-        locationMotor.setControl(intakePositionVoltage.withPosition(angle * IntakeConstants.kLocationGearRatio)); //here too
+    public void setLocation(Angle angle) {
+        locationMotor.setControl(intakePositionVoltage.withPosition(angle));
+    }
+
+    private void setPivotPercentage(double percentage){
+        locationMotor.set(percentage);
+    }
+
+    private Angle getPivotAngle(){
+        return Rotations.of(locationMotor.getPosition().getValueAsDouble());
+    }
+
+    @Override
+    public void periodic(){
+        SmartDashboard.putNumber("intake angle", getPivotAngle().in(Degrees));
+        SmartDashboard.putNumber("intake pid error", Units.rotationsToDegrees(locationMotor.getClosedLoopError().getValueAsDouble()));
     }
 
     public class ChangeStates extends Command {
         private IntakeState state;
 
-        private double currentLocation;
-
         public ChangeStates(IntakeState state) {
             this.state = state;
-
-            currentLocation = 0;
-
             addRequirements(Intake.this);
         }
 
         @Override
         public void initialize() {
-            if (state.rotationLocation != currentLocation) { 
-                Intake.this.setLocation(state.rotationLocation);
-            }
             Intake.this.setSpinSpeed(state.spinSpeed);
-
-            currentLocation = state.rotationLocation;
+            setLocation(state.rotationLocation);
         }
 
         @Override
         public void end(boolean interrupt) {
-            if (interrupt) {
-                Intake.this.setLocation(0);
+            Intake.this.setSpinSpeed(IntakeState.STOP.spinSpeed);
+        }
+    }
+    
+    public class CompressIntake extends Command{
+        private Timer timer;
+
+        public CompressIntake(){
+            timer = new Timer();
+        }
+
+        @Override
+        public void initialize(){
+            timer.reset();
+        }
+
+        @Override
+        public void execute(){
+            double pidOutput = IntakeConstants.compressPID.calculate(getPivotAngle().in(Radians), IntakeState.UP_OFF.rotationLocation.in(Radians));
+            setPivotPercentage(pidOutput);
+        }
+    }
+
+    public class BounceIntake extends Command{
+
+        public BounceIntake(){
+
+        }
+
+        @Override
+        public void initialize(){
+            setLocation(IntakeState.UP_OFF.rotationLocation);
+        }
+
+        @Override
+        public void execute(){
+            if(getPivotAngle().isNear( IntakeState.DOWN_OFF.rotationLocation, Degrees.of(5))){
+                setLocation(IntakeState.UP_OFF.rotationLocation);
             }
-            
-            Intake.this.setSpinSpeed(0);
+            if(getPivotAngle().isNear( IntakeState.UP_OFF.rotationLocation, Degrees.of(5))){
+                setLocation(IntakeState.DOWN_OFF.rotationLocation);
+            }
         }
     }
 }

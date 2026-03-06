@@ -17,6 +17,7 @@ import com.therekrab.autopilot.Autopilot;
 
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -24,7 +25,9 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -45,13 +48,6 @@ import edu.wpi.first.wpilibj.util.Color;
  * constants are needed, to reduce verbosity.
  */
 public final class Constants {
-  public static class HoodConstants {
-    public static final double kI = 0;
-    public static final double kD = 0;
-    public static final double kP = 0.01;
-    // oriinal hood id was 3, but i had to change it because it was messing with the drivetrain
-    public static final int HoodId = 11; //fix this
-  }
 
   public static class ClimberConstants {
     public static final double kI = 0;
@@ -93,23 +89,44 @@ public final class Constants {
   }
 
   public static class IntakeConstants{
-    public static final double kI = 0;
-    public static final double kD = 0;
-    public static final double kP = 0.01;
+    public static final double kAngleI = 0.1;
+    public static final double kAngleD = 0;
+    public static final double kAngleP = 10;
+    public static final double kAngleG = 0.05;
 
-    public static final int kIntakeLocationId = 9; //I don't know the port, change once known.
-    public static final int kIntakeSpinId = 10;
+    public static final int kAngleEncoderId = 1;
+    public static final int kAngleId = 6; //youre welcome Faye
+    public static final int kIntakeSpinId = 7;
 
-    public static final double kLocationGearRatio = 1.0 / 2.0;
+    public static final Angle kEncoderOffset = Degrees.of(80);
+    public static final double kMotorToSensorRatio = 50;
+    public static final double kSensorToMechanismRatio = 1;
+
+    // public static final double kLocationGearRatio = 1.0 / 2.0;
     public static final double kSpinGearRatio = 1.0 / 5.0;
 
-    public static enum IntakeState {
-      DOWN_ON(0.25, 0.5), DOWN_OFF(0.25, 0), UP_OFF(0, 0), STOP(0, 0); 
+    /** Units: rad/s */
+    public static final double kCompressRate = 1;
+    public static final double kCompressP = 1;
+    public static final double kCompressI = 0;
+    public static final double kCompressD = 0;
+    public static final ProfiledPIDController compressPID = new ProfiledPIDController(
+      kCompressP,
+      kCompressI,
+      kCompressD,
+      new TrapezoidProfile.Constraints(kCompressRate, 1));
 
-      public final double rotationLocation;
+    public static enum IntakeState {
+      DOWN_ON(Degrees.of(-12), 0.75), 
+      DOWN_OFF(Degrees.of(-12), 0), 
+      DOWN_REV(Degrees.of(-12), -0.75),
+      UP_OFF(Degrees.of(130), 0), 
+      STOP(Degrees.of(130), 0); 
+
+      public final Angle rotationLocation;
       public final double spinSpeed;
 
-      private IntakeState(double location, double speed){
+      private IntakeState(Angle location, double speed){
         rotationLocation = location;
         spinSpeed = speed;
       }
@@ -176,14 +193,25 @@ public final class Constants {
     }
 
   public static class ShooterConstants {
+
+    public static final double kHoodI = 0;
+    public static final double kHoodD = 0;
+    public static final double kHoodP = 0.01;
+    // oriinal hood id was 3, but i had to change it because it was messing with the drivetrain
+    public static final int HoodId = 20; //fix this
+    public static final int kHoodEncoderID = 2;
+
+    public static final double kSensorToMechanismRatio = 3;
+    public static final double kMotorToSensorRatio = 4;
+
     //Motor Config and PID
     public static final double kP = 0.01;
     public static final double kI = 0;
     public static final double kD = 0;
-    public static final int ShooterIDOne = 4;
-    public static final int ShooterIDTwo = 5;
-    public static final int ShooterIDThree = 6;
-    public static final int ShooterIDFour = 7;
+    public static final int ShooterIDOne = 9;
+    public static final int ShooterIDTwo = 10;
+    public static final int ShooterIDThree = 11;
+    public static final int ShooterIDFour = 12;
 
 
     //TODO: find ball launch velocity
