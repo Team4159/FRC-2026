@@ -10,9 +10,6 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 public class FluentTrigger {
-    private record CommandBind(Trigger trigger, Command command, int priority) {
-    }
-
     private class TriggerState {
         private final int priority;
 
@@ -23,7 +20,7 @@ public class FluentTrigger {
 
     // the most recently appended state is prioritized first
     private final ArrayList<TriggerState> stateList = new ArrayList<>();
-    private final Map<TriggerState, CommandBind> stateCommandMap = new HashMap<>();
+    private final Map<TriggerState, Command> stateCommandMap = new HashMap<>();
 
     private Command activeCommand;
     private Command defaultCommand;
@@ -47,10 +44,9 @@ public class FluentTrigger {
 
     public FluentTrigger bind(int priority, Trigger trigger, Command command) {
         TriggerState state = new TriggerState(priority);
-        CommandBind triggerCommandBind = new CommandBind(trigger, command, priority);
-        triggerCommandBind.trigger.onTrue(new InstantCommand(() -> addQueue(state)));
-        triggerCommandBind.trigger.onFalse(new InstantCommand(() -> removeQueue(state)));
-        stateCommandMap.put(state, triggerCommandBind);
+        trigger.onTrue(new InstantCommand(() -> addQueue(state)));
+        trigger.onFalse(new InstantCommand(() -> removeQueue(state)));
+        stateCommandMap.put(state, command);
         return this;
     }
 
@@ -96,7 +92,7 @@ public class FluentTrigger {
         }
 
         Command oldActiveCommand = activeCommand;
-        activeCommand = stateCommandMap.get(nextState).command;
+        activeCommand = stateCommandMap.get(nextState);
 
         boolean activeCommandChanged = (activeCommand != oldActiveCommand);
         if (activeCommandChanged && oldActiveCommand != null) {
