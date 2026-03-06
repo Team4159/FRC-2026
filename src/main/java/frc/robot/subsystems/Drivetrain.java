@@ -79,6 +79,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
 
     private boolean reduceSpeedEnabled = false;
     private boolean driveAssistEnabled = true;
+    private boolean autoBrakeEnabled = true;
 
     private Optional<Rotation2d> desiredRotation = Optional.empty();
 
@@ -177,7 +178,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         private Supplier<SwerveRequest> getDriveSupplier(DriveMode driveMode) {
             return () -> switch (driveMode) {
                 case FREE -> {
-                    if (isInputIdle()) {
+                    if (autoBrakeEnabled && isInputIdle()) {
                         if (desiredRotation.isPresent()) {
                             if (Math.abs(getState().Pose.getRotation().minus(desiredRotation.get()).getMeasure()
                                     .baseUnitMagnitude()) < kPrimaryAutoBrakeReachedDesiredAngleTolerance
@@ -265,7 +266,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                             .withTargetDirection(rotation);
                 }
                 case RADIAL -> {
-                    if (isInputIdle()) {
+                    if (autoBrakeEnabled && isInputIdle()) {
                         yield brakeDrive;
                     }
                     double radialInput = MathUtil.applyDeadband(inputX.get(), kPrimaryRadialModeDeadband, 1);
@@ -313,6 +314,10 @@ public class Drivetrain extends CommandSwerveDrivetrain {
 
     public void enableDriveAssist(boolean enabled) {
         this.driveAssistEnabled = enabled;
+    }
+
+    public void enableAutoBrake(boolean enabled) {
+        this.autoBrakeEnabled = enabled;
     }
 
     public void setDesiredRotation(Rotation2d desiredRotation) {
