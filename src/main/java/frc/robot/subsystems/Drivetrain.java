@@ -170,16 +170,8 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         private Supplier<SwerveRequest> getDriveSupplier(DriveMode driveMode) {
             return () -> switch (driveMode) {
                 case FREE -> {
-                    if (autoBrakeEnabled && isInputIdle()) {
-                        if (desiredRotation.isPresent()) {
-                            if (Math.abs(getState().Pose.getRotation().minus(desiredRotation.get()).getMeasure()
-                                    .baseUnitMagnitude()) < kPrimaryAutoBrakeReachedDesiredAngleTolerance
-                                            .baseUnitMagnitude()) {
-                                yield brakeDrive;
-                            }
-                        } else {
-                            yield brakeDrive;
-                        }
+                    if (canAutoBrake()) {
+                        yield brakeDrive;
                     }
                     if (robotRelativeSupplier.getAsBoolean()) {
                         if (desiredRotation.isPresent()) {
@@ -258,7 +250,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                             .withTargetDirection(rotation);
                 }
                 case RADIAL -> {
-                    if (autoBrakeEnabled && isInputIdle()) {
+                    if (canAutoBrake()) {
                         yield brakeDrive;
                     }
                     double radialInput = MathUtil.applyDeadband(inputX.get(), kPrimaryRadialModeDeadband, 1);
@@ -415,14 +407,29 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     }
 
     /**
-     * @return {@Code true} if there is no joystick input
+     * @return {@Code true} if there is no joystick input and the desired rotation
+     *         has been reached
      */
-    public boolean isInputIdle() {
+    public boolean isDriveIdle() {
         boolean noInputRotation = true;
         if (desiredRotation.isPresent()) {
             noInputRotation = getInputRotation().isEmpty();
         }
         return getInputTranslation(false).getNorm() == 0.0 && getInputRotationVelocity() == 0.0 && noInputRotation;
+    }
+
+    public boolean isAtDesiredRotation() {
+        if (desiredRotation.isEmpty()) {
+            return false;
+        }
+        return Math.abs(getState().Pose.getRotation().minus(desiredRotation.get()).getMeasure()
+                    .baseUnitMagnitude()) < kPrimaryAutoBrakeReachedDesiredAngleTolerance
+                            .baseUnitMagnitude();
+    }
+
+    public boolean canAutoBrake() {
+        boolean atDesiredRotation = (desiredRotation.isEmpty() ? true : isAtDesiredRotation());
+        return autoBrakeEnabled && isDriveIdle() && atDesiredRotation;
     }
 
 }
