@@ -45,24 +45,24 @@ public class PhotonVision extends SubsystemBase{
 
     private void processingCamera(PhotonCamera camera, PhotonPoseEstimator estimatorSelf, PhotonPoseEstimator estimatorOther) {
 
-        Optional<EstimatedRobotPose> pose = estimatorSelf.estimateCoprocMultiTagPose(result);
+        
 
         // async call for the most relevant frame
-        camera.getLatestResultAsync().thenAccept(result -> {
-            
+        camera.getLatestResult().thenAccept(PhotonPipelineResult result -> {
+            Optional<EstimatedRobotPose> pose = estimatorSelf.estimateCoprocMultiTagPose(result);
             //LEFT
             //if there is single tag
-            if(!CameraShooterEstimate.isPresent()){
+            if(!estimatorSelf.isPresent()){
                 //self would be estimator
                 //the opposite camera would be otherEstimator
                 //leftShooterEstimate = rightShooterEstimator.estimateLowestAmbiguityPose(leftShooterCamResult);
-                CameraShooterEstimate = estimatorOther.estimateLowestAmbiguityPose(ShooterCamResult)
+                estimatorSelf = estimatorOther.estimateLowestAmbiguityPose(ShooterCamResult);
             }
             else{
                 //set standard deviation
-                drivetrain.setVisionMeasurementStdDevs(calculateEstimationStdDevs(CameraShooterEstimate, ShooterCamResult.targets, estimatorSelf));
+                drivetrain.setVisionMeasurementStdDevs(calculateEstimationStdDevs(estimatorSelf, ShooterCamResult.targets, estimatorSelf));
 
-                drivetrain.addVisionMeasurement(CameraShooterEstimate.get().estimatedPose.toPose2d(), CameraShooterEstimate.get().timestampSeconds);
+                drivetrain.addVisionMeasurement(estimatorSelf.get().estimatedPose.toPose2d(), estimatorSelf.get().timestampSeconds);
             }
 
         });
