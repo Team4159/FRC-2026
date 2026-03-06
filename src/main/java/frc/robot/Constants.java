@@ -24,6 +24,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -72,8 +73,12 @@ public final class Constants {
         public static final double kTrenchAssistAlignInfluence = 0.15;
 
         // drive mode constants
+        public static final Angle kPrimaryAutoBrakeReachedDesiredAngleTolerance = Degrees.of(0.5);
+
         public static final double kPrimaryReduceSpeedTranslationFactor = 0.25;
         public static final double kPrimaryReduceSpeedRotationFactor = 1;
+
+        public static final double kPrimaryIntakeRotationInputDeadzone = 0.2;
 
         public static final double kPrimaryRadialModeDeadband = 0.2;
 
@@ -191,7 +196,6 @@ public final class Constants {
         public static final Autopilot kAlignController = new Autopilot(kAlignProfile);
 
         public static enum TowerAlignGoal {
-            // TODO: decide if LEFT and RIGHT should have an alignment setpoint or just an entry angle
             LEFT(
                     new APTarget(new Pose2d(FieldConstants.kTowerX,
                             FieldConstants.kTowerY.plus(FieldConstants.kTowerWidth.div(2))

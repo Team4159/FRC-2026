@@ -4,9 +4,7 @@ import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
 import com.therekrab.autopilot.APTarget;
 import com.therekrab.autopilot.Autopilot.APResult;
 
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -37,19 +35,32 @@ public class AutoAlign extends Command {
 
     @Override
     public void execute() {
-        SwerveDriveState drivetrainState = drivetrain.getState();
-        Pose2d drivetrainPose = drivetrainState.Pose;
-        ChassisSpeeds drivetrainSpeeds = drivetrainState.Speeds;
-
-        if (AlignConstants.kAlignController.atTarget(drivetrainPose, currentTarget)) {
+        boolean atTarget = AlignConstants.kAlignController.atTarget(drivetrain.getState().Pose, currentTarget);
+        boolean targetIsIntermediate = (progress < goal.targets.length - 1);
+        if (atTarget && targetIsIntermediate) {
             progress++;
-            if (progress >= goal.targets.length) {
-                return;
-            }
             currentTarget = getNextTarget(progress);
         }
 
-        APResult result = AlignConstants.kAlignController.calculate(drivetrainPose, drivetrainSpeeds,
+        if (atTarget && !targetIsIntermediate) {
+            idle();
+        } else {
+            alignToTarget();
+        }
+    }
+
+    @Override
+    public boolean isFinished() {
+        return false;
+    }
+
+    private void idle() {
+        drivetrain.setControl(drivetrain.idleDrive);
+    }
+
+    private void alignToTarget() {
+        SwerveDriveState drivetrainState = drivetrain.getState();
+        APResult result = AlignConstants.kAlignController.calculate(drivetrainState.Pose, drivetrainState.Speeds,
                 currentTarget);
 
         LinearVelocity velocityX = result.vx();
@@ -61,11 +72,6 @@ public class AutoAlign extends Command {
                         .withVelocityX(velocityX)
                         .withVelocityY(velocityY)
                         .withTargetDirection(targetDirection));
-    }
-
-    @Override
-    public boolean isFinished() {
-        return progress >= goal.targets.length;
     }
 
     private APTarget getNextTarget(int progress) {

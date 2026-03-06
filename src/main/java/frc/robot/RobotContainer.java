@@ -4,11 +4,8 @@
 
 package frc.robot;
 
-import java.util.Optional;
-
 import choreo.auto.AutoChooser;
 import choreo.auto.AutoFactory;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -43,7 +40,8 @@ public class RobotContainer {
     // primaryController.povUp();
     // private final Trigger primaryMiddleBackClimbAlignTrigger =
     // primaryController.povDown();
-    private final Trigger primaryFacingAngleTrigger = primaryController.rightStick();
+    // private final Trigger primaryFacingAngleTrigger =
+    // primaryController.rightStick();
 
     public final Drivetrain drivetrain = new Drivetrain(primaryController);
 
@@ -80,40 +78,45 @@ public class RobotContainer {
         primaryController.b().and(DriverStation::isTest).whileTrue(drivetrain.new Drive(DriveMode.POINT));
 
         // teleop mode
-        primaryRobotManualAlignModeTrigger.and(DriverStation::isTeleop)
-                .whileTrue(drivetrain.new Drive(DriveMode.MANUAL_ALIGN,
-                        primaryRobotRelativeTrigger::getAsBoolean));
-        primaryIntakeLeftModeTrigger.and(DriverStation::isTeleop).whileTrue(drivetrain.new Drive(DriveMode.INTAKE_LEFT));
-        primaryIntakeRightModeTrigger.and(DriverStation::isTeleop).whileTrue(drivetrain.new Drive(DriveMode.INTAKE_RIGHT));
-        primaryRadialModeTrigger.and(DriverStation::isTeleop).whileTrue(drivetrain.new Drive(DriveMode.RADIAL));
         primaryReduceSpeedTrigger.and(DriverStation::isTeleop).onChange(
                 Commands.runOnce(() -> drivetrain.enableReduceSpeed(primaryReduceSpeedTrigger.getAsBoolean())));
         primaryDriverAssistTrigger.and(DriverStation::isTeleop).onChange(
                 Commands.runOnce(() -> drivetrain.enableDriveAssist(!primaryDriverAssistTrigger.getAsBoolean())));
-        primaryLeftClimbAlignTrigger.and(DriverStation::isTeleop)
-                .whileTrue(new AutoAlign(drivetrain, TowerAlignGoal.LEFT));
-        primaryRightClimbAlignTrigger.and(DriverStation::isTeleop)
-                .whileTrue(new AutoAlign(drivetrain, TowerAlignGoal.RIGHT));
+        FluentTrigger.build()
+                .bind(1, primaryLeftClimbAlignTrigger.and(DriverStation::isTeleop),
+                        new AutoAlign(drivetrain, TowerAlignGoal.LEFT))
+                .bind(1, primaryRightClimbAlignTrigger.and(DriverStation::isTeleop),
+                        new AutoAlign(drivetrain, TowerAlignGoal.RIGHT))
+                .bind(0, primaryRobotManualAlignModeTrigger.and(DriverStation::isTeleop),
+                        drivetrain.new Drive(DriveMode.MANUAL_ALIGN,
+                                primaryRobotRelativeTrigger::getAsBoolean))
+                .bind(0, primaryIntakeLeftModeTrigger.and(DriverStation::isTeleop),
+                        drivetrain.new Drive(DriveMode.INTAKE_LEFT))
+                .bind(0, primaryIntakeRightModeTrigger.and(DriverStation::isTeleop),
+                        drivetrain.new Drive(DriveMode.INTAKE_RIGHT))
+                .bind(0, primaryRadialModeTrigger.and(DriverStation::isTeleop), drivetrain.new Drive(DriveMode.RADIAL));
+
         // primaryMiddleFrontClimbAlignTrigger.and(DriverStation::isTeleop).onTrue(new
         // AutoAlign(drivetrain, TowerAlignGoal.MIDDLE_FRONT,
         // primaryRobotRelativeTrigger));
         // primaryMiddleBackClimbAlignTrigger.and(DriverStation::isTeleop).onTrue(new
         // AutoAlign(drivetrain, TowerAlignGoal.MIDDLE_BACK,
         // primaryRobotRelativeTrigger));
-        FluentTrigger.build()
-                .setDefault(Commands.runOnce(drivetrain::clearDesiredRotation))
-                .bind(primaryFacingAngleTrigger.and(DriverStation::isTeleop),
-                        Commands.runOnce(() -> HIDRumble.rumble(primaryController.getHID(),
-                                new RumbleRequest(RumbleType.kLeftRumble, 0.25, 0.25)))
-                                .andThen(Commands.run(() -> {
-                                    Optional<Rotation2d> desiredRotation = drivetrain.getInputRotation();
-                                    if (desiredRotation.isEmpty()) {
-                                        return;
-                                    }
-                                    drivetrain.setDesiredRotation(desiredRotation.get());
-                                }))
-                                .finallyDo(() -> HIDRumble.rumble(primaryController.getHID(),
-                                        new RumbleRequest(RumbleType.kLeftRumble, 0.25, 0.25))));
+
+        // FluentTrigger.build()
+        // .setDefault(Commands.runOnce(drivetrain::clearDesiredRotation))
+        // .bind(primaryFacingAngleTrigger.and(DriverStation::isTeleop),
+        // Commands.runOnce(() -> HIDRumble.rumble(primaryController.getHID(),
+        // new RumbleRequest(RumbleType.kLeftRumble, 0.25, 0.25)))
+        // .andThen(Commands.run(() -> {
+        // var desiredRotation = drivetrain.getInputRotation();
+        // if (desiredRotation.isEmpty()) {
+        // return;
+        // }
+        // drivetrain.setDesiredRotation(desiredRotation.get());
+        // }))
+        // .finallyDo(() -> HIDRumble.rumble(primaryController.getHID(),
+        // new RumbleRequest(RumbleType.kLeftRumble, 0.25, 0.25))));
 
         // Reset the field-centric heading on left bumper press.
         primaryZeroTrigger.onTrue(Commands.runOnce(() -> {

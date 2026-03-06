@@ -106,8 +106,8 @@ public class Drivetrain extends CommandSwerveDrivetrain {
             addRequirements(Drivetrain.this);
         }
 
-        public Drive(DriveMode mode) {
-            this(mode, () -> false);
+        public Drive(DriveMode driveMode) {
+            this(driveMode, () -> false);
         }
 
         @Override
@@ -179,9 +179,9 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                 case FREE -> {
                     if (isInputIdle()) {
                         if (desiredRotation.isPresent()) {
-                            if (Math.abs(Math
-                                    .abs(getState().Pose.getRotation().minus(desiredRotation.get())
-                                            .getDegrees())) < 1.0) {
+                            if (Math.abs(getState().Pose.getRotation().minus(desiredRotation.get()).getMeasure()
+                                    .baseUnitMagnitude()) < kPrimaryAutoBrakeReachedDesiredAngleTolerance
+                                            .baseUnitMagnitude()) {
                                 yield brakeDrive;
                             }
                         } else {
@@ -239,30 +239,30 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                             .withRotationalRate(rotationalRate);
                 }
                 case INTAKE_LEFT -> {
-                    // TODO: decide whats the optimal deadzone or have some heuristic to check if
-                    // the joystick was released
-                    if (Math.hypot(getInputX(true), getInputY(true)) >= 0.2) {
-                        Rotation2d rotation = new Rotation2d(getInputX(true), getInputY(true)).plus(new Rotation2d(Degrees.of(45.0)));
-                        yield fieldCentricFacingAngleDrive
+                    if (Math.hypot(getInputX(true), getInputY(true)) < kPrimaryIntakeRotationInputDeadzone) {
+                        yield fieldCentricDrive
                                 .withVelocityX(getSpeedX(true))
-                                .withVelocityY(getSpeedY(true))
-                                .withTargetDirection(rotation);
+                                .withVelocityY(getSpeedY(true));
                     }
-                    yield fieldCentricDrive
+                    Rotation2d rotation = new Rotation2d(getInputX(true), getInputY(true))
+                            .plus(new Rotation2d(Degrees.of(45.0)));
+                    yield fieldCentricFacingAngleDrive
                             .withVelocityX(getSpeedX(true))
-                            .withVelocityY(getSpeedY(true));
+                            .withVelocityY(getSpeedY(true))
+                            .withTargetDirection(rotation);
                 }
                 case INTAKE_RIGHT -> {
-                    if (Math.hypot(getInputX(true), getInputY(true)) >= 0.2) {
-                        Rotation2d rotation = new Rotation2d(getInputX(true), getInputY(true)).minus(new Rotation2d(Degrees.of(45.0)));
-                        yield fieldCentricFacingAngleDrive
+                    if (Math.hypot(getInputX(true), getInputY(true)) < kPrimaryIntakeRotationInputDeadzone) {
+                        yield fieldCentricDrive
                                 .withVelocityX(getSpeedX(true))
-                                .withVelocityY(getSpeedY(true))
-                                .withTargetDirection(rotation);
+                                .withVelocityY(getSpeedY(true));
                     }
-                    yield fieldCentricDrive
+                    Rotation2d rotation = new Rotation2d(getInputX(true), getInputY(true))
+                            .minus(new Rotation2d(Degrees.of(45.0)));
+                    yield fieldCentricFacingAngleDrive
                             .withVelocityX(getSpeedX(true))
-                            .withVelocityY(getSpeedY(true));
+                            .withVelocityY(getSpeedY(true))
+                            .withTargetDirection(rotation);
                 }
                 case RADIAL -> {
                     if (isInputIdle()) {
@@ -353,7 +353,8 @@ public class Drivetrain extends CommandSwerveDrivetrain {
 
         // apply exponent
         if (filteredInputVector.norm() > 0.0) {
-            filteredInputVector = filteredInputVector.unit().times(Math.pow(filteredInputVector.norm(), kPrimaryTranslationExponent));
+            filteredInputVector = filteredInputVector.unit()
+                    .times(Math.pow(filteredInputVector.norm(), kPrimaryTranslationExponent));
         }
 
         // clamp values
