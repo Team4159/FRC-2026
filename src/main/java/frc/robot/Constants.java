@@ -9,6 +9,12 @@ import static frc.robot.Constants.DrivetrainConstants.kMaxTranslationSpeed;
 
 import java.util.Map;
 
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.configs.MotionMagicConfigs;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
+import com.ctre.phoenix6.signals.GravityTypeValue;
+import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.ctre.phoenix6.swerve.utility.PhoenixPIDController;
 import com.therekrab.autopilot.APConstraints;
 import com.therekrab.autopilot.APProfile;
@@ -53,11 +59,11 @@ public final class Constants {
     public static final double kI = 0;
     public static final double kD = 0;
     public static final double kP = 0;
-    public static final int idClimberOne = 9;
-    public static final int idClimberTwo = 10;
+    public static final int idClimberOne = 15;
+    // public static final int idClimberTwo = 10;
 
     public static enum ClimberState {
-      CLIMB(1),STOP(0),DOWN(-1);
+      CLIMB(0.25),STOP(0),DOWN(-0.25);
       public double percentage;
       private ClimberState(double speed) {
         percentage = speed;
@@ -91,8 +97,17 @@ public final class Constants {
   public static class IntakeConstants{
     public static final double kAngleI = 0.1;
     public static final double kAngleD = 0;
-    public static final double kAngleP = 10;
-    public static final double kAngleG = 0.05;
+    public static final double kAngleP = 20;
+    public static final double kAngleG = 0.08;
+
+    //motion magic
+    public static final double kFastCruiseVelocity = 160;
+    public static final double kFastAcceleration = 500;
+    public static final double kFastJerk = 1600;
+
+    public static final double kSlowCruiseVelocity = 1;
+    public static final double kSlowAcceleration = 5;
+    public static final double kSlowJerk = 1600;
 
     public static final int kAngleEncoderId = 1;
     public static final int kAngleId = 6; //youre welcome Faye
@@ -102,6 +117,39 @@ public final class Constants {
     public static final double kMotorToSensorRatio = 50;
     public static final double kSensorToMechanismRatio = 1;
 
+    //motor configs
+    public static final CANcoderConfiguration canCoderConfig = new CANcoderConfiguration(){{
+      MagnetSensor.withAbsoluteSensorDiscontinuityPoint(Rotations.of(0.5));
+      MagnetSensor.SensorDirection = SensorDirectionValue.Clockwise_Positive;
+      MagnetSensor.withMagnetOffset(IntakeConstants.kEncoderOffset);
+    }};
+
+    public static final TalonFXConfiguration angleConfig = new TalonFXConfiguration(){{
+      Slot0.kP = IntakeConstants.kAngleP;  
+      Slot0.kI = IntakeConstants.kAngleI;
+      Slot0.kD = IntakeConstants.kAngleD;
+      Slot0.kG = IntakeConstants.kAngleG;
+      Slot0.withGravityType(GravityTypeValue.Arm_Cosine);
+      //abs encoder
+      Feedback.FeedbackRemoteSensorID = IntakeConstants.kAngleEncoderId;
+      Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
+      Feedback.SensorToMechanismRatio = IntakeConstants.kSensorToMechanismRatio;
+      Feedback.RotorToSensorRatio = IntakeConstants.kMotorToSensorRatio;
+    }};
+
+    //motion magic
+    public static final MotionMagicConfigs kFastMotionMagicConfig = new MotionMagicConfigs(){{
+      MotionMagicCruiseVelocity = IntakeConstants.kFastCruiseVelocity; // Target cruise velocity of 80 rps
+      MotionMagicAcceleration = IntakeConstants.kFastAcceleration; // Target acceleration of 160 rps/s (0.5 seconds)
+      MotionMagicJerk = IntakeConstants.kFastJerk; // Target jerk of 1600 rps/s/s (0.1 seconds)
+    }};
+
+    public static final MotionMagicConfigs kSlowMotionMagicConfig = new MotionMagicConfigs(){{
+      MotionMagicCruiseVelocity = IntakeConstants.kSlowCruiseVelocity;
+      MotionMagicAcceleration = IntakeConstants.kSlowAcceleration;
+      MotionMagicJerk = IntakeConstants.kSlowJerk;
+    }};
+    
     // public static final double kLocationGearRatio = 1.0 / 2.0;
     public static final double kSpinGearRatio = 1.0 / 5.0;
 
@@ -197,12 +245,46 @@ public final class Constants {
     public static final double kHoodI = 0;
     public static final double kHoodD = 0;
     public static final double kHoodP = 0.01;
-    // oriinal hood id was 3, but i had to change it because it was messing with the drivetrain
+    public static final double kHoodG = 0.001;
+
+    //abs encoder
     public static final int HoodId = 20; //fix this
     public static final int kHoodEncoderID = 2;
-
+    public static final Angle kEncoderOffset = Degrees.of(0);
     public static final double kSensorToMechanismRatio = 3;
     public static final double kMotorToSensorRatio = 4;
+
+    public static final double kCruiseVelocity = 80;
+    public static final double kAcceleration = 160;
+    public static final double kJerk = 1600;
+
+    //hood cancoder
+    public static final CANcoderConfiguration canCoderConfig = new CANcoderConfiguration(){{
+      MagnetSensor.withAbsoluteSensorDiscontinuityPoint(Rotations.of(0.5));
+      MagnetSensor.SensorDirection = SensorDirectionValue.Clockwise_Positive;
+      MagnetSensor.withMagnetOffset(ShooterConstants.kEncoderOffset);
+    }};
+
+    //motion magic
+    public static final MotionMagicConfigs kHoodMotionMagicConfig = new MotionMagicConfigs(){{
+      MotionMagicCruiseVelocity = ShooterConstants.kCruiseVelocity; // Target cruise velocity of 80 rps
+      MotionMagicAcceleration = ShooterConstants.kAcceleration; // Target acceleration of 160 rps/s (0.5 seconds)
+      MotionMagicJerk = ShooterConstants.kJerk; // Target jerk of 1600 rps/s/s (0.1 seconds)
+    }};
+    //hood motor conifg
+    public static final TalonFXConfiguration hoodConfig = new TalonFXConfiguration(){{
+      Slot0.kP = ShooterConstants.kHoodP;  
+      Slot0.kI = ShooterConstants.kHoodI;
+      Slot0.kD = ShooterConstants.kHoodD;
+      Slot0.kG = ShooterConstants.kHoodG;
+      Slot0.withGravityType(GravityTypeValue.Arm_Cosine);
+      //abs encoder
+      Feedback.FeedbackRemoteSensorID = ShooterConstants.kHoodEncoderID;
+      Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
+      Feedback.SensorToMechanismRatio = ShooterConstants.kSensorToMechanismRatio;
+      Feedback.RotorToSensorRatio = ShooterConstants.kMotorToSensorRatio;
+      MotionMagic = kHoodMotionMagicConfig;
+    }};
 
     //Motor Config and PID
     public static final double kP = 0.01;

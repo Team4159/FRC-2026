@@ -23,12 +23,14 @@ import frc.lib.HIDRumble;
 import frc.lib.HIDRumble.RumbleRequest;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.AlignConstants.TowerAlignGoal;
+import frc.robot.Constants.ClimberConstants.ClimberState;
 import frc.robot.Constants.OperatorConstants.DriveMode;
 import frc.robot.Constants.FeederConstants.FeederState;
 import frc.robot.Constants.HopperConstants.HopperState;
 import frc.robot.Constants.IntakeConstants.IntakeState;
 import frc.robot.commands.AutoAim;
 import frc.robot.commands.AutoAlign;
+import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.LEDs;
 import frc.robot.subsystems.Hopper;
@@ -71,11 +73,15 @@ public class RobotContainer {
     private final Trigger compressIntakeTrigger = secondaryController.a();
     private final Trigger bounceIntakeTrigger = secondaryController.b();
 
+    private final Trigger raiseClimbTrigger = secondaryController.povLeft();
+    private final Trigger lowerClimbTrigger = secondaryController.povRight();
+
     //Subsystems
     private final Intake intake = new Intake();
     private final Shooter shooter = new Shooter();
     private final Hopper hopper = new Hopper();
     private final LEDs leds = new LEDs();
+    private final Climber climber = new Climber();
     private final Drivetrain drivetrain = new Drivetrain(primaryController);
 
     /* Path follower */
@@ -167,6 +173,9 @@ public class RobotContainer {
         outtakeTrigger.whileTrue(intake.new ChangeStates(IntakeState.DOWN_REV));
         compressIntakeTrigger.whileTrue(intake.new CompressIntake());
         bounceIntakeTrigger.whileTrue(intake.new BounceIntake());
+
+        raiseClimbTrigger.whileTrue(climber.new ChangeState(ClimberState.CLIMB));
+        lowerClimbTrigger.whileTrue(climber.new ChangeState(ClimberState.DOWN));
     }
 
     public Command getAutonomousCommand() {

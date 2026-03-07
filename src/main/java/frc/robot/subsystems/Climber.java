@@ -1,7 +1,5 @@
 package frc.robot.subsystems;
 
-import com.ctre.phoenix6.configs.Slot0Configs;
-import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.wpilibj2.command.Command;
@@ -11,40 +9,37 @@ import frc.robot.Constants.ClimberConstants.ClimberState;
 
 public class Climber extends SubsystemBase{
     private TalonFX climbMotorOne;
-    private TalonFX climbMotorTwo;
+    //private TalonFX climbMotorTwo;
     
-    private final VelocityVoltage climberVelocityVoltage;
+    //private final VelocityVoltage climberVelocityVoltage;
 
     public Climber(){
-        Slot0Configs climberConfigOne = new Slot0Configs();
-        climberConfigOne.kP = Constants.ClimberConstants.kP;
-        climberConfigOne.kI = Constants.ClimberConstants.kI;
-        climberConfigOne.kD = Constants.ClimberConstants.kD;
+        // Slot0Configs climberConfigOne = new Slot0Configs();
+        // climberConfigOne.kP = Constants.ClimberConstants.kP;
+        // climberConfigOne.kI = Constants.ClimberConstants.kI;
+        // climberConfigOne.kD = Constants.ClimberConstants.kD;
 
-        Slot0Configs climberConfigTwo = new Slot0Configs();
-        climberConfigTwo.kP = Constants.ClimberConstants.kP;
-        climberConfigTwo.kI = Constants.ClimberConstants.kI;
-        climberConfigTwo.kD = Constants.ClimberConstants.kD;
+        // Slot0Configs climberConfigTwo = new Slot0Configs();
+        // climberConfigTwo.kP = Constants.ClimberConstants.kP;
+        // climberConfigTwo.kI = Constants.ClimberConstants.kI;
+        // climberConfigTwo.kD = Constants.ClimberConstants.kD;
 
         climbMotorOne = new TalonFX(Constants.ClimberConstants.idClimberOne);
-        climbMotorTwo = new TalonFX(Constants.ClimberConstants.idClimberTwo);
+        // climbMotorTwo = new TalonFX(Constants.ClimberConstants.idClimberTwo);
 
-        climbMotorOne.getConfigurator().apply(climberConfigOne);
-        climbMotorTwo.getConfigurator().apply(climberConfigTwo);
+        // climbMotorOne.getConfigurator().apply(climberConfigOne);
+        // climbMotorTwo.getConfigurator().apply(climberConfigTwo);
 
-        climberVelocityVoltage = new VelocityVoltage(0);
+        // climberVelocityVoltage = new VelocityVoltage(0);
     }
     
 
     public void setClimberSpeed(double climberSpeed){
-        climberVelocityVoltage.withVelocity(climberSpeed);
-        climbMotorOne.setControl(climberVelocityVoltage);
-        climbMotorTwo.setControl(climberVelocityVoltage);
+        climbMotorOne.set(climberSpeed);
     }
 
     public void stopClimber(){
-        climbMotorOne.setControl(climberVelocityVoltage.withVelocity(0));
-        climbMotorTwo.setControl(climberVelocityVoltage.withVelocity(0));
+        climbMotorOne.stopMotor();
     }
 
     public class ChangeState extends Command{
