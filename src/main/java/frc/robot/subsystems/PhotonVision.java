@@ -39,33 +39,32 @@ public class PhotonVision extends SubsystemBase{
         rightShooterEstimator = new PhotonPoseEstimator(aprilTagFieldLayout, Constants.PhotonVisionConstants.rightShooterCamTransform);
 
         //run left & right camera processing independently at ~100
+        //left
         addPeriodic(() -> processingCamera(leftShooterCam, leftShooterEstimator, rightShooterEstimator), 0.01);
+        //right
         addPeriodic(() -> processingCamera(rightShooterCam, rightShooterEstimator, leftShooterEstimator), 0.01);
     }
 
     private void processingCamera(PhotonCamera camera, PhotonPoseEstimator estimatorSelf, PhotonPoseEstimator estimatorOther) {
 
-        
-
-        // async call for the most relevant frame
-        camera.getLatestResult().thenAccept(PhotonPipelineResult result -> {
-            Optional<EstimatedRobotPose> pose = estimatorSelf.estimateCoprocMultiTagPose(result);
+        // async call for the most relevant frame //
+        PhotoPipelineResult result = camera.getLatestResult();
+        Optional<EstimatedRobotPose> shooterEstimate = estimatorSelf.estimateCoprocMultiTagPose(result);
             //LEFT
             //if there is single tag
-            if(!estimatorSelf.isPresent()){
-                //self would be estimator
-                //the opposite camera would be otherEstimator
-                //leftShooterEstimate = rightShooterEstimator.estimateLowestAmbiguityPose(leftShooterCamResult);
-                estimatorSelf = estimatorOther.estimateLowestAmbiguityPose(ShooterCamResult);
-            }
-            else{
-                //set standard deviation
-                drivetrain.setVisionMeasurementStdDevs(calculateEstimationStdDevs(estimatorSelf, ShooterCamResult.targets, estimatorSelf));
+        if(!shooterEstimate.isPresent()){
+            //self would be estimator
+            //the opposite camera would be otherEstimator
+            //leftShooterEstimate = rightShooterEstimator.estimateLowestAmbiguityPose(leftShooterCamResult);
+            shooterEstimate = estimatorOther.estimateLowestAmbiguityPose(result);
+        }
+        else{
+            //set standard deviation
+            drivetrain.setVisionMeasurementStdDevs(calculateEstimationStdDevs(shooterEstimate, result.targets, estimatorSelf));
 
-                drivetrain.addVisionMeasurement(estimatorSelf.get().estimatedPose.toPose2d(), estimatorSelf.get().timestampSeconds);
-            }
+            drivetrain.addVisionMeasurement(shooterEstimate.get().estimatedPose.toPose2d(), shooterEstimate.get().timestampSeconds);
+        }
 
-        });
     }
 
 
