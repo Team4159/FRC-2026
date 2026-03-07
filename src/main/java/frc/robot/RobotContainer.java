@@ -27,9 +27,10 @@ public class RobotContainer {
     private final CommandXboxController primaryController = new CommandXboxController(
             OperatorConstants.kPrimaryControllerPort);
     private final Trigger primaryZeroTrigger = primaryController.back();
+    private final Trigger primaryIntakeForwardModeTrigger = primaryController.y();
     private final Trigger primaryIntakeLeftModeTrigger = primaryController.x();
     private final Trigger primaryIntakeRightModeTrigger = primaryController.b();
-    private final Trigger primaryRadialModeTrigger = primaryController.y();
+    //private final Trigger primaryRadialModeTrigger = primaryController.y();
     private final Trigger primaryRobotManualAlignModeTrigger = primaryController.leftBumper();
     private final Trigger primaryRobotRelativeTrigger = primaryController.leftTrigger();
     private final Trigger primaryReduceSpeedTrigger = primaryController.rightTrigger();
@@ -95,11 +96,13 @@ public class RobotContainer {
                 .bind(0, primaryRobotManualAlignModeTrigger.and(DriverStation::isTeleop),
                         drivetrain.new Drive(DriveMode.MANUAL_ALIGN,
                                 primaryRobotRelativeTrigger::getAsBoolean))
+                .bind(0, primaryIntakeForwardModeTrigger.and(DriverStation::isTeleop),
+                              drivetrain.new Drive(DriveMode.INTAKE_FORWARD))
                 .bind(0, primaryIntakeLeftModeTrigger.and(DriverStation::isTeleop),
                         drivetrain.new Drive(DriveMode.INTAKE_LEFT))
                 .bind(0, primaryIntakeRightModeTrigger.and(DriverStation::isTeleop),
-                        drivetrain.new Drive(DriveMode.INTAKE_RIGHT))
-                .bind(0, primaryRadialModeTrigger.and(DriverStation::isTeleop), drivetrain.new Drive(DriveMode.RADIAL));
+                        drivetrain.new Drive(DriveMode.INTAKE_RIGHT));
+                // .bind(0, primaryRadialModeTrigger.and(DriverStation::isTeleop), drivetrain.new Drive(DriveMode.RADIAL));
 
         // primaryMiddleFrontClimbAlignTrigger.and(DriverStation::isTeleop).onTrue(new
         // AutoAlign(drivetrain, TowerAlignGoal.MIDDLE_FRONT,

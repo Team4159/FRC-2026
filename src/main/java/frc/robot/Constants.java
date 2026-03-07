@@ -60,6 +60,7 @@ public final class Constants {
             BRAKE,
             POINT,
             IDLE,
+            INTAKE_FORWARD,
             INTAKE_LEFT,
             INTAKE_RIGHT,
             RADIAL,

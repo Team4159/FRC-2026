@@ -128,6 +128,20 @@ public class Drivetrain extends CommandSwerveDrivetrain {
             return getInputRotationVelocity() * getMaxRotationSpeed();
         }
 
+        private SwerveRequest getIntakeDrive(Rotation2d rotationOffset) {
+            if (getInputTranslation(true).getNorm() < kPrimaryIntakeRotationInputDeadzone) {
+                return fieldCentricDrive
+                        .withVelocityX(getSpeedX(true))
+                        .withVelocityY(getSpeedY(true));
+            }
+            Rotation2d rotation = new Rotation2d(getInputX(true), getInputY(true))
+                    .plus(rotationOffset);
+            return fieldCentricFacingAngleDrive
+                    .withVelocityX(getSpeedX(true))
+                    .withVelocityY(getSpeedY(true))
+                    .withTargetDirection(rotation);
+        }
+
         private Optional<ChassisSpeeds> driveAssist() {
             if (!driveAssistEnabled || !DriverStation.isTeleop()) {
                 return Optional.empty();
@@ -223,31 +237,14 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                             .withVelocityY(velocityY)
                             .withRotationalRate(rotationalRate);
                 }
+                case INTAKE_FORWARD -> {
+                    yield getIntakeDrive(Rotation2d.kZero);
+                }
                 case INTAKE_LEFT -> {
-                    if (Math.hypot(getInputX(true), getInputY(true)) < kPrimaryIntakeRotationInputDeadzone) {
-                        yield fieldCentricDrive
-                                .withVelocityX(getSpeedX(true))
-                                .withVelocityY(getSpeedY(true));
-                    }
-                    Rotation2d rotation = new Rotation2d(getInputX(true), getInputY(true))
-                            .plus(new Rotation2d(Degrees.of(45.0)));
-                    yield fieldCentricFacingAngleDrive
-                            .withVelocityX(getSpeedX(true))
-                            .withVelocityY(getSpeedY(true))
-                            .withTargetDirection(rotation);
+                    yield getIntakeDrive(new Rotation2d(Degrees.of(45.0)));
                 }
                 case INTAKE_RIGHT -> {
-                    if (Math.hypot(getInputX(true), getInputY(true)) < kPrimaryIntakeRotationInputDeadzone) {
-                        yield fieldCentricDrive
-                                .withVelocityX(getSpeedX(true))
-                                .withVelocityY(getSpeedY(true));
-                    }
-                    Rotation2d rotation = new Rotation2d(getInputX(true), getInputY(true))
-                            .minus(new Rotation2d(Degrees.of(45.0)));
-                    yield fieldCentricFacingAngleDrive
-                            .withVelocityX(getSpeedX(true))
-                            .withVelocityY(getSpeedY(true))
-                            .withTargetDirection(rotation);
+                    yield getIntakeDrive(new Rotation2d(Degrees.of(-45.0)));
                 }
                 case RADIAL -> {
                     if (canAutoBrake()) {
@@ -423,8 +420,8 @@ public class Drivetrain extends CommandSwerveDrivetrain {
             return false;
         }
         return Math.abs(getState().Pose.getRotation().minus(desiredRotation.get()).getMeasure()
-                    .baseUnitMagnitude()) < kPrimaryAutoBrakeReachedDesiredAngleTolerance
-                            .baseUnitMagnitude();
+                .baseUnitMagnitude()) < kPrimaryAutoBrakeReachedDesiredAngleTolerance
+                        .baseUnitMagnitude();
     }
 
     public boolean canAutoBrake() {
