@@ -214,19 +214,37 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                         .withModuleDirection(new Rotation2d(getInputX(false), getInputY(false)));
                 case IDLE -> idleDrive;
                 case MANUAL_ALIGN -> {
-                    Translation2d rawInput = getRawInputTranslation(!robotRelativeSupplier.getAsBoolean());
-                    double x = Math.signum(MathUtil.applyDeadband(rawInput.getX(), kPrimaryAlignModeDeadband, 1));
-                    double y = Math.signum(MathUtil.applyDeadband(rawInput.getY(), kPrimaryAlignModeDeadband, 1));
+                    
+                    // 8 direction behavior
+                    //Translation2d rawInput = getRawInputTranslation(!robotRelativeSupplier.getAsBoolean());
+                    // double x = Math.signum(MathUtil.applyDeadband(rawInput.getX(), kPrimaryAlignModeDeadband, 1));
+                    // double y = Math.signum(MathUtil.applyDeadband(rawInput.getY(), kPrimaryAlignModeDeadband, 1));
+                    // if (x != 0 && y != 0) {
+                    //     x /= Math.sqrt(2);
+                    //     y /= Math.sqrt(2);
+                    //     y = 0;
+                    // }
 
-                    if (x != 0 && y != 0) {
-                        x /= Math.sqrt(2);
-                        y /= Math.sqrt(2);
+                    // 4 direction/axis behavior
+                    Translation2d input = getInputTranslation(true);
+                    double x = 0;
+                    double y = 0;
+                    if (input.getNorm() >= 0.0) {
+                        if (Math.abs(input.getAngle().getCos()) >= input.getNorm() / Math.sqrt(2)) {
+                            x = Math.signum(input.getX());
+                        } else {
+                            y = Math.signum(input.getY());
+                        }
                     }
 
-                    double velocityX = kPrimaryAlignModeSpeedTranslationFactor * x * getMaxTranslationSpeed();
-                    double velocityY = kPrimaryAlignModeSpeedTranslationFactor * y * getMaxTranslationSpeed();
-                    double rotationalRate = kPrimaryAlignModeSpeedRotationFactor * kMaxRotationSpeed
-                            * getInputRotationVelocity();
+                    double velocityX = x * getMaxTranslationSpeed();
+                    double velocityY = y * getMaxTranslationSpeed();
+                    double rotationalRate = getInputRotationVelocity() * kMaxRotationSpeed;
+                    if (reduceSpeedEnabled) {
+                        velocityX *= kPrimaryAlignModeSpeedTranslationFactor;
+                        velocityY *= kPrimaryAlignModeSpeedTranslationFactor;
+                        rotationalRate *= kPrimaryAlignModeSpeedRotationFactor;
+                    }
 
                     if (robotRelativeSupplier.getAsBoolean()) {
                         yield robotCentricDrive.withVelocityX(velocityX)
