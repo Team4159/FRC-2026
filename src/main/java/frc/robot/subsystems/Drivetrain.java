@@ -122,7 +122,6 @@ public class Drivetrain extends CommandSwerveDrivetrain {
 
         @Override
         public void execute() {
-            System.out.println("driveCommand");
             setControl(driveSupplier.get());
         }
 

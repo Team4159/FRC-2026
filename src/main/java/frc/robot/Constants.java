@@ -14,6 +14,9 @@ import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.GravityTypeValue;
+import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.MotorAlignmentValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.ctre.phoenix6.swerve.utility.PhoenixPIDController;
 import com.therekrab.autopilot.APConstraints;
@@ -21,6 +24,7 @@ import com.therekrab.autopilot.APProfile;
 import com.therekrab.autopilot.APTarget;
 import com.therekrab.autopilot.Autopilot;
 
+import edu.wpi.first.hal.SimDevice.Direction;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.ProfiledPIDController;
@@ -33,7 +37,11 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.AngularVelocityUnit;
+import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -72,7 +80,8 @@ public final class Constants {
   }
 
   public static class HopperConstants {
-    public static final int HopperId = 8;
+    //TODO: set later
+    public static final int HopperId = 30;
 
     public static enum HopperState {
       FEED(0.5),REVERSE(-0.5),STOP(0);
@@ -83,7 +92,7 @@ public final class Constants {
     }
   }
   public static class FeederConstants{
-    public static final int FeederID = 9; //idk if this port is used yet plz check
+    public static final int FeederID = 20; //idk if this port is used yet plz check
 
     public static enum FeederState{
       FEED(0.5), UNSTUCKFEEDER (-0.5), STOP(0);
@@ -244,13 +253,15 @@ public final class Constants {
 
     public static final double kHoodI = 0;
     public static final double kHoodD = 0;
-    public static final double kHoodP = 0.01;
-    public static final double kHoodG = 0.001;
-
+    public static final double kHoodP = 100;
+    public static final double kHoodG = 0.75;
+    // public static final double kHoodS = 0;
+    // public static final double kHoodV = 1.11;
+    // public static final double kHoodA = 0.17;
     //abs encoder
-    public static final int HoodId = 20; //fix this
+    public static final int HoodId = 8;
     public static final int kHoodEncoderID = 2;
-    public static final Angle kEncoderOffset = Degrees.of(0);
+    public static final Angle kEncoderOffset = Degrees.of(-180);
     public static final double kSensorToMechanismRatio = 3;
     public static final double kMotorToSensorRatio = 4;
 
@@ -276,8 +287,13 @@ public final class Constants {
       Slot0.kP = ShooterConstants.kHoodP;  
       Slot0.kI = ShooterConstants.kHoodI;
       Slot0.kD = ShooterConstants.kHoodD;
+      // Slot0.kS = ShooterConstants.kHoodS;
+      // Slot0.kV = ShooterConstants.kHoodV;
+      // Slot0.kA = ShooterConstants.kHoodA;
       Slot0.kG = ShooterConstants.kHoodG;
       Slot0.withGravityType(GravityTypeValue.Arm_Cosine);
+      MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+      MotorOutput.NeutralMode = NeutralModeValue.Brake;
       //abs encoder
       Feedback.FeedbackRemoteSensorID = ShooterConstants.kHoodEncoderID;
       Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
@@ -286,21 +302,43 @@ public final class Constants {
       MotionMagic = kHoodMotionMagicConfig;
     }};
 
-    //Motor Config and PID
-    public static final double kP = 0.01;
+    //Shooter Motor Config and PID
+    public static final double kP = 15;
     public static final double kI = 0;
     public static final double kD = 0;
-    public static final int ShooterIDOne = 9;
-    public static final int ShooterIDTwo = 10;
-    public static final int ShooterIDThree = 11;
-    public static final int ShooterIDFour = 12;
+    public static final int ShooterIDLeftBottom = 9;
+    public static final int ShooterIDLeftTop = 10;
+    public static final int ShooterIDRightTop = 11;
+    public static final int ShooterIDRightBottom = 12;
 
+    //shooter motors config
+    public static final TalonFXConfiguration rightShooterMotorsConfig = new TalonFXConfiguration(){{
+      Slot0.kP = ShooterConstants.kP;
+      Slot0.kI = ShooterConstants.kI;
+      Slot0.kD = ShooterConstants.kD;
+      CurrentLimits.SupplyCurrentLimitEnable = true;
+      CurrentLimits.SupplyCurrentLimit = 40;
+      MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+    }};
+
+    public static final TalonFXConfiguration leftShooterMotorsConfig = new TalonFXConfiguration(){{
+      Slot0.kP = ShooterConstants.kP;
+      Slot0.kI = ShooterConstants.kI;
+      Slot0.kD = ShooterConstants.kD;
+      CurrentLimits.SupplyCurrentLimitEnable = true;
+      CurrentLimits.SupplyCurrentLimit = 40;
+      MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+    }};
+
+    public static final AngularVelocity shooterAngularVelocity = RPM.of(3200);
 
     //TODO: find ball launch velocity
     /** units: m/s */
     public static final double launchVelocity = Units.feetToMeters(29);//convert from ft/s to m/s
     public static final double ratio = 1;
     public static final double shootHeight = Units.inchesToMeters(40);
+
+    public static AngularVelocity kShooterVelocityTolerance = RPM.of(100);
 
     public static final Distance kShooterWheelRadius = Inches.of(2);
     /** TODO: find the correct distance */

@@ -14,9 +14,11 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
+import frc.robot.Constants.AlignConstants.TowerAlignGoal;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.IntakeConstants.IntakeState;
 import frc.robot.commands.AutoAim;
+import frc.robot.commands.AutoAlign;
 import frc.robot.lib.Elastic;
 import frc.robot.lib.InstantCommandRunWhenDisabled;
 import frc.robot.lib.PoseTrajectory;
@@ -34,7 +36,6 @@ public class ConfigurableAuto {
     private final AutoFactory factory;
     private final Drivetrain drivetrain;
     private final Shooter shooter;
-    //TODO: implement intake
     private final Intake intake;
     private final Hopper hopper;
     private final LEDs leds;
@@ -129,6 +130,8 @@ public class ConfigurableAuto {
         final String shoot2 = shootChooser2.getSelected();
         final String climbSide = climbSideChooser.getSelected();
 
+        final TowerAlignGoal towerAlignGoal = climbSide.equals("L") ? TowerAlignGoal.LEFT : TowerAlignGoal.RIGHT;
+
         // if mid auto selected disregard other options since only 1 auto per mid side
         if (direction.contains("M")) {
             final String startToShootName = direction + "StartToShoot";
@@ -144,6 +147,7 @@ public class ConfigurableAuto {
                     new WaitCommand(AutoConstants.ShootTime),
                     new AutoAim(drivetrain, shooter, hopper, leds, false)))
                 .andThen(shootToClimbTraj.cmd())
+                //.andThen(new AutoAlign(drivetrain, towerAlignGoal, primaryRobotRelativeTrigger))
             );
 
             if(display){

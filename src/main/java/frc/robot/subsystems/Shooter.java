@@ -1,13 +1,17 @@
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Rotations;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
@@ -16,6 +20,11 @@ import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Velocity;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.FeederConstants;
@@ -23,70 +32,48 @@ import frc.robot.Constants.FeederConstants.FeederState;
 import frc.robot.Constants.ShooterConstants;
 
 public class Shooter extends SubsystemBase{
-    private final TalonFX hoodMotor, feederMotor, motorOne, motorTwo, motorThree, motorFour;
+    private final TalonFX hoodMotor, feederMotor, leftBottomShooterMotor, leftTopShooterMotor, rightTopShooterMotor, rightBottomShooterMotor;
     private final CANcoder canCoder;
 
-    private final PositionVoltage hoodPositionVoltage;
+    private final MotionMagicVoltage hoodMotionMagic;
     private final VelocityVoltage shooterVelocityVoltage;
 
+    private double manualAngle = 5;
+
     public Shooter() {
-        CANcoderConfiguration canCoderConfig = new CANcoderConfiguration();
-        canCoderConfig.MagnetSensor.withAbsoluteSensorDiscontinuityPoint(Rotations.of(0.5));
-        canCoderConfig.MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
-        canCoderConfig.MagnetSensor.withMagnetOffset(Rotations.of(0));
-    
-        TalonFXConfiguration hoodConfig = new TalonFXConfiguration();
-        hoodConfig.Slot0.kP = ShooterConstants.kHoodP;  
-        hoodConfig.Slot0.kI = ShooterConstants.kHoodI;
-        hoodConfig.Slot0.kD = ShooterConstants.kHoodD;
-
-        hoodConfig.Feedback.FeedbackRemoteSensorID = ShooterConstants.HoodId;
-        hoodConfig.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
-        hoodConfig.Feedback.SensorToMechanismRatio = ShooterConstants.kSensorToMechanismRatio;
-        hoodConfig.Feedback.RotorToSensorRatio = ShooterConstants.kMotorToSensorRatio;
-
-        Slot0Configs shooterConfig = new Slot0Configs();
-        shooterConfig.kP = ShooterConstants.kP;
-        shooterConfig.kI = ShooterConstants.kI;
-        shooterConfig.kD = ShooterConstants.kD;
-
         hoodMotor = new TalonFX(ShooterConstants.HoodId);
-        feederMotor = new TalonFX(FeederConstants.FeederID);
-        motorOne = new TalonFX(ShooterConstants.ShooterIDOne);
-        motorTwo = new TalonFX(ShooterConstants.ShooterIDTwo);
-        motorThree = new TalonFX(ShooterConstants.ShooterIDThree);
-        motorFour = new TalonFX(ShooterConstants.ShooterIDFour);
         canCoder = new CANcoder(ShooterConstants.kHoodEncoderID);
+        feederMotor = new TalonFX(FeederConstants.FeederID);
+        leftBottomShooterMotor = new TalonFX(ShooterConstants.ShooterIDLeftBottom);
+        leftTopShooterMotor = new TalonFX(ShooterConstants.ShooterIDLeftTop);
+        rightTopShooterMotor = new TalonFX(ShooterConstants.ShooterIDRightTop);
+        rightBottomShooterMotor = new TalonFX(ShooterConstants.ShooterIDRightBottom);
         
-        motorOne.getConfigurator().apply(new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive));
-        motorTwo.getConfigurator().apply(new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive));
+        leftBottomShooterMotor.getConfigurator().apply(new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive));
+        leftTopShooterMotor.getConfigurator().apply(new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive));
         
-        canCoder.getConfigurator().apply(canCoderConfig);
-        hoodMotor.getConfigurator().apply(hoodConfig);
-        motorOne.getConfigurator().apply(shooterConfig);
-        motorTwo.getConfigurator().apply(shooterConfig);
-        motorThree.getConfigurator().apply(shooterConfig);
-        motorFour.getConfigurator().apply(shooterConfig);
-        
-        hoodPositionVoltage = new PositionVoltage(0);
+        canCoder.getConfigurator().apply(ShooterConstants.canCoderConfig);
+        hoodMotor.getConfigurator().apply(ShooterConstants.hoodConfig);
+        leftBottomShooterMotor.getConfigurator().apply(ShooterConstants.leftShooterMotorsConfig);
+        leftTopShooterMotor.getConfigurator().apply(ShooterConstants.leftShooterMotorsConfig);
+        rightTopShooterMotor.getConfigurator().apply(ShooterConstants.rightShooterMotorsConfig);
+        rightBottomShooterMotor.getConfigurator().apply(ShooterConstants.rightShooterMotorsConfig);
+
         shooterVelocityVoltage = new VelocityVoltage(0);
+        hoodMotionMagic = new MotionMagicVoltage(0);
     }
     // set speed
-    public void setSpeed(double speed) {
-        shooterVelocityVoltage.withVelocity(speed);
-        motorOne.setControl(shooterVelocityVoltage);
-        motorTwo.setControl(shooterVelocityVoltage);
-        motorThree.setControl(shooterVelocityVoltage);
-        motorFour.setControl(shooterVelocityVoltage);
+    public void setSpeed(AngularVelocity speed) {
+        shooterVelocityVoltage.withVelocity(speed.in(RotationsPerSecond));
+        leftBottomShooterMotor.setControl(shooterVelocityVoltage);
+        leftTopShooterMotor.setControl(shooterVelocityVoltage);
+        rightTopShooterMotor.setControl(shooterVelocityVoltage);
+        rightBottomShooterMotor.setControl(shooterVelocityVoltage);
     }
 
-    /** @return the estimated initial speed of the ball after being shot from the shooter */
+    /** @return the estimated initial speed of the ball after being shot from the shooter in m/s*/
     public double getFuelSpeed(){
-        double motorOmega = 
-            motorOne.getVelocity().getValue().in(RadiansPerSecond)
-          + motorTwo.getVelocity().getValue().in(RadiansPerSecond)
-          + motorThree.getVelocity().getValue().in(RadiansPerSecond)
-          + motorFour.getVelocity().getValue().in(RadiansPerSecond);
+        double motorOmega = getShooterVelocity().in(RadiansPerSecond);
 
         double shooterOmega = motorOmega * ShooterConstants.ratio;
 
@@ -94,6 +81,25 @@ public class Shooter extends SubsystemBase{
         double rollerTangentialSpeed = shooterOmega * ShooterConstants.kShooterRollerRadius.in(Meters);
 
         return ShooterConstants.kShooterEfficiency * (wheelTangentialSpeed + rollerTangentialSpeed)/2;
+    }
+
+    public AngularVelocity getShooterVelocity(){
+        return  
+            RadiansPerSecond.of((leftBottomShooterMotor.getVelocity().getValue().in(RadiansPerSecond)
+          + leftTopShooterMotor.getVelocity().getValue().in(RadiansPerSecond)
+          + rightTopShooterMotor.getVelocity().getValue().in(RadiansPerSecond)
+          + rightBottomShooterMotor.getVelocity().getValue().in(RadiansPerSecond))/4);
+    }
+
+    public boolean isAtSpeed(){
+        return getShooterVelocity().isNear(ShooterConstants.shooterAngularVelocity, ShooterConstants.kShooterVelocityTolerance);
+    }
+
+    @Override
+    public void periodic(){
+        SmartDashboard.putNumber("hood position", Units.rotationsToDegrees(hoodMotor.getPosition().getValueAsDouble()));
+        SmartDashboard.putNumber("manual hood target", manualAngle);
+        SmartDashboard.putNumber("shooter velocity", leftBottomShooterMotor.getVelocity().getValue().in(RPM));
     }
 
     public void test(){
@@ -107,31 +113,67 @@ public class Shooter extends SubsystemBase{
         feederMotor.set(0);
     }
     // adjust hood
-    public void adjustHood(double angle) {
+    public void adjustHood(Angle angle) {
         //double angle = Math.atan((15 + Math.sqrt(Math.pow(distance, 2)-4*(gravity * Math.pow(distance, 2)) / (2 * Math.pow(fps, 2))*((gravity * Math.pow(distance, 2)) / (2 * Math.pow(fps, 2)) + height))) / (2*(gravity * Math.pow(distance, 2)) / (2 * Math.pow(fps, 2)))) * 180/Math.PI;
-        hoodMotor.setControl(hoodPositionVoltage.withPosition(angle));    
+        hoodMotor.setControl(hoodMotionMagic.withPosition(angle));    
+    }
+
+    public void adjustTrajectoryAngle(Angle trajectoryAngle) {
+        adjustHood(Degrees.of(90).minus(trajectoryAngle));
+    }
+
+    public void manualHood(double adjustment){
+        double targetAngle = Math.max(5, Math.min(manualAngle + adjustment, 45));
+        manualAngle = targetAngle;
+        adjustHood(Degrees.of(targetAngle));
+    }
+
+    public void stopShooter(){
+        leftBottomShooterMotor.stopMotor();
+        leftTopShooterMotor.stopMotor();
+        rightTopShooterMotor.stopMotor();
+        rightBottomShooterMotor.stopMotor();
     }
     
-    public class ShooterCommand extends Command{
-        private double velocity;
-        private double angle;
+    // public class ShooterCommand extends Command{
+    //     private double velocity;
+    //     private Angle angle;
         
-        public ShooterCommand(double velocity, double angle){
-            this.velocity=velocity;
-            this.angle=angle;
+    //     public ShooterCommand(double velocity, Angle angle){
+    //         this.velocity=velocity;
+    //         this.angle=angle;
             
-            addRequirements(Shooter.this);
-        }
+    //         addRequirements(Shooter.this);
+    //     }
         
-        @Override
-        public void initialize() {
-            Shooter.this.adjustHood(angle);
-            Shooter.this.setSpeed(velocity);
+    //     @Override
+    //     public void initialize() {
+    //         Shooter.this.adjustHood(angle);
+    //         Shooter.this.setSpeed(velocity);
+    //     }
+
+    //     @Override
+    //     public void end(boolean interrupt) {
+    //         Shooter.this.setSpeed(0);
+    //     }
+    // }
+
+    public class ChangeVelocity extends Command{
+        private AngularVelocity velocity;
+        
+        public ChangeVelocity(AngularVelocity velocity){
+            this.velocity = velocity;
+            addRequirements(Shooter.this);
         }
 
         @Override
-        public void end(boolean interrupt) {
-            Shooter.this.setSpeed(0);
+        public void initialize(){
+            setSpeed(velocity);
+        }
+
+        @Override
+        public void end(boolean interrupted){
+            stopShooter();
         }
     }
 
@@ -140,7 +182,7 @@ public class Shooter extends SubsystemBase{
         
         public ChangeState(FeederState feederState){
             this.feederState = feederState;
-            addRequirements(Shooter.this);
+            //addRequirements(Shooter.this);
         }
 
         @Override
@@ -148,5 +190,9 @@ public class Shooter extends SubsystemBase{
             Shooter.this.setFeederSpeed(feederState.percentage);
         }
         
+        @Override
+        public void end(boolean interrupted){
+            stopFeeder();
+        }
     }
 }

@@ -1,5 +1,8 @@
 package frc.robot.commands;
 
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Radians;
+
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.MathSharedStore;
@@ -106,12 +109,12 @@ public class AutoAim extends Command {
         //calculate desired pitch for hood angle
         double desiredHoodAngle = getDesiredHoodPitch();
 
-        double robotRelativeBallVelocityHorizontal = getLaunchVelocity() * Math.cos(desiredHoodAngle);
-        double robotRelativeBallVelocityVertical = getLaunchVelocity() * Math.sin(desiredHoodAngle);
+        double robotRelativeBallVelocityHorizontal = shooter.getFuelSpeed() * Math.cos(desiredHoodAngle);
+        double robotRelativeBallVelocityVertical = shooter.getFuelSpeed() * Math.sin(desiredHoodAngle);
 
         for(int i = 0; i < 2; i++){
             //calculate TOF(used for calculating adjusted robot pose)
-            double timeOfFlight = getTimeOfFlight(desiredHoodAngle, getLaunchVelocity());
+            double timeOfFlight = getTimeOfFlight(desiredHoodAngle, shooter.getFuelSpeed());
             //calculate the distance traveled by the robot during the time of flight
             Transform2d adjustedRobotPoseTransform = new Transform2d(
                 drivetrain.getState().Speeds.vxMetersPerSecond * timeOfFlight,
@@ -139,7 +142,7 @@ public class AutoAim extends Command {
         rotateSwerve(desiredRobotAngle);
 
         //set the desired hood angle
-        shooter.adjustHood(desiredHoodAngle);
+        shooter.adjustTrajectoryAngle(Radians.of(desiredHoodAngle));
 
         if(autoAimStatus == AutoAimStatus.SHOOT){
             shooter.setFeederSpeed(FeederState.FEED.percentage);
@@ -208,7 +211,7 @@ public class AutoAim extends Command {
         // distance from robot to target
         Translation2d robotTranslation = adjustedRobotPose.getTranslation();
         double distance = robotTranslation.getDistance(target.getTranslation());
-        double launchVelocity = getLaunchVelocity();
+        double launchVelocity = shooter.getFuelSpeed();
         double desiredPitch = 
             Math.atan((Math.pow(launchVelocity, 2)
                 + Math.sqrt(Math.pow(launchVelocity, 4)
@@ -216,7 +219,6 @@ public class AutoAim extends Command {
                         - 2 * FieldConstants.g * height
                                 * Math.pow(launchVelocity, 2)))
                 / (FieldConstants.g * distance));
-        autoAimStatus = AutoAimStatus.SHOOT;
 
         if(Double.isNaN(desiredPitch)){
             //equation can only return angles from 45-90 deg (in radians of course), anything lower than that will be NaN
@@ -227,12 +229,12 @@ public class AutoAim extends Command {
         if(desiredPitch > Constants.ShooterConstants.maxPitch){
             desiredPitch = Constants.ShooterConstants.maxPitch;
         }
-        SmartDashboard.putNumber("pitch", Units.radiansToDegrees(desiredPitch));
+        SmartDashboard.putNumber("autoaim desired pitch", Units.radiansToDegrees(desiredPitch));
         return desiredPitch;
     }
 
     /** @return currently returns theoretical max that declines at a rate of 0.1 m/s (to simulate shooter slowing down over time), but when implemented with shooter will return current launch velocity based on shooter angular velocity */
-    private double getLaunchVelocity(){
+    private double getSimLaunchVelocity(){
         //currently returns theoretical max that declines at a rate of 0.1 m/s
         return Units.feetToMeters(29) - (MathSharedStore.getTimestamp() - timeOffset) * 0.1;
     }
@@ -259,5 +261,12 @@ public class AutoAim extends Command {
     //used for auto
     public double getDesiredOmega(){
         return desiredOmega;
+    }
+
+    @Override
+    public void end(boolean interrupted){
+        shooter.adjustHood(Degrees.of(5));
+        shooter.setFeederSpeed(FeederState.STOP.percentage);
+        hopper.setHopperSpeed(HopperState.STOP.percentage);
     }
 }
