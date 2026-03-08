@@ -83,7 +83,7 @@ public class Intake extends SubsystemBase {
         }
 
         public void execute() {
-            if (MathSharedStore.getTimestamp() % 0.75 == 0) {
+            if (MathSharedStore.getTimestamp() % 0.75 <= 0.25) {
                 if (currentIntakeState == IntakeState.DOWN_ON || currentIntakeState == IntakeState.DOWN_OFF || currentIntakeState == IntakeState.DOWN_OUTTAKE)  {
                     setLocation(IntakeState.UP_OFF.angle);
                     setSpinSpeed(IntakeState.UP_OFF.spinPercentage);
