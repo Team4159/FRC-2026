@@ -4,7 +4,7 @@ import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Rotations;
 
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
-import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.controls.MotionMagicDutyCycle;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 
@@ -21,7 +21,7 @@ public class Intake extends SubsystemBase {
     private final TalonFX spinMotor;
     private final CANcoder canCoder;
 
-    private final MotionMagicVoltage intakeMotionMagicVoltage;
+    private final MotionMagicDutyCycle intakeMotionMagicDutyCycle;
     // private final VelocityVoltage intakeVelocityVoltage; 
 
     public Intake() {
@@ -35,7 +35,7 @@ public class Intake extends SubsystemBase {
         locationMotor.getConfigurator().apply(IntakeConstants.angleConfig);
         setMotionMagic(IntakeConstants.kFastMotionMagicConfig);
 
-        intakeMotionMagicVoltage = new MotionMagicVoltage(0);
+        intakeMotionMagicDutyCycle = new MotionMagicDutyCycle(0);
         setLocation(IntakeState.UP_OFF.rotationLocation);
         //intakeVelocityVoltage = new VelocityVoltage(0);
     }
@@ -49,7 +49,7 @@ public class Intake extends SubsystemBase {
     }
 
     public void setLocation(Angle angle) {
-        locationMotor.setControl(intakeMotionMagicVoltage.withPosition(angle));
+        locationMotor.setControl(intakeMotionMagicDutyCycle.withPosition(angle));
     }
 
     private void setPivotPercentage(double percentage){

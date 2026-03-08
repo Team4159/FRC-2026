@@ -9,7 +9,7 @@ import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionVoltage;
-import com.ctre.phoenix6.controls.VelocityVoltage;
+import com.ctre.phoenix6.controls.VelocityDutyCycle;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
@@ -27,7 +27,7 @@ public class Shooter extends SubsystemBase{
     private final CANcoder canCoder;
 
     private final PositionVoltage hoodPositionVoltage;
-    private final VelocityVoltage shooterVelocityVoltage;
+    private final VelocityDutyCycle shooterVelocityDutyCycle;
 
     public Shooter() {
         CANcoderConfiguration canCoderConfig = new CANcoderConfiguration();
@@ -69,15 +69,15 @@ public class Shooter extends SubsystemBase{
         motorFour.getConfigurator().apply(shooterConfig);
         
         hoodPositionVoltage = new PositionVoltage(0);
-        shooterVelocityVoltage = new VelocityVoltage(0);
+        shooterVelocityDutyCycle = new VelocityDutyCycle(0);
     }
     // set speed
     public void setSpeed(double speed) {
-        shooterVelocityVoltage.withVelocity(speed);
-        motorOne.setControl(shooterVelocityVoltage);
-        motorTwo.setControl(shooterVelocityVoltage);
-        motorThree.setControl(shooterVelocityVoltage);
-        motorFour.setControl(shooterVelocityVoltage);
+        shooterVelocityDutyCycle.withVelocity(speed);
+        motorOne.setControl(shooterVelocityDutyCycle);
+        motorTwo.setControl(shooterVelocityDutyCycle);
+        motorThree.setControl(shooterVelocityDutyCycle);
+        motorFour.setControl(shooterVelocityDutyCycle);
     }
 
     /** @return the estimated initial speed of the ball after being shot from the shooter */
