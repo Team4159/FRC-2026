@@ -105,7 +105,7 @@ public final class Constants {
       DOWN_ON(0.77, 1),
       DOWN_OFF(0.77, 0),
       UP_OFF(0.36, 0),
-      OWN_OUTTAKE(0.77, -1); 
+      DOWN_OUTTAKE(0.77, -1); 
 
       public final double angle;
       public final double spinPercentage;

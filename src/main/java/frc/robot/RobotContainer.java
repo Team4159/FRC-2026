@@ -62,6 +62,7 @@ public class RobotContainer {
     private final Trigger intakeTrigger = secondary.leftBumper();
     private final Trigger outtakeTrigger = secondary.leftTrigger(0.1);
     private final Trigger stowTrigger = secondary.b();
+    private final Trigger agitateTrigger = secondary.a();
 
     //Subsystems
     private final Shooter shooter = new Shooter();
@@ -132,6 +133,7 @@ public class RobotContainer {
         intakeTrigger.whileTrue(intake.new ChangeIntakeState(IntakeState.DOWN_ON));
         outtakeTrigger.whileTrue(intake.new ChangeIntakeState(IntakeState.DOWN_OFF));
         stowTrigger.whileTrue(intake.new ChangeIntakeState(IntakeState.UP_OFF));
+        agitateTrigger.whileTrue(intake.new AgitateIntake());
     }
 
     public Command getAutonomousCommand() {
