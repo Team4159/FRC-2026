@@ -199,7 +199,9 @@ public final class Constants {
             BRAKE,
             POINT,
             IDLE,
-            INTAKE,
+            INTAKE_FORWARD,
+            INTAKE_LEFT,
+            INTAKE_RIGHT,
             RADIAL,
         }
 
@@ -211,8 +213,12 @@ public final class Constants {
         public static final double kTrenchAssistAlignInfluence = 0.15;
 
         // drive mode constants
-        public static final double kPrimaryReduceSpeedTranslationFactor = 0.5;
+        public static final Angle kPrimaryAutoBrakeReachedDesiredAngleTolerance = Degrees.of(0.5);
+
+        public static final double kPrimaryReduceSpeedTranslationFactor = 0.25;
         public static final double kPrimaryReduceSpeedRotationFactor = 1;
+
+        public static final double kPrimaryIntakeRotationInputDeadzone = 0.2;
 
         public static final double kPrimaryRadialModeDeadband = 0.2;
 
@@ -371,8 +377,8 @@ public final class Constants {
         }
 
         public static enum TrenchZone {
-            BLUE_LEFT(Inches.of(182.11), Inches.of(24.97)),
-            BLUE_RIGHT(Inches.of(182.11), Inches.of(317.69 - 24.97)),
+            BLUE_LEFT(Inches.of(182.11), Inches.of(317.69 - 24.97)),
+            BLUE_RIGHT(Inches.of(182.11), Inches.of(24.97)),
             RED_LEFT(Inches.of(651.22 - 182.11), Inches.of(24.97)),
             RED_RIGHT(Inches.of(651.22 - 182.11), Inches.of(317.69 - 24.97));
 
@@ -402,10 +408,11 @@ public final class Constants {
     }
 
     public static class AlignConstants {
+        // TODO: tune acceleration and jerk for aligning
         public static final APConstraints kAlignConstraints = new APConstraints()
                 .withVelocity(kMaxTranslationSpeed)
-                .withAcceleration(6.0)
-                .withJerk(3.0);
+                .withAcceleration(7.0)
+                .withJerk(3.5);
         public static final APProfile kAlignProfile = new APProfile(kAlignConstraints)
                 .withErrorXY(Centimeters.of(2.0))
                 .withErrorTheta(Degrees.of(1.0))
@@ -413,12 +420,11 @@ public final class Constants {
         public static final Autopilot kAlignController = new Autopilot(kAlignProfile);
 
         public static enum TowerAlignGoal {
-            // TODO: decide if LEFT and RIGHT should have an alignment setpoint or just an entry angle
             LEFT(
                     new APTarget(new Pose2d(FieldConstants.kTowerX,
                             FieldConstants.kTowerY.plus(FieldConstants.kTowerWidth.div(2))
                                     .plus(DrivetrainConstants.kDrivetrainSizeX.div(2)),
-                            Rotation2d.kZero)).withVelocity(0).withEntryAngle(Rotation2d.kZero)),
+                            Rotation2d.kZero)).withVelocity(0).withoutEntryAngle()),
             RIGHT(
                     new APTarget(new Pose2d(FieldConstants.kTowerX,
                             FieldConstants.kTowerY.minus(FieldConstants.kTowerWidth.div(2))

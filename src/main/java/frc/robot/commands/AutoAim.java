@@ -175,8 +175,10 @@ public class AutoAim extends Command {
                 drivetrain.getState().Pose.getRotation().getRadians(), desiredAngle, Timer.getFPGATimestamp());
         //set ChassisSpeeds
         ChassisSpeeds chassisSpeeds = new ChassisSpeeds(
-                drivetrain.getInputX(),
-                drivetrain.getInputY(),
+                drivetrain.getInputX(true)
+                        * maxSpeed,
+                drivetrain.getInputY(true)
+                        * maxSpeed,
                 omega);
 
         //only actually control the swerve if not in autonomousMode
