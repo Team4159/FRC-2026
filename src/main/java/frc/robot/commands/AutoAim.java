@@ -19,12 +19,12 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.lib.FuelSimulation;
 import frc.robot.Constants;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.FeederConstants.FeederState;
 import frc.robot.Constants.HopperConstants.HopperState;
 import frc.robot.Constants.ShooterConstants.AutoAimStatus;
-import frc.robot.lib.FuelSimulation;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Hopper;
 import frc.robot.subsystems.LEDs;
@@ -176,9 +176,9 @@ public class AutoAim extends Command {
         //set ChassisSpeeds
         ChassisSpeeds chassisSpeeds = new ChassisSpeeds(
                 drivetrain.getInputX(true)
-                        * maxSpeed,
+                        * drivetrain.getMaxTranslationSpeed(),
                 drivetrain.getInputY(true)
-                        * maxSpeed,
+                        * drivetrain.getMaxTranslationSpeed(),
                 omega);
 
         //only actually control the swerve if not in autonomousMode

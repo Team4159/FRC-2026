@@ -11,7 +11,7 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.robot.lib.FuelSimulation;
+import frc.lib.FuelSimulation;
 
 /**
  * The methods in this class are called automatically corresponding to each mode, as described in
