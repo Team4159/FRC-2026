@@ -35,6 +35,7 @@ import frc.robot.commands.AutoAlign;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.LEDs;
+import frc.robot.subsystems.PhotonVision;
 import frc.robot.subsystems.Hopper;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
@@ -87,6 +88,7 @@ public class RobotContainer {
     private final LEDs leds = new LEDs();
     private final Climber climber = new Climber();
     private final Drivetrain drivetrain = new Drivetrain(primaryController);
+    private final PhotonVision photonVision = new PhotonVision(drivetrain);
 
     /* Path follower */
     private final AutoFactory autoFactory;
@@ -173,8 +175,8 @@ public class RobotContainer {
         reverseFeederHopperTrigger.whileTrue(new ParallelCommandGroup(shooter.new ChangeState(FeederState.UNSTUCKFEEDER), hopper.new ChangeState(HopperState.REVERSE)));
 
         //intake
-        intakeTrigger.whileTrue(intake.new ChangeStates(IntakeState.DOWN_ON));
-        outtakeTrigger.whileTrue(intake.new ChangeStates(IntakeState.DOWN_REV));
+        intakeTrigger.whileTrue(new ParallelCommandGroup(intake.new ChangeStates(IntakeState.DOWN_ON), hopper.new ChangeState(HopperState.FEED)));
+        outtakeTrigger.whileTrue(new ParallelCommandGroup(intake.new ChangeStates(IntakeState.DOWN_REV), hopper.new ChangeState((HopperState.REVERSE)), shooter.new ChangeState(FeederState.UNSTUCKFEEDER)));
         compressIntakeTrigger.whileTrue(intake.new CompressIntake());
         bounceIntakeTrigger.whileTrue(intake.new BounceIntake());
 

@@ -4,15 +4,11 @@ import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
-import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
-import com.ctre.phoenix6.configs.Slot0Configs;
-import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
-import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -93,6 +89,11 @@ public class Shooter extends SubsystemBase{
 
     public boolean isAtSpeed(){
         return getShooterVelocity().isNear(ShooterConstants.shooterAngularVelocity, ShooterConstants.kShooterVelocityTolerance);
+    }
+
+    
+    public boolean isAtPitch() {
+        return hoodMotor.getClosedLoopReference().isNear(hoodMotor.getPosition().getValueAsDouble(), Units.degreesToRotations(1));
     }
 
     @Override

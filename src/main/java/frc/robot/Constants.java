@@ -84,7 +84,7 @@ public final class Constants {
     public static final int HopperId = 30;
 
     public static enum HopperState {
-      FEED(0.5),REVERSE(-0.5),STOP(0);
+      FEED(-1),REVERSE(1),STOP(0);
       public double percentage;
       private HopperState(double speed){
         percentage = speed;
@@ -242,6 +242,8 @@ public final class Constants {
         public static final double kAimKD = 0.0;
         public static final double kAimFeedForward = 0.0;
 
+        public static final Angle AutoAimTolerance = Degrees.of(5);
+
         public static final PhoenixPIDController AutoAimRotationController = new PhoenixPIDController(kAimKP, kAimKI, kAimKD);
         static {
             AutoAimRotationController.enableContinuousInput(-Math.PI, Math.PI);
@@ -253,20 +255,20 @@ public final class Constants {
 
     public static final double kHoodI = 0;
     public static final double kHoodD = 0;
-    public static final double kHoodP = 100;
-    public static final double kHoodG = 0.75;
-    // public static final double kHoodS = 0;
+    public static final double kHoodP = 50;
+    public static final double kHoodG = 0.2;
+    public static final double kHoodS = 0.1;
     // public static final double kHoodV = 1.11;
     // public static final double kHoodA = 0.17;
     //abs encoder
     public static final int HoodId = 8;
     public static final int kHoodEncoderID = 2;
-    public static final Angle kEncoderOffset = Degrees.of(-180);
+    public static final Angle kEncoderOffset = Degrees.of(-280);
     public static final double kSensorToMechanismRatio = 3;
-    public static final double kMotorToSensorRatio = 4;
+    public static final double kMotorToSensorRatio = 25;
 
-    public static final double kCruiseVelocity = 80;
-    public static final double kAcceleration = 160;
+    public static final double kCruiseVelocity = 40;
+    public static final double kAcceleration = 80;
     public static final double kJerk = 1600;
 
     //hood cancoder
@@ -303,7 +305,7 @@ public final class Constants {
     }};
 
     //Shooter Motor Config and PID
-    public static final double kP = 15;
+    public static final double kP = 30;
     public static final double kI = 0;
     public static final double kD = 0;
     public static final int ShooterIDLeftBottom = 9;
@@ -344,7 +346,7 @@ public final class Constants {
     /** TODO: find the correct distance */
     public static final Distance kShooterRollerRadius = Inches.of(0.75);
 
-    public static final double kShooterEfficiency = 0.9;
+    public static final double kShooterEfficiency = 0.6;
 
     /** units: radians */
     public static final double maxPitch = Units.degreesToRadians(85);

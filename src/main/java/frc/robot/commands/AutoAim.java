@@ -23,7 +23,9 @@ import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Constants;
+import frc.robot.Constants.DrivetrainConstants;
 import frc.robot.Constants.FieldConstants;
+import frc.robot.Constants.ShooterConstants;
 import frc.robot.Constants.FeederConstants.FeederState;
 import frc.robot.Constants.HopperConstants.HopperState;
 import frc.robot.Constants.ShooterConstants.AutoAimStatus;
@@ -102,6 +104,8 @@ public class AutoAim extends Command {
         timeOffset = MathSharedStore.getTimestamp();
 
         CommandScheduler.getInstance().schedule(leds.new ChangeLEDStatusSupplier(ledStatusSupplier));
+
+        shooter.setSpeed(ShooterConstants.shooterAngularVelocity);
     }
 
     @Override
@@ -114,6 +118,7 @@ public class AutoAim extends Command {
 
         for(int i = 0; i < 2; i++){
             //calculate TOF(used for calculating adjusted robot pose)
+            System.out.println("desiredhoodangle: " + Units.radiansToDegrees(desiredHoodAngle));
             double timeOfFlight = getTimeOfFlight(desiredHoodAngle, shooter.getFuelSpeed());
             //calculate the distance traveled by the robot during the time of flight
             Transform2d adjustedRobotPoseTransform = new Transform2d(
@@ -122,6 +127,7 @@ public class AutoAim extends Command {
                 new Rotation2d());
             //add the distance traveled during TOF to current robot pose to get the adjusted robot pose
             //this will be used for shooting while moving adjustment
+            System.out.println(timeOfFlight);
             adjustedRobotPose = drivetrain.getState().Pose.plus(adjustedRobotPoseTransform);
 
             //recalculate desired hood angle with new adjustedPose (converges)
@@ -131,12 +137,17 @@ public class AutoAim extends Command {
             adjustedRobotPosePublisher.set(adjustedRobotPose);
         }
 
-        if(MathSharedStore.getTimestamp() - timeOffset < 0.25) autoAimStatus = AutoAimStatus.WAITING;
-
         //calculate robot theta based on adjusted robot pose
         //this allows for shooting while moving
+        System.out.println("target: " + target);
+        System.out.println("adjustedRobotPose: " + adjustedRobotPose);
+
         double desiredRobotAngle = target.getTranslation().minus(adjustedRobotPose.getTranslation()).getAngle()
                 .getRadians();
+
+        System.out.println("desired robot angle: " + desiredRobotAngle);
+
+        if(shooter.isAtSpeed() && shooter.isAtPitch() && drivetrain.getState().Pose.getRotation().getMeasure().isNear(Radians.of(desiredRobotAngle), DrivetrainConstants.AutoAimTolerance));
 
         //rotate the swerve to the desired angle
         rotateSwerve(desiredRobotAngle);
@@ -173,10 +184,12 @@ public class AutoAim extends Command {
      * This also translates the robot using the getInputX() and getInputY() functions in the Drivetrain class
      */
     private void rotateSwerve(double desiredAngle){
+        System.out.println("rotateswerve");
         //PID controller to calculate omega
         double omega = Constants.DrivetrainConstants.AutoAimRotationController.calculate(
                 drivetrain.getState().Pose.getRotation().getRadians(), desiredAngle, Timer.getFPGATimestamp());
         //set ChassisSpeeds
+        System.out.println(omega);
         ChassisSpeeds chassisSpeeds = new ChassisSpeeds(
                 drivetrain.getInputX(),
                 drivetrain.getInputY(),
@@ -200,6 +213,10 @@ public class AutoAim extends Command {
         //the equation then becomes 0 = -(1/2)g * TOF^2 + vy * TOF - height -> 0 = (1/2)g * TOF^2 - vy * TOF + height
         //then use quadratic formula and always add the radical to get the 2nd time the fuel is at the target height (so that it is on the way down)
         double radical = Math.sqrt(Math.pow(vy, 2) - 2 * Constants.FieldConstants.g * height);
+        if(Double.isNaN(radical)){
+            return 0;
+        }
+        System.out.println("radical: " + radical);
         double numerator = vy + radical;
         double time = numerator/Constants.FieldConstants.g;
         SmartDashboard.putNumber("time of flight", time);
@@ -266,6 +283,7 @@ public class AutoAim extends Command {
     @Override
     public void end(boolean interrupted){
         shooter.adjustHood(Degrees.of(5));
+        shooter.stopShooter();
         shooter.setFeederSpeed(FeederState.STOP.percentage);
         hopper.setHopperSpeed(HopperState.STOP.percentage);
     }
