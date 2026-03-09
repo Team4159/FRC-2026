@@ -43,6 +43,7 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.generated.TunerConstants;
@@ -95,7 +96,7 @@ public final class Constants {
     public static final int FeederID = 20; //idk if this port is used yet plz check
 
     public static enum FeederState{
-      FEED(0.5), UNSTUCKFEEDER (-0.5), STOP(0);
+      FEED(0.75), UNSTUCKFEEDER (-0.75), STOP(0);
       public double percentage;
       private FeederState(double speed){
         percentage = speed;
@@ -514,5 +515,42 @@ public final class Constants {
             return pattern;
         }
     }
+  }
+  public static final class JoeLookupTableConstants{
+
+    public static final record ShotData(Angle angle, Time time){
+      public double getAngleRadians(){return angle.in(Radians);}
+      public double getTimeSeconds(){return time.in(Seconds);}
+    }
+
+    /**adjust the angle of the hood down by this much (in radians) for each meter/second slow the calculated tangential speed is*/
+    public static final double kShooterVelocityCorrection = 0.05;
+    /**adjust the angle of the hood down by this much (in radians for each meter/second slow the calculated tangential speed is
+     * multiplied by the distance from the hub (higher distance needs more correction)
+    */
+    public static final double kShooterDistanceVelocityCorrection = 0.01;
+
+    //stores desired angle and estimated time (from stationary) given a distance from the hub
+    public static final Map<Distance, ShotData> joeLookupTable = Map.ofEntries(
+      Map.entry(Meters.of(0),   new ShotData(Degrees.of(60),     Seconds.of(1.7277))),
+      Map.entry(Meters.of(0.5), new ShotData(Degrees.of(60),     Seconds.of(1.7277))),
+      Map.entry(Meters.of(1),   new ShotData(Degrees.of(60),     Seconds.of(1.7277))),
+      Map.entry(Meters.of(1.5), new ShotData(Degrees.of(69.292), Seconds.of(1.726))),
+      Map.entry(Meters.of(2),   new ShotData(Degrees.of(67.347), Seconds.of(1.718))),
+      Map.entry(Meters.of(2.5), new ShotData(Degrees.of(55.364), Seconds.of(1.708))),
+      Map.entry(Meters.of(3),   new ShotData(Degrees.of(53.329), Seconds.of(1.697))),
+      Map.entry(Meters.of(3.5), new ShotData(Degrees.of(51.226), Seconds.of(1.682))),
+      Map.entry(Meters.of(4),   new ShotData(Degrees.of(49.034), Seconds.of(1.664))),
+      Map.entry(Meters.of(4.5), new ShotData(Degrees.of(46.726), Seconds.of(1.642))),
+      Map.entry(Meters.of(5.5), new ShotData(Degrees.of(40.879), Seconds.of(1.556))),
+      Map.entry(Meters.of(6),   new ShotData(Degrees.of(37.686), Seconds.of(1.512))),
+      Map.entry(Meters.of(6.5), new ShotData(Degrees.of(33.808), Seconds.of(1.451))),
+      Map.entry(Meters.of(7),   new ShotData(Degrees.of(30.122), Seconds.of(1.349))),
+      Map.entry(Meters.of(7.5), new ShotData(Degrees.of(25),     Seconds.of(1.176))),
+      Map.entry(Meters.of(8),   new ShotData(Degrees.of(25),     Seconds.of(1.176))),
+      Map.entry(Meters.of(8.5), new ShotData(Degrees.of(25),     Seconds.of(1.176))),
+      Map.entry(Meters.of(9),   new ShotData(Degrees.of(25),     Seconds.of(1.176))),
+      Map.entry(Meters.of(9.5), new ShotData(Degrees.of(25),     Seconds.of(1.176)))
+    );
   }
 }
