@@ -451,10 +451,10 @@ public final class Constants {
         // TODO: tune acceleration and jerk for aligning
         public static final APConstraints kAlignConstraints = new APConstraints()
                 .withVelocity(kMaxTranslationSpeed)
-                .withAcceleration(7.0)
-                .withJerk(3.5);
+                .withAcceleration(4.0)
+                .withJerk(2.0);
         public static final APProfile kAlignProfile = new APProfile(kAlignConstraints)
-                .withErrorXY(Centimeters.of(2.0))
+                .withErrorXY(Centimeters.of(1.0))
                 .withErrorTheta(Degrees.of(1.0))
                 .withBeelineRadius(Centimeters.of(5.0));
         public static final Autopilot kAlignController = new Autopilot(kAlignProfile);
