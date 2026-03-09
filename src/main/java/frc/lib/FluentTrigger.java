@@ -1,6 +1,8 @@
 package frc.lib;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -8,13 +10,20 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 public class FluentTrigger {
-    private record CommandBind(Trigger trigger, Command command) {
+    private class TriggerState {
+        private final int priority;
+
+        public TriggerState(int priority) {
+            this.priority = priority;
+        }
     }
+
+    // the most recently appended state is prioritized first
+    private final ArrayList<TriggerState> stateList = new ArrayList<>();
+    private final Map<TriggerState, Command> stateCommandMap = new HashMap<>();
 
     private Command activeCommand;
     private Command defaultCommand;
-    private final ArrayList<Integer> activeStateQueue = new ArrayList<Integer>();
-    private final ArrayList<CommandBind> triggerCommandBindList = new ArrayList<CommandBind>();
 
     private FluentTrigger() {
     }
@@ -22,7 +31,6 @@ public class FluentTrigger {
     public static FluentTrigger build() {
         return new FluentTrigger();
     }
-
 
     public FluentTrigger setDefault(Command defaultCommand) {
         if (this.defaultCommand != null) {
@@ -34,36 +42,38 @@ public class FluentTrigger {
         return this;
     }
 
-    public FluentTrigger bind(Trigger trigger, Command command) {
-        CommandBind triggerCommandBind = new CommandBind(trigger, command);
-        int state = triggerCommandBindList.size();
-        triggerCommandBind.trigger.onTrue(new InstantCommand(() -> addQueue(state)));
-        triggerCommandBind.trigger.onFalse(new InstantCommand(() -> removeQueue(state)));
-        triggerCommandBindList.add(triggerCommandBind);
+    public FluentTrigger bind(int priority, Trigger trigger, Command command) {
+        TriggerState state = new TriggerState(priority);
+        trigger.onTrue(new InstantCommand(() -> addQueue(state)));
+        trigger.onFalse(new InstantCommand(() -> removeQueue(state)));
+        stateCommandMap.put(state, command);
         return this;
     }
 
-    private void addQueue(int state) {
-        if (activeStateQueue.indexOf(state) >= 0) {
+    public FluentTrigger bind(Trigger trigger, Command command) {
+        return bind(0, trigger, command);
+    }
+
+    private void addQueue(TriggerState state) {
+        if (stateList.contains(state)) {
             return;
         }
-        activeStateQueue.add(state);
+        stateList.add(state);
         updateState();
     }
 
-    private void removeQueue(int state) {
-        int index = activeStateQueue.indexOf(state);
-        if (index < 0) {
+    private void removeQueue(TriggerState state) {
+        if (!stateList.contains(state)) {
             return;
         }
-        activeStateQueue.remove(index);
+        stateList.remove(state);
         updateState();
     }
 
     private void updateState() {
-        if (activeStateQueue.size() == 0) {
+        if (stateList.size() == 0) {
             if (activeCommand != null && activeCommand.isScheduled()) {
-                activeCommand.cancel();
+                CommandScheduler.getInstance().cancel(activeCommand);
             }
             if (defaultCommand != null && !defaultCommand.isScheduled()) {
                 CommandScheduler.getInstance().schedule(defaultCommand);
@@ -72,13 +82,23 @@ public class FluentTrigger {
             return;
         }
 
-        int activeState = activeStateQueue.get(activeStateQueue.size() - 1);
+        TriggerState nextState = stateList.get(stateList.size() - 1);
+        for (int i = stateList.size() - 2; i >= 0; i--) {
+            TriggerState nextStateCandidate = stateList.get(i);
+            if (nextStateCandidate.priority <= nextState.priority) {
+                continue;
+            }
+            nextState = nextStateCandidate;
+        }
+
         Command oldActiveCommand = activeCommand;
-        activeCommand = triggerCommandBindList.get(activeState).command;
+        activeCommand = stateCommandMap.get(nextState);
+
         boolean activeCommandChanged = (activeCommand != oldActiveCommand);
         if (activeCommandChanged && oldActiveCommand != null) {
-            oldActiveCommand.cancel();
+            CommandScheduler.getInstance().cancel(oldActiveCommand);
         }
+
         if (!activeCommand.isScheduled()) {
             CommandScheduler.getInstance().schedule(activeCommand);
         }

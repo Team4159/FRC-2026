@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import static frc.robot.Constants.OperatorConstants.*;
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
 import static frc.robot.Constants.DrivetrainConstants.*;
@@ -29,15 +30,11 @@ import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.FieldUtil;
-import frc.lib.HIDRumble;
-import frc.lib.HIDRumble.RumbleRequest;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.OperatorConstants.DriveMode;
@@ -64,7 +61,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage)
             .withHeadingPID(kAimKP, kAimKI, kAimKD)
             .withTargetRateFeedforward(kAimFeedForward);
-    public final SwerveRequest.FieldCentricFacingAngle alignFacingAngleDrive = new SwerveRequest.FieldCentricFacingAngle()
+    public final SwerveRequest.FieldCentricFacingAngle trajectoryFacingAngleDrive = new SwerveRequest.FieldCentricFacingAngle()
             .withForwardPerspective(ForwardPerspectiveValue.BlueAlliance)
             .withDriveRequestType(DriveRequestType.Velocity)
             .withHeadingPID(kAimKP, kAimKI, kAimKD)
@@ -75,7 +72,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
 
     public final Trigger crashTrigger = new Trigger(
             () -> Math.hypot(pigeon.getAccelerationX().getValue().in(MetersPerSecondPerSecond),
-                    pigeon.getAccelerationY().getValue().in(MetersPerSecondPerSecond)) >= FieldConstants.g * 2);
+                    pigeon.getAccelerationY().getValue().in(MetersPerSecondPerSecond)) >= FieldConstants.g * 3.0);
 
     private final Supplier<Double> inputX;
     private final Supplier<Double> inputY;
@@ -85,10 +82,11 @@ public class Drivetrain extends CommandSwerveDrivetrain {
 
     private boolean reduceSpeedEnabled = false;
     private boolean driveAssistEnabled = true;
-    
+
     private boolean autoPathAutoAimMode = false;
     private AutoAim autoAimCommand;
-    
+
+    private boolean autoBrakeEnabled = true;
 
     private Optional<Rotation2d> desiredRotation = Optional.empty();
 
@@ -100,10 +98,6 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         this.inputRotationVelocity = () -> -controller.getRightX();
         this.inputRotationX = () -> -controller.getRightY();
         this.inputRotationY = () -> -controller.getRightX();
-
-        controller.a().onTrue(Commands
-                .runOnce(() -> HIDRumble.rumble(controller.getHID(),
-                        new RumbleRequest(RumbleType.kRightRumble, 1, 0.25, 1))));
     }
 
     public class Drive extends Command {
@@ -116,8 +110,8 @@ public class Drivetrain extends CommandSwerveDrivetrain {
             addRequirements(Drivetrain.this);
         }
 
-        public Drive(DriveMode mode) {
-            this(mode, () -> false);
+        public Drive(DriveMode driveMode) {
+            this(driveMode, () -> false);
         }
 
         @Override
@@ -125,24 +119,30 @@ public class Drivetrain extends CommandSwerveDrivetrain {
             setControl(driveSupplier.get());
         }
 
-        private double getMaxTranslationSpeed() {
-            return kMaxTranslationSpeed * (reduceSpeedEnabled ? kPrimaryReduceSpeedTranslationFactor : 1);
+        private double getSpeedX(boolean fieldRelative) {
+            return getInputX(fieldRelative) * getMaxTranslationSpeed();
         }
 
-        private double getMaxRotationSpeed() {
-            return kMaxRotationSpeed * (reduceSpeedEnabled ? kPrimaryReduceSpeedRotationFactor : 1);
-        }
-
-        private double getSpeedX() {
-            return getInputX() * getMaxTranslationSpeed();
-        }
-
-        private double getSpeedY() {
-            return getInputY() * getMaxTranslationSpeed();
+        private double getSpeedY(boolean fieldRelative) {
+            return getInputY(fieldRelative) * getMaxTranslationSpeed();
         }
 
         private double getSpeedRotation() {
             return getInputRotationVelocity() * getMaxRotationSpeed();
+        }
+
+        private SwerveRequest getIntakeDrive(Rotation2d rotationOffset) {
+            if (getInputTranslation(true).getNorm() < kPrimaryIntakeRotationInputDeadzone) {
+                return fieldCentricDrive
+                        .withVelocityX(getSpeedX(true))
+                        .withVelocityY(getSpeedY(true));
+            }
+            Rotation2d rotation = new Rotation2d(getInputX(true), getInputY(true))
+                    .plus(rotationOffset);
+            return fieldCentricFacingAngleDrive
+                    .withVelocityX(getSpeedX(true))
+                    .withVelocityY(getSpeedY(true))
+                    .withTargetDirection(rotation);
         }
 
         private Optional<ChassisSpeeds> driveAssist() {
@@ -158,15 +158,15 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                 Distance errorY = trenchZone.get().y.minus(robotPose.getMeasureY());
 
                 boolean hasPassed = !errorX.isNear(Meters.zero(), OperatorConstants.kTrenchAssistPassPositionTolerance);
-                boolean isNotApproaching = (Math.signum(getInputX()) == -Math.signum(errorX.magnitude()))
-                        || Math.abs(getInputX()) <= OperatorConstants.kTrenchAssistApproachInputTolerance;
+                boolean isNotApproaching = (Math.signum(getInputX(true)) == -Math.signum(errorX.magnitude()))
+                        || Math.abs(getInputX(true)) <= OperatorConstants.kTrenchAssistApproachInputTolerance;
                 if (hasPassed && isNotApproaching) {
                     return Optional.empty();
                 }
 
                 double vy = kTrenchAssistAlignStrength * getMaxTranslationSpeed() * Math.signum(errorY.magnitude())
-                        * Math.abs(getInputX());
-                double influence = OperatorConstants.kTrenchAssistAlignInfluence * getSpeedY();
+                        * Math.abs(getInputX(true));
+                double influence = OperatorConstants.kTrenchAssistAlignInfluence * getSpeedY(true);
                 boolean insideTolerance = errorY.isNear(Meters.zero(),
                         OperatorConstants.kTrenchAssistAlignPositionTolerance);
                 boolean againstAlignment = (influence >= Math.abs(vy));
@@ -187,57 +187,70 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         private Supplier<SwerveRequest> getDriveSupplier(DriveMode driveMode) {
             return () -> switch (driveMode) {
                 case FREE -> {
-                    if (isInputIdle()) {
-                        if (desiredRotation.isPresent()) {
-                            if (Math.abs(Math
-                                    .abs(getState().Pose.getRotation().minus(desiredRotation.get())
-                                            .getDegrees())) < 1.0) {
-                                yield brakeDrive;
-                            }
-                        } else {
-                            yield brakeDrive;
-                        }
+                    if (canAutoBrake()) {
+                        yield brakeDrive;
                     }
                     if (robotRelativeSupplier.getAsBoolean()) {
                         if (desiredRotation.isPresent()) {
-                            yield robotCentricFacingAngleDrive.withVelocityX(getSpeedX())
-                                    .withVelocityY(getSpeedY())
+                            yield robotCentricFacingAngleDrive.withVelocityX(getSpeedX(true))
+                                    .withVelocityY(getSpeedY(false))
                                     .withTargetDirection(desiredRotation.get());
                         }
-                        yield robotCentricDrive.withVelocityX(getSpeedX())
-                                .withVelocityY(getSpeedY())
+                        yield robotCentricDrive.withVelocityX(getSpeedX(false))
+                                .withVelocityY(getSpeedY(false))
                                 .withRotationalRate(getSpeedRotation());
                     }
                     var assistSpeed = driveAssist();
-                    var velocityY = assistSpeed.isEmpty() ? getSpeedY()
+                    var velocityY = assistSpeed.isEmpty() ? getSpeedY(true)
                             : assistSpeed.get().vyMetersPerSecond;
                     if (desiredRotation.isPresent()) {
-                        yield fieldCentricFacingAngleDrive.withVelocityX(getSpeedX())
+                        yield fieldCentricFacingAngleDrive.withVelocityX(getSpeedX(true))
                                 .withVelocityY(velocityY)
                                 .withTargetDirection(desiredRotation.get());
                     }
-                    yield fieldCentricDrive.withVelocityX(getSpeedX())
+                    yield fieldCentricDrive.withVelocityX(getSpeedX(true))
                             .withVelocityY(velocityY)
                             .withRotationalRate(getSpeedRotation());
                 }
                 case BRAKE -> brakeDrive;
                 case POINT -> pointDrive
-                        .withModuleDirection(new Rotation2d(getInputX(), getInputY()));
+                        .withModuleDirection(new Rotation2d(getInputX(false), getInputY(false)));
                 case IDLE -> idleDrive;
                 case MANUAL_ALIGN -> {
-                    Translation2d rawInput = getRawInputTranslation();
-                    double x = Math.signum(MathUtil.applyDeadband(rawInput.getX(), kPrimaryAlignModeDeadband, 1));
-                    double y = Math.signum(MathUtil.applyDeadband(rawInput.getY(), kPrimaryAlignModeDeadband, 1));
 
-                    if (x != 0 && y != 0) {
-                        x /= Math.sqrt(2);
-                        y /= Math.sqrt(2);
+                    // 8 direction behavior
+                    // Translation2d rawInput =
+                    // getRawInputTranslation(!robotRelativeSupplier.getAsBoolean());
+                    // double x = Math.signum(MathUtil.applyDeadband(rawInput.getX(),
+                    // kPrimaryAlignModeDeadband, 1));
+                    // double y = Math.signum(MathUtil.applyDeadband(rawInput.getY(),
+                    // kPrimaryAlignModeDeadband, 1));
+                    // if (x != 0 && y != 0) {
+                    // x /= Math.sqrt(2);
+                    // y /= Math.sqrt(2);
+                    // y = 0;
+                    // }
+
+                    // 4 direction/axis behavior
+                    Translation2d input = getInputTranslation(true);
+                    double x = 0;
+                    double y = 0;
+                    if (input.getNorm() >= 0.0) {
+                        if (Math.abs(input.getAngle().getCos()) >= input.getNorm() / Math.sqrt(2)) {
+                            x = Math.signum(input.getX());
+                        } else {
+                            y = Math.signum(input.getY());
+                        }
                     }
 
-                    double velocityX = kPrimaryAlignModeSpeedTranslationFactor * x * getMaxTranslationSpeed();
-                    double velocityY = kPrimaryAlignModeSpeedTranslationFactor * y * getMaxTranslationSpeed();
-                    double rotationalRate = kPrimaryAlignModeSpeedRotationFactor * kMaxRotationSpeed
-                            * getInputRotationVelocity();
+                    double velocityX = x * getMaxTranslationSpeed();
+                    double velocityY = y * getMaxTranslationSpeed();
+                    double rotationalRate = getInputRotationVelocity() * kMaxRotationSpeed;
+                    if (reduceSpeedEnabled) {
+                        velocityX *= kPrimaryAlignModeSpeedTranslationFactor;
+                        velocityY *= kPrimaryAlignModeSpeedTranslationFactor;
+                        rotationalRate *= kPrimaryAlignModeSpeedRotationFactor;
+                    }
 
                     if (robotRelativeSupplier.getAsBoolean()) {
                         yield robotCentricDrive.withVelocityX(velocityX)
@@ -248,21 +261,17 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                             .withVelocityY(velocityY)
                             .withRotationalRate(rotationalRate);
                 }
-                case INTAKE -> {
-                    // TODO: decide whats the optimal deadzone or have some heuristic to check if
-                    // the joystick was released
-                    if (Math.hypot(getInputX(), getInputY()) >= 0.2) {
-                        yield fieldCentricFacingAngleDrive
-                                .withVelocityX(getSpeedX())
-                                .withVelocityY(getSpeedY())
-                                .withTargetDirection(new Rotation2d(getInputX(), getInputY()));
-                    }
-                    yield fieldCentricDrive
-                            .withVelocityX(getSpeedX())
-                            .withVelocityY(getSpeedY());
+                case INTAKE_FORWARD -> {
+                    yield getIntakeDrive(Rotation2d.kZero);
+                }
+                case INTAKE_LEFT -> {
+                    yield getIntakeDrive(new Rotation2d(Degrees.of(45.0)));
+                }
+                case INTAKE_RIGHT -> {
+                    yield getIntakeDrive(new Rotation2d(Degrees.of(-45.0)));
                 }
                 case RADIAL -> {
-                    if (isInputIdle()) {
+                    if (canAutoBrake()) {
                         yield brakeDrive;
                     }
                     double radialInput = MathUtil.applyDeadband(inputX.get(), kPrimaryRadialModeDeadband, 1);
@@ -312,6 +321,10 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         this.driveAssistEnabled = enabled;
     }
 
+    public void enableAutoBrake(boolean enabled) {
+        this.autoBrakeEnabled = enabled;
+    }
+
     public void setDesiredRotation(Rotation2d desiredRotation) {
         this.desiredRotation = Optional.of(desiredRotation);
     }
@@ -320,15 +333,23 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         this.desiredRotation = Optional.empty();
     }
 
+    public double getMaxTranslationSpeed() {
+        return kMaxTranslationSpeed * (reduceSpeedEnabled ? kPrimaryReduceSpeedTranslationFactor : 1);
+    }
+
+    public double getMaxRotationSpeed() {
+        return kMaxRotationSpeed * (reduceSpeedEnabled ? kPrimaryReduceSpeedRotationFactor : 1);
+    }
+
     /**
      * @return the field relative translation input (-left joystick y input,
      *         -left
      *         joystick x input), from magnitude range -1 to 1. no deadzone is
      *         applied
      */
-    public Translation2d getRawInputTranslation() {
+    public Translation2d getRawInputTranslation(boolean fieldRelative) {
         Translation2d rawInput = new Translation2d(inputX.get(), inputY.get());
-        if (DriverStation.getAlliance().orElse(Alliance.Blue).equals(Alliance.Red)) {
+        if (fieldRelative && DriverStation.getAlliance().orElse(Alliance.Blue).equals(Alliance.Red)) {
             rawInput = rawInput.times(-1);
         }
         return rawInput;
@@ -340,8 +361,8 @@ public class Drivetrain extends CommandSwerveDrivetrain {
      *         joystick x input), from magnitude range -1 to 1. a deadzone is
      *         applied.
      */
-    public Translation2d getInputTranslation() {
-        Translation2d rawInput = getRawInputTranslation();
+    public Translation2d getInputTranslation(boolean fieldRelative) {
+        Translation2d rawInput = getRawInputTranslation(fieldRelative);
         Vector<N2> filteredInputVector = rawInput.toVector();
         filteredInputVector = MathUtil.applyDeadband(filteredInputVector, kPrimaryTranslationDeadband, 1);
 
@@ -350,7 +371,8 @@ public class Drivetrain extends CommandSwerveDrivetrain {
 
         // apply exponent
         if (filteredInputVector.norm() > 0.0) {
-            filteredInputVector = filteredInputVector.unit().times(Math.pow(filteredInputVector.norm(), kPrimaryTranslationExponent));
+            filteredInputVector = filteredInputVector.unit()
+                    .times(Math.pow(filteredInputVector.norm(), kPrimaryTranslationExponent));
         }
 
         // clamp values
@@ -366,8 +388,8 @@ public class Drivetrain extends CommandSwerveDrivetrain {
      *         to
      *         1. a deadzone and quadratic are applied for better control.
      */
-    public double getInputX() {
-        return getInputTranslation().getX();
+    public double getInputX(boolean fieldRelative) {
+        return getInputTranslation(fieldRelative).getX();
     }
 
     /**
@@ -375,8 +397,8 @@ public class Drivetrain extends CommandSwerveDrivetrain {
      *         to
      *         1. a deadzone and quadratic are applied for better control.
      */
-    public double getInputY() {
-        return getInputTranslation().getY();
+    public double getInputY(boolean fieldRelative) {
+        return getInputTranslation(fieldRelative).getY();
     }
 
     /**
@@ -419,9 +441,10 @@ public class Drivetrain extends CommandSwerveDrivetrain {
      * @return AutoFactory for this drivetrain
      */
     public AutoFactory createAutoFactory() {
-        return createAutoFactory((sample, isStart) -> {});
+        return createAutoFactory((sample, isStart) -> {
+        });
     }
-    
+
     /**
      * Creates a new auto factory for this drivetrain with the given
      * trajectory logger.
@@ -431,85 +454,105 @@ public class Drivetrain extends CommandSwerveDrivetrain {
      */
     public AutoFactory createAutoFactory(TrajectoryLogger<SwerveSample> trajLogger) {
         return new AutoFactory(
-            () -> getState().Pose,
-            this::resetPose,
-            this::followPath,
-            true,
-            this,
-            trajLogger
-        );
+                () -> getState().Pose,
+                this::resetPose,
+                this::followPath,
+                true,
+                this,
+                trajLogger);
     }
 
     /** set the AutoAim command to be used for shooting while moving during auto */
-    public void setAutonomousAutoAimCommand(AutoAim autoAimCommand){
+    public void setAutonomousAutoAimCommand(AutoAim autoAimCommand) {
         this.autoAimCommand = autoAimCommand;
     }
 
     /**
      * Follows the given field-centric path sample with PID.
      * 
-     * if autoPathAutoAimMode is true and the setAutonomousAutoAimCommand() method was used to set the autoAimCommand, it will use the omega from the auto aim command to aim at the hub
+     * if autoPathAutoAimMode is true and the setAutonomousAutoAimCommand() method
+     * was used to set the autoAimCommand, it will use the omega from the auto aim
+     * command to aim at the hub
      *
      * @param sample Sample along the path to follow
      */
     public void followPath(SwerveSample sample) {
-        //current robot pose
+        // current robot pose
         var pose = getState().Pose;
-        //choreo calculated target speeds (time based)
+        // choreo calculated target speeds (time based)
         var targetSpeeds = sample.getChassisSpeeds();
-        //calculate translation velocities with target speeds and PID to correct for error
+        // calculate translation velocities with target speeds and PID to correct for
+        // error
         targetSpeeds.vxMetersPerSecond += m_pathXController.calculate(
-            pose.getX(), sample.x
-        );
+                pose.getX(), sample.x);
         targetSpeeds.vyMetersPerSecond += m_pathYController.calculate(
-            pose.getY(), sample.y
-        );
+                pose.getY(), sample.y);
 
-        //omega is calculated differently depending on the mode
-        //if autoPathAutoAimMode is true and the setAutonomousAutoAimCommand() method was used to set the autoAimCommand, it will use the omega from the auto aim command to aim at the hub
-        //otherwise it will use target speeds and PID
-        if(autoPathAutoAimMode && autoAimCommand != null){
-            //get the desired omega directly from the auto aim controller(instead of calculated speeds and PID)
+        // omega is calculated differently depending on the mode
+        // if autoPathAutoAimMode is true and the setAutonomousAutoAimCommand() method
+        // was used to set the autoAimCommand, it will use the omega from the auto aim
+        // command to aim at the hub
+        // otherwise it will use target speeds and PID
+        if (autoPathAutoAimMode && autoAimCommand != null) {
+            // get the desired omega directly from the auto aim controller(instead of
+            // calculated speeds and PID)
             targetSpeeds.omegaRadiansPerSecond = autoAimCommand.getDesiredOmega();
-        }
-        else{
+        } else {
             m_pathThetaController.enableContinuousInput(-Math.PI, Math.PI);
-            //get desired omega from calculated speeds and PID
+            // get desired omega from calculated speeds and PID
             targetSpeeds.omegaRadiansPerSecond += m_pathThetaController.calculate(
-                pose.getRotation().getRadians(), sample.heading
-            );
+                    pose.getRotation().getRadians(), sample.heading);
         }
-        //send the calculated speeds to the drivetrain
+        // send the calculated speeds to the drivetrain
         setControl(
                 m_pathApplyFieldSpeeds.withSpeeds(targetSpeeds)
-                    .withWheelForceFeedforwardsX(sample.moduleForcesX())
-                    .withWheelForceFeedforwardsY(sample.moduleForcesY())
-            );
+                        .withWheelForceFeedforwardsX(sample.moduleForcesX())
+                        .withWheelForceFeedforwardsY(sample.moduleForcesY()));
     }
 
-    /** @param autoPathAutoAimMode if true the robot will run autoaim along the auto trajectory 
-     * a value of true will activate the AutoAim command and a value of false will cancel it. it will also schedule and cancel the auto aim command object stored in the Drivetrain class.
-     * I hate this implementation but I have negative intelligence
-    */
-    public void setAutoPathAutoAimMode(boolean autoPathAutoAimMode){
+    /**
+     * @param autoPathAutoAimMode if true the robot will run autoaim along the auto
+     *                            trajectory
+     *                            a value of true will activate the AutoAim command
+     *                            and a value of false will cancel it. it will also
+     *                            schedule and cancel the auto aim command object
+     *                            stored in the Drivetrain class.
+     *                            I hate this implementation but I have negative
+     *                            intelligence
+     */
+    public void setAutoPathAutoAimMode(boolean autoPathAutoAimMode) {
         this.autoPathAutoAimMode = autoPathAutoAimMode;
-        if(autoPathAutoAimMode){
+        if (autoPathAutoAimMode) {
             CommandScheduler.getInstance().schedule(autoAimCommand);
-        }
-        else{
+        } else {
             CommandScheduler.getInstance().cancel(autoAimCommand);
         }
     }
 
     /**
-     * @return {@Code true} if there is no joystick input
+     * @return {@Code true} if there is no joystick input and the desired rotation
+     *         has been reached
      */
-    public boolean isInputIdle() {
+    public boolean isDriveIdle() {
         boolean noInputRotation = true;
         if (desiredRotation.isPresent()) {
             noInputRotation = getInputRotation().isEmpty();
         }
-        return getInputTranslation().getNorm() == 0.0 && getInputRotationVelocity() == 0.0 && noInputRotation;
+        return getInputTranslation(false).getNorm() == 0.0 && getInputRotationVelocity() == 0.0 && noInputRotation;
+    }
+
+    public boolean isAtDesiredRotation() {
+        if (desiredRotation.isEmpty()) {
+            return false;
+        }
+        return Math.abs(getState().Pose.getRotation().minus(desiredRotation.get()).getMeasure()
+                .baseUnitMagnitude()) < kPrimaryAutoBrakeReachedDesiredAngleTolerance
+                        .baseUnitMagnitude();
+    }
+
+    public boolean canAutoBrake() {
+        boolean atDesiredRotation = (desiredRotation.isEmpty() ? true : isAtDesiredRotation());
+        return autoBrakeEnabled && isDriveIdle() && atDesiredRotation;
     }
 
 }
