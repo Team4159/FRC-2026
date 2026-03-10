@@ -18,6 +18,7 @@ import frc.robot.Constants.AlignConstants.TowerAlignGoal;
 import frc.robot.Constants.OperatorConstants.DriveMode;
 import frc.robot.commands.AutoAlign;
 import frc.robot.subsystems.Drivetrain;
+import frc.robot.subsystems.PhotonVision;
 
 public class RobotContainer {
     private final Telemetry logger = new Telemetry();
@@ -37,6 +38,7 @@ public class RobotContainer {
     //private final Trigger primaryMiddleBackClimbAlignTrigger = primaryController.povDown();
 
     public final Drivetrain drivetrain = new Drivetrain(primaryController);
+    public final PhotonVision photonVision = new PhotonVision(drivetrain);
 
     /* Path follower */
     private final AutoFactory autoFactory;
