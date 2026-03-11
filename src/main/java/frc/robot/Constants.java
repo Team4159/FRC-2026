@@ -100,11 +100,31 @@ public final class Constants {
         public static final double kAimKD = 0.0;
         public static final double kAimFeedForward = 0.0;
 
-        public static final PhoenixPIDController AutoAimRotationController = new PhoenixPIDController(kAimKP, kAimKI, kAimKD);
+        public static final PhoenixPIDController AutoAimRotationController = new PhoenixPIDController(kAimKP, kAimKI,
+                kAimKD);
         static {
             AutoAimRotationController.enableContinuousInput(-Math.PI, Math.PI);
         }
 
+    }
+
+    public static class ClimberConstants {
+        public static final double kAngleToPosition = 0.0013546667;
+
+        public static final double kZeroDutyCycle = 0.05;
+        public static final double kZeroLiftDuration = 0.5;
+
+        public static enum ClimberState {
+            LOWERED(Meters.of(0.0)),
+            EXTENDED_FULL(Meters.of(0.0)),
+            EXTENDED_PARTIAL(Meters.of(0.0));
+
+            public final Distance position;
+
+            private ClimberState(Distance position) {
+                this.position = position;
+            }
+        }
     }
 
     public static class PhotonVisionConstants {
@@ -208,13 +228,18 @@ public final class Constants {
                                     .minus(DrivetrainConstants.kDrivetrainSizeX.div(2)),
                             Rotation2d.k180deg)).withVelocity(0).withEntryAngle(Rotation2d.k180deg)),
             MIDDLE_FRONT(
-                    new APTarget(new Pose2d(FieldConstants.kTowerX.plus(DrivetrainConstants.kDrivetrainSizeX.div(2)).plus(Inches.of(6)),
+                    new APTarget(new Pose2d(
+                            FieldConstants.kTowerX.plus(DrivetrainConstants.kDrivetrainSizeX.div(2)).plus(Inches.of(6)),
                             FieldConstants.kTowerY, Rotation2d.k180deg)).withVelocity(0).withoutEntryAngle(),
-                    new APTarget(new Pose2d(FieldConstants.kTowerX, FieldConstants.kTowerY, Rotation2d.k180deg)).withVelocity(0).withoutEntryAngle()),
+                    new APTarget(new Pose2d(FieldConstants.kTowerX, FieldConstants.kTowerY, Rotation2d.k180deg))
+                            .withVelocity(0).withoutEntryAngle()),
             MIDDLE_BACK(
-                    new APTarget(new Pose2d(FieldConstants.kTowerX.minus(DrivetrainConstants.kDrivetrainSizeX.div(2)).minus(Inches.of(6)),
+                    new APTarget(new Pose2d(
+                            FieldConstants.kTowerX.minus(DrivetrainConstants.kDrivetrainSizeX.div(2))
+                                    .minus(Inches.of(6)),
                             FieldConstants.kTowerY, Rotation2d.kZero)).withVelocity(0).withoutEntryAngle(),
-                    new APTarget(new Pose2d(FieldConstants.kTowerX, FieldConstants.kTowerY, Rotation2d.kZero)).withVelocity(0).withoutEntryAngle());
+                    new APTarget(new Pose2d(FieldConstants.kTowerX, FieldConstants.kTowerY, Rotation2d.kZero))
+                            .withVelocity(0).withoutEntryAngle());
 
             public final APTarget[] targets;
 
