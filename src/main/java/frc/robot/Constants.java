@@ -260,18 +260,18 @@ public final class Constants {
 
   public static class ShooterConstants {
 
-    public static final double kHoodI = 0;
+    public static final double kHoodI = 1;
     public static final double kHoodD = 0;
-    public static final double kHoodP = 50;
-    public static final double kHoodG = 0.2;
+    public static final double kHoodP = 100;
+    public static final double kHoodG = 0.25;
     public static final double kHoodS = 0.1;
     // public static final double kHoodV = 1.11;
     // public static final double kHoodA = 0.17;
     //abs encoder
     public static final int HoodId = 8;
     public static final int kHoodEncoderID = 2;
-    public static final Angle kEncoderOffset = Degrees.of(-280);
-    public static final double kSensorToMechanismRatio = 3;
+    public static final Angle kEncoderOffset = Degrees.of(-235);
+    public static final double kSensorToMechanismRatio = 34/16;
     public static final double kMotorToSensorRatio = 25;
 
     public static final double kCruiseVelocity = 40;
@@ -312,8 +312,8 @@ public final class Constants {
     }};
 
     //Shooter Motor Config and PID
-    public static final double kP = 30;
-    public static final double kI = 0;
+    public static final double kP = 75;
+    public static final double kI = 1;
     public static final double kD = 0;
     public static final int ShooterIDLeftBottom = 9;
     public static final int ShooterIDLeftTop = 10;
@@ -328,6 +328,7 @@ public final class Constants {
       CurrentLimits.SupplyCurrentLimitEnable = true;
       CurrentLimits.SupplyCurrentLimit = 40;
       MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+      MotorOutput.NeutralMode = NeutralModeValue.Coast;
     }};
 
     public static final TalonFXConfiguration leftShooterMotorsConfig = new TalonFXConfiguration(){{
@@ -337,9 +338,10 @@ public final class Constants {
       CurrentLimits.SupplyCurrentLimitEnable = true;
       CurrentLimits.SupplyCurrentLimit = 40;
       MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+      MotorOutput.NeutralMode = NeutralModeValue.Coast;
     }};
 
-    public static final AngularVelocity shooterAngularVelocity = RPM.of(3200);
+    public static final AngularVelocity shooterAngularVelocity = RPM.of(3000);
 
     //TODO: find ball launch velocity
     /** units: m/s */
@@ -387,7 +389,7 @@ public final class Constants {
                 new Rotation3d(
                         0,
                         Units.degreesToRadians(-30),
-                        Units.degreesToRadians(-5)));
+                        Units.degreesToRadians(5)));
         public final static Transform3d rightShooterCamTransform = new Transform3d(
                 Units.inchesToMeters(-1.2887),
                 Units.inchesToMeters(-8.8466),
@@ -532,25 +534,25 @@ public final class Constants {
 
     //stores desired angle and estimated time (from stationary) given a distance from the hub
     public static final Map<Distance, ShotData> joeLookupTable = Map.ofEntries(
-      Map.entry(Meters.of(0),   new ShotData(Degrees.of(60),     Seconds.of(1.7277))),
-      Map.entry(Meters.of(0.5), new ShotData(Degrees.of(60),     Seconds.of(1.7277))),
-      Map.entry(Meters.of(1),   new ShotData(Degrees.of(60),     Seconds.of(1.7277))),
-      Map.entry(Meters.of(1.5), new ShotData(Degrees.of(69.292), Seconds.of(1.726))),
-      Map.entry(Meters.of(2),   new ShotData(Degrees.of(67.347), Seconds.of(1.718))),
-      Map.entry(Meters.of(2.5), new ShotData(Degrees.of(55.364), Seconds.of(1.708))),
-      Map.entry(Meters.of(3),   new ShotData(Degrees.of(53.329), Seconds.of(1.697))),
-      Map.entry(Meters.of(3.5), new ShotData(Degrees.of(51.226), Seconds.of(1.682))),
-      Map.entry(Meters.of(4),   new ShotData(Degrees.of(49.034), Seconds.of(1.664))),
-      Map.entry(Meters.of(4.5), new ShotData(Degrees.of(46.726), Seconds.of(1.642))),
-      Map.entry(Meters.of(5.5), new ShotData(Degrees.of(40.879), Seconds.of(1.556))),
-      Map.entry(Meters.of(6),   new ShotData(Degrees.of(37.686), Seconds.of(1.512))),
-      Map.entry(Meters.of(6.5), new ShotData(Degrees.of(33.808), Seconds.of(1.451))),
-      Map.entry(Meters.of(7),   new ShotData(Degrees.of(30.122), Seconds.of(1.349))),
-      Map.entry(Meters.of(7.5), new ShotData(Degrees.of(25),     Seconds.of(1.176))),
-      Map.entry(Meters.of(8),   new ShotData(Degrees.of(25),     Seconds.of(1.176))),
-      Map.entry(Meters.of(8.5), new ShotData(Degrees.of(25),     Seconds.of(1.176))),
-      Map.entry(Meters.of(9),   new ShotData(Degrees.of(25),     Seconds.of(1.176))),
-      Map.entry(Meters.of(9.5), new ShotData(Degrees.of(25),     Seconds.of(1.176)))
+      Map.entry(Meters.of(0),   new ShotData(Degrees.of(87),     Seconds.of(1.7277))),
+      Map.entry(Meters.of(0.5), new ShotData(Degrees.of(84),     Seconds.of(1.7277))),
+      Map.entry(Meters.of(1),   new ShotData(Degrees.of(82),     Seconds.of(1.7277))),
+      Map.entry(Meters.of(1.5), new ShotData(Degrees.of(81), Seconds.of(1.726))),
+      Map.entry(Meters.of(2),   new ShotData(Degrees.of(80), Seconds.of(1.718))),
+      Map.entry(Meters.of(2.5), new ShotData(Degrees.of(79), Seconds.of(1.708))),
+      // Map.entry(Meters.of(3),   new ShotData(Degrees.of(73.329), Seconds.of(1.697))),
+      Map.entry(Meters.of(3.5), new ShotData(Degrees.of(74), Seconds.of(1.682))),
+      Map.entry(Meters.of(4),   new ShotData(Degrees.of(72), Seconds.of(1.664)))
+      // Map.entry(Meters.of(4.5), new ShotData(Degrees.of(66.726), Seconds.of(1.642))),
+      //Map.entry(Meters.of(5.5), new ShotData(Degrees.of(47), Seconds.of(1.556))),
+      //Map.entry(Meters.of(6),   new ShotData(Degrees.of(45), Seconds.of(1.512)))
+      // Map.entry(Meters.of(6.5), new ShotData(Degrees.of(53.808), Seconds.of(1.451))),
+      // Map.entry(Meters.of(7),   new ShotData(Degrees.of(50.122), Seconds.of(1.349))),
+      // Map.entry(Meters.of(7.5), new ShotData(Degrees.of(45),     Seconds.of(1.176))),
+      // Map.entry(Meters.of(8),   new ShotData(Degrees.of(45),     Seconds.of(1.176))),
+      // Map.entry(Meters.of(8.5), new ShotData(Degrees.of(45),     Seconds.of(1.176))),
+      // Map.entry(Meters.of(9),   new ShotData(Degrees.of(45),     Seconds.of(1.176))),
+      // Map.entry(Meters.of(9.5), new ShotData(Degrees.of(45),     Seconds.of(1.176)))
     );
   }
 }

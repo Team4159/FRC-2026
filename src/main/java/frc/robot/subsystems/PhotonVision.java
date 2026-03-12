@@ -41,6 +41,7 @@ public class PhotonVision extends SubsystemBase{
 
     @Override
     public void periodic(){
+        System.out.println("running pv");
         //left camera
         Optional<EstimatedRobotPose> leftShooterEstimate = Optional.empty();
         //loops through all unread camera results
@@ -53,10 +54,10 @@ public class PhotonVision extends SubsystemBase{
             }
             //check if estimate exists
             if(leftShooterEstimate.isPresent()){
-                //set standard deviation
-                drivetrain.setVisionMeasurementStdDevs(calculateEstimationStdDevs(leftShooterEstimate, leftShooterCamResult.targets, leftShooterEstimator));
-                //send the pose estimate to the pose estimator
-                drivetrain.addVisionMeasurement(leftShooterEstimate.get().estimatedPose.toPose2d(), leftShooterEstimate.get().timestampSeconds);
+                // //set standard deviation
+                // drivetrain.setVisionMeasurementStdDevs(calculateEstimationStdDevs(leftShooterEstimate, leftShooterCamResult.targets, leftShooterEstimator));
+                // //send the pose estimate to the pose estimator
+                // drivetrain.addVisionMeasurement(leftShooterEstimate.get().estimatedPose.toPose2d(), leftShooterEstimate.get().timestampSeconds);
             }
 
         }
