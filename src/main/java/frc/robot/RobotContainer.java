@@ -22,6 +22,7 @@ import frc.robot.Constants.AlignConstants.TowerAlignGoal;
 import frc.robot.Constants.OperatorConstants.DriveMode;
 import frc.robot.commands.AutoAlign;
 import frc.robot.subsystems.Drivetrain;
+import frc.robot.subsystems.PhotonVision;
 
 public class RobotContainer {
     private final CommandXboxController primaryController = new CommandXboxController(
@@ -45,6 +46,7 @@ public class RobotContainer {
     // primaryController.rightStick();
 
     public final Drivetrain drivetrain = new Drivetrain(primaryController);
+    public final PhotonVision photonVision = new PhotonVision(drivetrain);
 
     /* Path follower */
     private final AutoFactory autoFactory;
