@@ -4,21 +4,16 @@ import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.Radians;
 
-import java.io.Console;
-
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.MathSharedStore;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
-import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -27,7 +22,6 @@ import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Constants;
-import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.JoeLookupTableConstants;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.Constants.FeederConstants.FeederState;
@@ -146,7 +140,7 @@ public class AutoAim extends Command {
         shooter.adjustTrajectoryAngle(Radians.of(desiredHoodAngle));
 
         //for sim for now will implement actual tolerances later
-        autoAimStatus = autoAimStatus.SHOOT;
+        autoAimStatus = AutoAimStatus.SHOOT;
 
         // if(autoAimStatus == AutoAimStatus.SHOOT){
         //     shooter.setFeederSpeed(FeederState.FEED.percentage);

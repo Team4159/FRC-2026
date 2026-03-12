@@ -20,7 +20,6 @@ import frc.robot.Constants.AlignConstants.TowerAlignGoal;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.IntakeConstants.IntakeState;
 import frc.robot.commands.AutoAim;
-import frc.robot.commands.AutoAlign;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Hopper;
 import frc.robot.subsystems.Intake;

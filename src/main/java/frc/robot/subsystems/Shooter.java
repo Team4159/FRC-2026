@@ -6,20 +6,17 @@ import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
-import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.controls.StrictFollower;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.InvertedValue;
-import com.ctre.phoenix6.signals.SensorDirectionValue;
 
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.units.measure.Velocity;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -29,6 +26,7 @@ import frc.robot.Constants.ShooterConstants;
 
 public class Shooter extends SubsystemBase{
     private final TalonFX hoodMotor, feederMotor, leftBottomShooterMotor, leftTopShooterMotor, rightTopShooterMotor, rightBottomShooterMotor;
+    private final TalonFX leaderShooterMotor;
     private final CANcoder canCoder;
 
     private final MotionMagicVoltage hoodMotionMagic;
@@ -44,6 +42,8 @@ public class Shooter extends SubsystemBase{
         leftTopShooterMotor = new TalonFX(ShooterConstants.ShooterIDLeftTop);
         rightTopShooterMotor = new TalonFX(ShooterConstants.ShooterIDRightTop);
         rightBottomShooterMotor = new TalonFX(ShooterConstants.ShooterIDRightBottom);
+
+        leaderShooterMotor = leftBottomShooterMotor; 
         
         leftBottomShooterMotor.getConfigurator().apply(new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive));
         leftTopShooterMotor.getConfigurator().apply(new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive));
@@ -57,14 +57,15 @@ public class Shooter extends SubsystemBase{
 
         shooterVelocityVoltage = new VelocityVoltage(0);
         hoodMotionMagic = new MotionMagicVoltage(0);
+
+        leftTopShooterMotor.setControl(new StrictFollower(leaderShooterMotor.getDeviceID()));
+        rightTopShooterMotor.setControl(new StrictFollower(leaderShooterMotor.getDeviceID()));
+        rightBottomShooterMotor.setControl(new StrictFollower(leaderShooterMotor.getDeviceID()));
     }
     // set speed
     public void setSpeed(AngularVelocity speed) {
         shooterVelocityVoltage.withVelocity(speed.in(RotationsPerSecond));
-        leftBottomShooterMotor.setControl(shooterVelocityVoltage);
-        leftTopShooterMotor.setControl(shooterVelocityVoltage);
-        rightTopShooterMotor.setControl(shooterVelocityVoltage);
-        rightBottomShooterMotor.setControl(shooterVelocityVoltage);
+        leaderShooterMotor.setControl(shooterVelocityVoltage);
     }
 
     /** @return the estimated initial speed of the ball after being shot from the shooter in m/s*/
