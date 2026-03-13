@@ -36,6 +36,7 @@ import frc.robot.subsystems.PhotonVision;
 import frc.robot.subsystems.Hopper;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
+import frc.robot.subsystems.PhotonVision;
 
 public class RobotContainer {
     private final CommandXboxController primaryController = new CommandXboxController(
@@ -85,8 +86,8 @@ public class RobotContainer {
     private final Hopper hopper = new Hopper();
     private final LEDs leds = new LEDs();
     private final Climber climber = new Climber();
-    private final Drivetrain drivetrain = new Drivetrain(primaryController);
-    private final PhotonVision photonVision = new PhotonVision(drivetrain);
+    public final Drivetrain drivetrain = new Drivetrain(primaryController);
+    public final PhotonVision photonVision = new PhotonVision(drivetrain);
 
     /* Path follower */
     private final AutoFactory autoFactory;

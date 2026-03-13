@@ -119,29 +119,17 @@ public class Drivetrain extends CommandSwerveDrivetrain {
             setControl(driveSupplier.get());
         }
 
-        private double getSpeedX(boolean fieldRelative) {
-            return getInputX(fieldRelative) * getMaxTranslationSpeed();
-        }
-
-        private double getSpeedY(boolean fieldRelative) {
-            return getInputY(fieldRelative) * getMaxTranslationSpeed();
-        }
-
-        private double getSpeedRotation() {
-            return getInputRotationVelocity() * getMaxRotationSpeed();
-        }
-
         private SwerveRequest getIntakeDrive(Rotation2d rotationOffset) {
             if (getInputTranslation(true).getNorm() < kPrimaryIntakeRotationInputDeadzone) {
                 return fieldCentricDrive
-                        .withVelocityX(getSpeedX(true))
-                        .withVelocityY(getSpeedY(true));
+                        .withVelocityX(getInputSpeedX(true))
+                        .withVelocityY(getInputSpeedY(true));
             }
             Rotation2d rotation = new Rotation2d(getInputX(true), getInputY(true))
                     .plus(rotationOffset);
             return fieldCentricFacingAngleDrive
-                    .withVelocityX(getSpeedX(true))
-                    .withVelocityY(getSpeedY(true))
+                    .withVelocityX(getInputSpeedX(true))
+                    .withVelocityY(getInputSpeedY(true))
                     .withTargetDirection(rotation);
         }
 
@@ -166,7 +154,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
 
                 double vy = kTrenchAssistAlignStrength * getMaxTranslationSpeed() * Math.signum(errorY.magnitude())
                         * Math.abs(getInputX(true));
-                double influence = OperatorConstants.kTrenchAssistAlignInfluence * getSpeedY(true);
+                double influence = OperatorConstants.kTrenchAssistAlignInfluence * getInputSpeedY(true);
                 boolean insideTolerance = errorY.isNear(Meters.zero(),
                         OperatorConstants.kTrenchAssistAlignPositionTolerance);
                 boolean againstAlignment = (influence >= Math.abs(vy));
@@ -192,25 +180,25 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                     }
                     if (robotRelativeSupplier.getAsBoolean()) {
                         if (desiredRotation.isPresent()) {
-                            yield robotCentricFacingAngleDrive.withVelocityX(getSpeedX(true))
-                                    .withVelocityY(getSpeedY(false))
+                            yield robotCentricFacingAngleDrive.withVelocityX(getInputSpeedX(true))
+                                    .withVelocityY(getInputSpeedY(false))
                                     .withTargetDirection(desiredRotation.get());
                         }
-                        yield robotCentricDrive.withVelocityX(getSpeedX(false))
-                                .withVelocityY(getSpeedY(false))
-                                .withRotationalRate(getSpeedRotation());
+                        yield robotCentricDrive.withVelocityX(getInputSpeedX(false))
+                                .withVelocityY(getInputSpeedY(false))
+                                .withRotationalRate(getInputSpeedRotation());
                     }
                     var assistSpeed = driveAssist();
-                    var velocityY = assistSpeed.isEmpty() ? getSpeedY(true)
+                    var velocityY = assistSpeed.isEmpty() ? getInputSpeedY(true)
                             : assistSpeed.get().vyMetersPerSecond;
                     if (desiredRotation.isPresent()) {
-                        yield fieldCentricFacingAngleDrive.withVelocityX(getSpeedX(true))
+                        yield fieldCentricFacingAngleDrive.withVelocityX(getInputSpeedX(true))
                                 .withVelocityY(velocityY)
                                 .withTargetDirection(desiredRotation.get());
                     }
-                    yield fieldCentricDrive.withVelocityX(getSpeedX(true))
+                    yield fieldCentricDrive.withVelocityX(getInputSpeedX(true))
                             .withVelocityY(velocityY)
-                            .withRotationalRate(getSpeedRotation());
+                            .withRotationalRate(getInputSpeedRotation());
                 }
                 case BRAKE -> brakeDrive;
                 case POINT -> pointDrive
@@ -339,6 +327,18 @@ public class Drivetrain extends CommandSwerveDrivetrain {
 
     public double getMaxRotationSpeed() {
         return kMaxRotationSpeed * (reduceSpeedEnabled ? kPrimaryReduceSpeedRotationFactor : 1);
+    }
+
+    public double getInputSpeedX(boolean fieldRelative) {
+        return getInputX(fieldRelative) * getMaxTranslationSpeed();
+    }
+
+    public double getInputSpeedY(boolean fieldRelative) {
+        return getInputY(fieldRelative) * getMaxTranslationSpeed();
+    }
+
+    public double getInputSpeedRotation() {
+        return getInputRotationVelocity() * getMaxRotationSpeed();
     }
 
     /**
