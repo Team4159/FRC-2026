@@ -88,6 +88,7 @@ public class Intake extends SubsystemBase {
     
     public class CompressIntake extends Command{
         public CompressIntake(){
+            addRequirements(Intake.this);
         }
 
         @Override
@@ -105,22 +106,27 @@ public class Intake extends SubsystemBase {
     public class BounceIntake extends Command{
 
         public BounceIntake(){
-
+            addRequirements(Intake.this);
         }
 
         @Override
         public void initialize(){
-            setLocation(IntakeState.UP_OFF.rotationLocation);
+            setLocation(IntakeState.BOUNCE_UP.rotationLocation);
         }
 
         @Override
         public void execute(){
             if(getPivotAngle().isNear( IntakeState.DOWN_OFF.rotationLocation, Degrees.of(5))){
-                setLocation(IntakeState.UP_OFF.rotationLocation);
+                setLocation(IntakeState.BOUNCE_UP.rotationLocation);
             }
-            if(getPivotAngle().isNear( IntakeState.UP_OFF.rotationLocation, Degrees.of(5))){
+            if(getPivotAngle().isNear( IntakeState.BOUNCE_UP.rotationLocation, Degrees.of(5))){
                 setLocation(IntakeState.DOWN_OFF.rotationLocation);
             }
+        }
+
+        @Override 
+        public void end(boolean interrupted){
+            setLocation(IntakeState.DOWN_OFF.rotationLocation);
         }
     }
 }

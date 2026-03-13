@@ -14,8 +14,8 @@
    "maxAccel":{
     "dimension":"LinAcc",
     "var":{
-     "exp":"3 m / s ^ 2",
-     "val":3.0
+     "exp":"5 m / s ^ 2",
+     "val":5.0
     }
    },
    "maxIntakeVelocity":{
@@ -23,6 +23,13 @@
     "var":{
      "exp":"2 m / s",
      "val":2.0
+    }
+   },
+   "maxVelo":{
+    "dimension":"LinVel",
+    "var":{
+     "exp":"3 m / s",
+     "val":3.0
     }
    }
   },
@@ -178,7 +185,7 @@
     },
     "heading":{
      "exp":"360 deg - rfIntakeEnd.heading",
-     "val":4.483185307179586
+     "val":4.083185307179586
     }
    },
    "lmIntakeEnd":{
@@ -261,8 +268,8 @@
      "val":3.2858200073242188
     },
     "heading":{
-     "exp":"1.8 rad",
-     "val":1.8
+     "exp":"2.2 rad",
+     "val":2.2
     }
    },
    "rmIntakeEnd":{

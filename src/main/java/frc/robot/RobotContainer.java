@@ -98,7 +98,7 @@ public class RobotContainer {
 
     public RobotContainer() {
         //set auto command for drivetrain
-        drivetrain.setAutonomousAutoAimCommand(new AutoAim(drivetrain, shooter, hopper, leds, true));
+        drivetrain.setAutonomousAutoAimCommand(new AutoAim(drivetrain, shooter, hopper, intake, leds, true));
         //Choreo Auto
         autoFactory = drivetrain.createAutoFactory();
         autoRoutines = new AutoRoutines(autoFactory, drivetrain);
@@ -122,7 +122,7 @@ public class RobotContainer {
         // and Y is defined as to the left according to WPILib convention.
         drivetrain.setDefaultCommand(drivetrain.new Drive(DriveMode.FREE,
                 primaryRobotRelativeTrigger::getAsBoolean));
-        primaryAutoAimTrigger.whileTrue(new AutoAim(drivetrain, shooter, hopper, leds, false));
+        primaryAutoAimTrigger.whileTrue(new AutoAim(drivetrain, shooter, hopper, intake, leds, false));
 
         // Idle while the robot is disabled. This ensures the configured
         // neutral mode is applied to the drive motors while disabled.

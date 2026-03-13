@@ -4,16 +4,12 @@ import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.Radians;
 
-import java.io.Console;
-
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.MathSharedStore;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -27,15 +23,16 @@ import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Constants;
-import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.JoeLookupTableConstants;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.Constants.FeederConstants.FeederState;
 import frc.robot.Constants.HopperConstants.HopperState;
+import frc.robot.Constants.IntakeConstants.IntakeState;
 import frc.robot.Constants.ShooterConstants.AutoAimStatus;
 import frc.robot.lib.JoeLookupTable;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Hopper;
+import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.LEDs;
 import frc.robot.subsystems.LEDs.LEDStatusSupplier;
 import frc.robot.subsystems.Shooter;
@@ -46,6 +43,7 @@ public class AutoAim extends Command {
     private final LEDs leds;
     private final Shooter shooter;
     private final Hopper hopper;
+    private final Intake intake;
 
     /** Field relative swerve request used to drive the drivetrain with primary controller if not in autonomous mode.*/
     private SwerveRequest.ApplyFieldSpeeds fieldCentric = new SwerveRequest.ApplyFieldSpeeds();
@@ -67,9 +65,6 @@ public class AutoAim extends Command {
     /** LED status supplier used for changing the LED status */
     private LEDStatusSupplier ledStatusSupplier;
 
-    /** The height difference between the robot and hub. Currently it is a constant (final) but may change later to allow for shooting while climbing.*/
-    private final double height = Constants.FieldConstants.hubZ - Constants.ShooterConstants.shootHeight;
-
     //advantagescope sim
     /** for sim testing to simulate loss of velocity */
     private double timeOffset;
@@ -86,10 +81,11 @@ public class AutoAim extends Command {
      * it will also no longer require the drivetrain because a different command will be running for the auto path control to work
      * otherwise this constructor without the doublesuppliers will set the robot translation velocities to 0, it is designed to be used for auto
      */
-    public AutoAim(Drivetrain drivetrain, Shooter shooter, Hopper hopper, LEDs leds, boolean autonomousMode){
+    public AutoAim(Drivetrain drivetrain, Shooter shooter, Hopper hopper, Intake intake, LEDs leds, boolean autonomousMode){
         this.drivetrain = drivetrain;
         this.shooter = shooter;
         this.hopper = hopper;
+        this.intake = intake;
         this.leds = leds;
 
         autoAimStatus = AutoAimStatus.WAITING;
@@ -108,6 +104,7 @@ public class AutoAim extends Command {
         timeOffset = MathSharedStore.getTimestamp();
 
         CommandScheduler.getInstance().schedule(leds.new ChangeLEDStatusSupplier(ledStatusSupplier));
+        CommandScheduler.getInstance().schedule(intake.new BounceIntake());
 
         shooter.setSpeed(ShooterConstants.shooterAngularVelocity);
     }
@@ -121,18 +118,24 @@ public class AutoAim extends Command {
         double robotRelativeBallVelocityHorizontal = getLaunchVelocity() * Math.cos(desiredHoodAngle);
         double robotRelativeBallVelocityVertical = getLaunchVelocity() * Math.sin(desiredHoodAngle);
 
+        //Transform of the current robot pose to the adjusted robot pose
         Transform2d adjustedRobotPoseTransform = new Transform2d(
                 drivetrain.getState().Speeds.vxMetersPerSecond * timeOfFlight,
                 drivetrain.getState().Speeds.vyMetersPerSecond * timeOfFlight,
                 new Rotation2d());
-            //add the distance traveled during TOF to current robot pose to get the adjusted robot pose
-            //this will be used for shooting while moving adjustment
-            adjustedRobotPose = drivetrain.getState().Pose.plus(adjustedRobotPoseTransform);
 
-            //send adjusted robot pose to advantageScope(for sim testing)
-            adjustedRobotPosePublisher.set(adjustedRobotPose);
+        //add the distance traveled during TOF to current robot pose to get the adjusted robot pose
+        //this will be used for shooting while moving adjustment
+        adjustedRobotPose = drivetrain.getState().Pose.plus(adjustedRobotPoseTransform);
 
-        if(MathSharedStore.getTimestamp() - timeOffset < 0.25) autoAimStatus = AutoAimStatus.WAITING;
+        //check if in range, return if out of range
+        if(getDistanceFromHub() > JoeLookupTableConstants.kMaxDistance.in(Meters)){
+            autoAimStatus = AutoAimStatus.OUTOFRANGE;
+            return;
+        }
+
+        //send adjusted robot pose to advantageScope(for sim testing)
+        adjustedRobotPosePublisher.set(adjustedRobotPose);
 
         //calculate robot theta based on adjusted robot pose
         //this allows for shooting while moving
@@ -146,12 +149,20 @@ public class AutoAim extends Command {
         shooter.adjustTrajectoryAngle(Radians.of(desiredHoodAngle));
 
         //for sim for now will implement actual tolerances later
-        autoAimStatus = autoAimStatus.SHOOT;
+        SmartDashboard.putBoolean("isAtPitch", shooter.isAtPitch());
+        SmartDashboard.putBoolean("isatspeed", shooter.isAtSpeed());
+        SmartDashboard.putBoolean("swerve isatangle", drivetrain.isAtDesiredRotation());
+        if(shooter.isAtPitch() && shooter.isAtSpeed() && isAtDesiredRotation(Radians.of(desiredRobotAngle))){
+            autoAimStatus = AutoAimStatus.SHOOT;
+        }
+        else{
+            autoAimStatus = AutoAimStatus.WAITING;
+        }
 
-        // if(autoAimStatus == AutoAimStatus.SHOOT){
-        //     shooter.setFeederSpeed(FeederState.FEED.percentage);
-        //     hopper.setHopperSpeed(HopperState.FEED.percentage);
-        // }
+        if(autoAimStatus == AutoAimStatus.SHOOT){
+            shooter.setFeederSpeed(FeederState.FEED.percentage);
+            hopper.setHopperSpeed(HopperState.FEED.percentage);
+        }
 
         //AdvantageScope fuel simulation
         //get the current robot yaw angle
@@ -197,6 +208,10 @@ public class AutoAim extends Command {
         //this is so that the desired omega can be used in the command that controls swerve in auto period
         desiredOmega = omega;
     }
+
+    private boolean isAtDesiredRotation(Angle angle){
+        return drivetrain.getState().Pose.getRotation().getMeasure().isNear(angle, Degrees.of(5));
+    }
  
     /** @return the adjusted hood pitch based on wheel velocity
      * @param distance distance from hub
@@ -206,6 +221,7 @@ public class AutoAim extends Command {
         return maxSpeedPitch - error * (JoeLookupTableConstants.kShooterVelocityCorrection + distance * JoeLookupTableConstants.kShooterDistanceVelocityCorrection);
     }
 
+    /** Units: meters */
     private double getDistanceFromHub(){
         return drivetrain.getState().Pose.getTranslation().getDistance(target.getTranslation());
     }
@@ -242,9 +258,10 @@ public class AutoAim extends Command {
 
      @Override
     public void end(boolean interrupted){
-        shooter.adjustHood(Degrees.of(5));
+        shooter.adjustHood(Degrees.of(2));
         shooter.stopShooter();
         shooter.setFeederSpeed(FeederState.STOP.percentage);
         hopper.setHopperSpeed(HopperState.STOP.percentage);
+        CommandScheduler.getInstance().schedule(intake.new ChangeStates(IntakeState.DOWN_OFF));
     }
 }

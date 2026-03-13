@@ -15,7 +15,6 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
-import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.ctre.phoenix6.swerve.utility.PhoenixPIDController;
@@ -24,7 +23,6 @@ import com.therekrab.autopilot.APProfile;
 import com.therekrab.autopilot.APTarget;
 import com.therekrab.autopilot.Autopilot;
 
-import edu.wpi.first.hal.SimDevice.Direction;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.ProfiledPIDController;
@@ -37,11 +35,8 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.units.AngularVelocityUnit;
-import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -179,6 +174,7 @@ public final class Constants {
       DOWN_OFF(Degrees.of(-12), 0), 
       DOWN_REV(Degrees.of(-12), -0.75),
       UP_OFF(Degrees.of(130), 0), 
+      BOUNCE_UP(Degrees.of(45), 0),
       STOP(Degrees.of(130), 0); 
 
       public final Angle rotationLocation;
@@ -223,7 +219,7 @@ public final class Constants {
         public static final double kTrenchAssistAlignInfluence = 0.15;
 
         // drive mode constants
-        public static final Angle kPrimaryAutoBrakeReachedDesiredAngleTolerance = Degrees.of(0.5);
+        public static final Angle kPrimaryAutoBrakeReachedDesiredAngleTolerance = Degrees.of(5);
 
         public static final double kPrimaryReduceSpeedTranslationFactor = 0.25;
         public static final double kPrimaryReduceSpeedRotationFactor = 1;
@@ -312,8 +308,8 @@ public final class Constants {
     }};
 
     //Shooter Motor Config and PID
-    public static final double kP = 75;
-    public static final double kI = 1;
+    public static final double kP = 100;
+    public static final double kI = 5;
     public static final double kD = 0;
     public static final int ShooterIDLeftBottom = 9;
     public static final int ShooterIDLeftTop = 10;
@@ -343,6 +339,8 @@ public final class Constants {
 
     public static final AngularVelocity shooterAngularVelocity = RPM.of(3000);
 
+
+    //Old equation stuff
     //TODO: find ball launch velocity
     /** units: m/s */
     public static final double launchVelocity = Units.feetToMeters(29);//convert from ft/s to m/s
@@ -356,9 +354,6 @@ public final class Constants {
     public static final Distance kShooterRollerRadius = Inches.of(0.75);
 
     public static final double kShooterEfficiency = 0.6;
-
-    /** units: radians */
-    public static final double maxPitch = Units.degreesToRadians(85);
 
     //robot relative shooter offset
     //TODO implement in the calculation
@@ -389,7 +384,7 @@ public final class Constants {
                 new Rotation3d(
                         0,
                         Units.degreesToRadians(-30),
-                        Units.degreesToRadians(5)));
+                        Units.degreesToRadians(-5)));
         public final static Transform3d rightShooterCamTransform = new Transform3d(
                 Units.inchesToMeters(-1.2887),
                 Units.inchesToMeters(-8.8466),
@@ -532,15 +527,17 @@ public final class Constants {
     */
     public static final double kShooterDistanceVelocityCorrection = 0.01;
 
+    public static final Distance kMaxDistance = Meters.of(4.5);
+
     //stores desired angle and estimated time (from stationary) given a distance from the hub
     public static final Map<Distance, ShotData> joeLookupTable = Map.ofEntries(
-      Map.entry(Meters.of(0),   new ShotData(Degrees.of(87),     Seconds.of(1.7277))),
-      Map.entry(Meters.of(0.5), new ShotData(Degrees.of(84),     Seconds.of(1.7277))),
-      Map.entry(Meters.of(1),   new ShotData(Degrees.of(82),     Seconds.of(1.7277))),
+      Map.entry(Meters.of(0),   new ShotData(Degrees.of(87), Seconds.of(1.7277))),
+      Map.entry(Meters.of(0.5), new ShotData(Degrees.of(84), Seconds.of(1.7277))),
+      Map.entry(Meters.of(1),   new ShotData(Degrees.of(82), Seconds.of(1.7277))),
       Map.entry(Meters.of(1.5), new ShotData(Degrees.of(81), Seconds.of(1.726))),
       Map.entry(Meters.of(2),   new ShotData(Degrees.of(80), Seconds.of(1.718))),
-      Map.entry(Meters.of(2.5), new ShotData(Degrees.of(79), Seconds.of(1.708))),
-      // Map.entry(Meters.of(3),   new ShotData(Degrees.of(73.329), Seconds.of(1.697))),
+      Map.entry(Meters.of(2.5), new ShotData(Degrees.of(78), Seconds.of(1.708))),
+      Map.entry(Meters.of(3),   new ShotData(Degrees.of(76), Seconds.of(1.697))),
       Map.entry(Meters.of(3.5), new ShotData(Degrees.of(74), Seconds.of(1.682))),
       Map.entry(Meters.of(4),   new ShotData(Degrees.of(72), Seconds.of(1.664)))
       // Map.entry(Meters.of(4.5), new ShotData(Degrees.of(66.726), Seconds.of(1.642))),
