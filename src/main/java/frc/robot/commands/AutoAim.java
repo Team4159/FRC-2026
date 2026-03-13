@@ -203,7 +203,13 @@ public class AutoAim extends Command {
                 omega);
 
         //only actually control the swerve if not in autonomousMode
-        if(!autonomousMode) drivetrain.setControl(fieldCentric.withSpeeds(chassisSpeeds));
+        if(!autonomousMode) {
+            if (Math.abs(Math.toDegrees(drivetrain.getState().Pose.getRotation().getRadians() - omega)) <= 1) {
+                drivetrain.setControl(drivetrain.brakeDrive);
+            } else {
+                drivetrain.setControl(fieldCentric.withSpeeds(chassisSpeeds));
+            }
+        }
         //this is so that the desired omega can be used in the command that controls swerve in auto period
         desiredOmega = omega;
     }
