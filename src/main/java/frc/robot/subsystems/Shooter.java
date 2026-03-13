@@ -81,11 +81,7 @@ public class Shooter extends SubsystemBase{
     }
 
     public AngularVelocity getShooterVelocity(){
-        return  
-            RadiansPerSecond.of((leftBottomShooterMotor.getVelocity().getValue().in(RadiansPerSecond)
-          + leftTopShooterMotor.getVelocity().getValue().in(RadiansPerSecond)
-          + rightTopShooterMotor.getVelocity().getValue().in(RadiansPerSecond)
-          + rightBottomShooterMotor.getVelocity().getValue().in(RadiansPerSecond))/4);
+        return leaderShooterMotor.getVelocity().getValue();
     }
 
     public boolean isAtSpeed(){
@@ -131,10 +127,7 @@ public class Shooter extends SubsystemBase{
     }
 
     public void stopShooter(){
-        leftBottomShooterMotor.stopMotor();
-        leftTopShooterMotor.stopMotor();
-        rightTopShooterMotor.stopMotor();
-        rightBottomShooterMotor.stopMotor();
+        leaderShooterMotor.stopMotor();
     }
     
     // public class ShooterCommand extends Command{
