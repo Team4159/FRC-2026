@@ -85,7 +85,7 @@ public class Shooter extends SubsystemBase{
     }
 
     public AngularVelocity getShooterVelocity(){
-        return  
+            return  
             RadiansPerSecond.of((leftBottomShooterMotor.getVelocity().getValue().in(RadiansPerSecond)
           + leftTopShooterMotor.getVelocity().getValue().in(RadiansPerSecond)
           + rightTopShooterMotor.getVelocity().getValue().in(RadiansPerSecond)
