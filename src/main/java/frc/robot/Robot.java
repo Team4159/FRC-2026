@@ -32,10 +32,7 @@ public class Robot extends TimedRobot {
     // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
     // autonomous chooser on the dashboard.
     m_robotContainer = new RobotContainer();
-    if (RobotBase.isSimulation()) {
-      Logger.addDataReceiver(new NT4Publisher());
-    }
-    Logger.start();
+  
 
     addPeriodic(() -> {
       m_robotContainer.photonVision.visualPeriodic();
