@@ -341,6 +341,11 @@ public final class Constants {
     public static final AngularVelocity shooterAngularVelocity = RPM.of(3000);
     public static final AngularVelocity lobAngularVelocity = RPM.of(3200);
     public static final AngularVelocity restingAngularVelocity = RPM.of(1500);
+    public static final AngularVelocity hubAngularVelocity = RPM.of(2000);
+    public static final AngularVelocity towerAngularVelocity = RPM.of(3000);
+
+    public static final Angle hubHoodPitch = Degrees.of(80);
+    public static final Angle towerHoodPitch = Degrees.of(70);
 
 
     //Old equation stuff

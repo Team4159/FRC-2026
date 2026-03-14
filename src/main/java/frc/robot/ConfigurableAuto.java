@@ -142,9 +142,9 @@ public class ConfigurableAuto {
                 startToShootTraj.resetOdometry()
                 .andThen(startToShootTraj.cmd())
                 .andThen(new ParallelDeadlineGroup(
-                    new WaitCommand(AutoConstants.ShootTime),
+                    //new WaitCommand(AutoConstants.ShootTime),
                     new AutoAim(drivetrain, shooter, hopper, intake, leds, false)))
-                .andThen(shootToClimbTraj.cmd())
+                //.andThen(shootToClimbTraj.cmd())
                 //.andThen(new AutoAlign(drivetrain, towerAlignGoal, primaryRobotRelativeTrigger))
             );
 

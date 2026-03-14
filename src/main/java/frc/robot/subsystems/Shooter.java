@@ -93,7 +93,7 @@ public class Shooter extends SubsystemBase{
     }
 
     public boolean isAtSpeed(){
-        return getShooterVelocity().isNear(ShooterConstants.shooterAngularVelocity, ShooterConstants.kShooterVelocityTolerance);
+        return leftBottomShooterMotor.getClosedLoopReference().isNear(getShooterVelocity().in(RotationsPerSecond), ShooterConstants.kShooterVelocityTolerance.in(RotationsPerSecond));
     }
 
     

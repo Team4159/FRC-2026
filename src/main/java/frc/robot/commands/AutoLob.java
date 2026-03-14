@@ -30,6 +30,7 @@ import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.Constants.FeederConstants.FeederState;
 import frc.robot.Constants.HopperConstants.HopperState;
+import frc.robot.Constants.IntakeConstants.IntakeState;
 import frc.robot.Constants.ShooterConstants.AutoAimStatus;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Hopper;
@@ -44,6 +45,7 @@ public class AutoLob extends Command {
     private final LEDs leds;
     private final Shooter shooter;
     private final Hopper hopper;
+    private final Intake intake;
 
     /** Field relative swerve request used to drive the drivetrain with primary controller if not in autonomous mode.*/
     private SwerveRequest.ApplyFieldSpeeds fieldCentric = new SwerveRequest.ApplyFieldSpeeds();
@@ -89,6 +91,7 @@ public class AutoLob extends Command {
         this.shooter = shooter;
         this.hopper = hopper;
         this.leds = leds;
+        this.intake = intake;
 
         autoAimStatus = AutoAimStatus.WAITING;
         ledStatusSupplier = () -> {return autoAimStatus.ledStatus;};
@@ -104,6 +107,7 @@ public class AutoLob extends Command {
         adjustedRobotPose = drivetrain.getState().Pose;
 
         CommandScheduler.getInstance().schedule(leds.new ChangeLEDStatusSupplier(ledStatusSupplier));
+        CommandScheduler.getInstance().schedule(intake.new BounceIntake());
 
         timeOffset = MathSharedStore.getTimestamp();
 
@@ -309,5 +313,6 @@ public class AutoLob extends Command {
         shooter.setSpeed(ShooterConstants.restingAngularVelocity);
         shooter.setFeederSpeed(FeederState.STOP.percentage);
         hopper.setHopperSpeed(HopperState.STOP.percentage);
+        CommandScheduler.getInstance().schedule(intake.new ChangeStates(IntakeState.DOWN_OFF));
     }
 }
