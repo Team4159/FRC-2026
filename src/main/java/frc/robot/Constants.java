@@ -55,15 +55,18 @@ public final class Constants {
         public static final double kPrimaryRotationRadius = 0.99;
 
         public static enum DriveMode {
-            FREE,
-            MANUAL_ALIGN,
+            TELEOP,
             BRAKE,
             POINT,
             IDLE,
-            INTAKE_FORWARD,
-            INTAKE_LEFT,
-            INTAKE_RIGHT,
-            RADIAL,
+        }
+
+        public static enum DriveFlag {
+            SLOW_MODE,
+            DRIVE_ASSIST,
+            AUTO_BRAKE,
+            INTAKE_ASSIST,
+            MANUAL_ALIGN,
         }
 
         // drive assist constants
@@ -76,8 +79,8 @@ public final class Constants {
         // drive mode constants
         public static final Angle kPrimaryAutoBrakeReachedDesiredAngleTolerance = Degrees.of(0.5);
 
-        public static final double kPrimaryReduceSpeedTranslationFactor = 0.25;
-        public static final double kPrimaryReduceSpeedRotationFactor = 1;
+        public static final double kPrimarySlowModeTranslationFactor = 0.25;
+        public static final double kPrimarySlowModeRotationFactor = 1;
 
         public static final double kPrimaryIntakeRotationInputDeadzone = 0.2;
 
@@ -188,8 +191,8 @@ public final class Constants {
         // TODO: tune acceleration and jerk for aligning
         public static final APConstraints kAlignConstraints = new APConstraints()
                 .withVelocity(kMaxTranslationSpeed)
-                .withAcceleration(7.0)
-                .withJerk(3.5);
+                .withAcceleration(4.0)
+                .withJerk(2);
         public static final APProfile kAlignProfile = new APProfile(kAlignConstraints)
                 .withErrorXY(Centimeters.of(2.0))
                 .withErrorTheta(Degrees.of(1.0))
