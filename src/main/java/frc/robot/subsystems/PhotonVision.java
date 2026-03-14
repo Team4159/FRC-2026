@@ -74,7 +74,6 @@ public class PhotonVision extends SubsystemBase{
                 System.out.println("left multi tag");
             }
             //check if estimate exists
-            System.out.println("leftcam ambiguity: " + leftShooterCamResult.getBestTarget().getPoseAmbiguity());
             if(leftShooterEstimate.isPresent() && leftShooterCamResult.getBestTarget().getPoseAmbiguity() < 0.15){
                 //set standard deviation
                 drivetrain.setVisionMeasurementStdDevs(calculateEstimationStdDevs(leftShooterEstimate, leftShooterCamResult.targets, leftShooterEstimator));
@@ -95,10 +94,10 @@ public class PhotonVision extends SubsystemBase{
             }
             //check if estimate exists
             if(rightShooterEstimate.isPresent() && rightShooterCamResult.getBestTarget().getPoseAmbiguity() < 0.15){
-                //set standard deviation
-                drivetrain.setVisionMeasurementStdDevs(calculateEstimationStdDevs(rightShooterEstimate, rightShooterCamResult.targets, rightShooterEstimator));
-                //send the pose estimate to the pose estimator
-                drivetrain.addVisionMeasurement(rightShooterEstimate.get().estimatedPose.toPose2d(), rightShooterEstimate.get().timestampSeconds);
+                // //set standard deviation
+                // drivetrain.setVisionMeasurementStdDevs(calculateEstimationStdDevs(rightShooterEstimate, rightShooterCamResult.targets, rightShooterEstimator));
+                // //send the pose estimate to the pose estimator
+                // drivetrain.addVisionMeasurement(rightShooterEstimate.get().estimatedPose.toPose2d(), rightShooterEstimate.get().timestampSeconds);
             }
         }
     }

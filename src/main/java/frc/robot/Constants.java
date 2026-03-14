@@ -8,6 +8,7 @@ import static edu.wpi.first.units.Units.*;
 import static frc.robot.Constants.DrivetrainConstants.kMaxTranslationSpeed;
 
 import java.util.Map;
+import java.util.Set;
 
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
@@ -268,7 +269,7 @@ public final class Constants {
     public static final int kHoodEncoderID = 2;
     public static final Angle kEncoderOffset = Degrees.of(-235);
     public static final double kSensorToMechanismRatio = 34/16;
-    public static final double kMotorToSensorRatio = 25;
+    public static final double kMotorToSensorRatio = 125;
 
     public static final double kCruiseVelocity = 40;
     public static final double kAcceleration = 80;
@@ -338,6 +339,8 @@ public final class Constants {
     }};
 
     public static final AngularVelocity shooterAngularVelocity = RPM.of(3000);
+    public static final AngularVelocity lobAngularVelocity = RPM.of(3200);
+    public static final AngularVelocity restingAngularVelocity = RPM.of(1500);
 
 
     //Old equation stuff
@@ -400,6 +403,20 @@ public final class Constants {
                 Alliance.Blue, new Pose2d(Units.inchesToMeters(182.11), Units.inchesToMeters(158.84), new Rotation2d()),
                 Alliance.Red,
                 new Pose2d(Units.inchesToMeters(651.22 - 182.11), Units.inchesToMeters(158.84), new Rotation2d()));
+
+        public static final Set<Pose2d> blueLobPositions = 
+          Set.of(new Pose2d(2.5, 2.1, new Rotation2d()),
+          new Pose2d(2.5, 5.6, new Rotation2d()));
+
+        public static final Set<Pose2d> redLobPositions = 
+          Set.of(new Pose2d(14.1, 2.1, new Rotation2d()),
+          new Pose2d(14.1, 5.6, new Rotation2d()));
+
+        public static final Map<DriverStation.Alliance, Set<Pose2d>> lobLocations = Map.of(
+                Alliance.Blue, 
+                blueLobPositions,
+                Alliance.Red,
+                redLobPositions);
 
         public static enum FieldZone {
             FIELD(Inches.of(651.22), Inches.of(317.69)),

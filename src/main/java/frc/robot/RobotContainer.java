@@ -29,6 +29,7 @@ import frc.robot.Constants.HopperConstants.HopperState;
 import frc.robot.Constants.IntakeConstants.IntakeState;
 import frc.robot.commands.AutoAim;
 import frc.robot.commands.AutoAlign;
+import frc.robot.commands.AutoLob;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.LEDs;
@@ -53,6 +54,7 @@ public class RobotContainer {
     private final Trigger primaryDriverAssistTrigger = primaryController.rightBumper();
     private final Trigger primaryLeftClimbAlignTrigger = primaryController.povLeft();
     private final Trigger primaryAutoAimTrigger = primaryController.a();
+    private final Trigger primaryAutoLobTrigger = primaryController.povUp();
     //Controllers
     private final Trigger primaryRightClimbAlignTrigger = primaryController.povRight();
     // private final Trigger primaryMiddleFrontClimbAlignTrigger =
@@ -123,6 +125,7 @@ public class RobotContainer {
         drivetrain.setDefaultCommand(drivetrain.new Drive(DriveMode.FREE,
                 primaryRobotRelativeTrigger::getAsBoolean));
         primaryAutoAimTrigger.whileTrue(new AutoAim(drivetrain, shooter, hopper, intake, leds, false));
+        primaryAutoLobTrigger.whileTrue(new AutoLob(drivetrain, shooter, hopper, intake, leds, false));
 
         // Idle while the robot is disabled. This ensures the configured
         // neutral mode is applied to the drive motors while disabled.
