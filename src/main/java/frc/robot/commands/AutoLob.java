@@ -3,8 +3,6 @@ package frc.robot.commands;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Radians;
 
-import com.ctre.phoenix6.swerve.SwerveRequest;
-
 import edu.wpi.first.math.MathSharedStore;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -46,9 +44,6 @@ public class AutoLob extends Command {
     private final Shooter shooter;
     private final Hopper hopper;
     private final Intake intake;
-
-    /** Field relative swerve request used to drive the drivetrain with primary controller if not in autonomous mode.*/
-    private SwerveRequest.ApplyFieldSpeeds fieldCentric = new SwerveRequest.ApplyFieldSpeeds();
     
     /** target pose2d (the hub based on alliance) */
     private Pose2d target;
@@ -214,12 +209,17 @@ public class AutoLob extends Command {
         //set ChassisSpeeds
         System.out.println(omega);
         ChassisSpeeds chassisSpeeds = new ChassisSpeeds(
-                drivetrain.getInputX(true),
-                drivetrain.getInputY(true),
+                drivetrain.getInputSpeedX(true),
+                drivetrain.getInputSpeedY(true),
                 omega);
 
         //only actually control the swerve if not in autonomousMode
-        if(!autonomousMode) drivetrain.setControl(fieldCentric.withSpeeds(chassisSpeeds));
+        if (!autonomousMode) {
+                drivetrain.setControl(drivetrain.fieldCentricDrive
+                        .withVelocityX(chassisSpeeds.vxMetersPerSecond)
+                        .withVelocityY(chassisSpeeds.vyMetersPerSecond)
+                        .withRotationalRate(omega));
+                }
         //this is so that the desired omega can be used in the command that controls swerve in auto period
         desiredOmega = omega;
     }
