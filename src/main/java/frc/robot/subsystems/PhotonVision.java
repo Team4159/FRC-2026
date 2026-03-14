@@ -58,7 +58,7 @@ public class PhotonVision extends SubsystemBase{
 
     @Override
     public void periodic(){
-        System.out.println("running pv");
+        //System.out.println("running pv");
         //left camera
         Optional<EstimatedRobotPose> leftShooterEstimate = Optional.empty();
         //loops through all unread camera results

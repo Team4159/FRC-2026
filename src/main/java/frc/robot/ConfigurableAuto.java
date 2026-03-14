@@ -1,6 +1,7 @@
 package frc.robot;
 
 import java.util.ArrayList;
+import java.util.Optional;
 
 import choreo.auto.AutoFactory;
 import choreo.auto.AutoRoutine;
@@ -143,7 +144,7 @@ public class ConfigurableAuto {
                 .andThen(startToShootTraj.cmd())
                 .andThen(new ParallelDeadlineGroup(
                     new WaitCommand(AutoConstants.ShootTime),
-                    new AutoAim(drivetrain, shooter, hopper, intake, leds, false)))
+                    new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())))
                 .andThen(shootToClimbTraj.cmd())
                 //.andThen(new AutoAlign(drivetrain, towerAlignGoal, primaryRobotRelativeTrigger))
             );
@@ -179,7 +180,7 @@ public class ConfigurableAuto {
                 .andThen(intake1ToShoot1Traj.cmd())
                 .andThen(new ParallelDeadlineGroup(
                     new WaitCommand(AutoConstants.ShootTime), 
-                    new AutoAim(drivetrain, shooter, hopper, intake, leds, false)))
+                    new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())))
                 .andThen(shoot1ToClimbTraj.cmd())
             );
 
@@ -198,12 +199,12 @@ public class ConfigurableAuto {
                 .andThen(intake1ToShoot1Traj.cmd())
                 .andThen(new ParallelDeadlineGroup(
                     new WaitCommand(AutoConstants.ShootTime), 
-                    new AutoAim(drivetrain, shooter, hopper, intake, leds, false)))
+                    new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())))
                 .andThen(shoot1ToIntake2Traj.cmd())
                 .andThen(intake2ToShoot2Traj.cmd())
                 .andThen(new ParallelDeadlineGroup(
                     new WaitCommand(AutoConstants.ShootTime), 
-                    new AutoAim(drivetrain, shooter, hopper, intake, leds, false)))
+                    new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())))
                 .andThen(shoot2ToClimbTraj.cmd())
             );
 
@@ -220,12 +221,12 @@ public class ConfigurableAuto {
                 .andThen(intake1ToShoot1Traj.cmd())
                 .andThen(new ParallelDeadlineGroup(
                     new WaitCommand(AutoConstants.ShootTime), 
-                    new AutoAim(drivetrain, shooter, hopper, intake, leds, false)))
+                    new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())))
                 .andThen(shoot1ToIntake2Traj.cmd())
                 .andThen(intake2ToShoot2Traj.cmd())
                 .andThen(new ParallelDeadlineGroup(
                     new WaitCommand(AutoConstants.ShootTime), 
-                    new AutoAim(drivetrain, shooter, hopper, intake, leds, false)))
+                    new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())))
             );
 
             displayGenerationStatus(startToIntake1Traj, intake1ToShoot1Traj, shoot1ToIntake2Traj, intake2ToShoot2Traj);
