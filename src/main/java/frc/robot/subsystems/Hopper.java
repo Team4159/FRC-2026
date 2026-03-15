@@ -12,20 +12,20 @@ import frc.robot.Constants.HopperConstants;
 import frc.robot.Constants.HopperConstants.HopperState;
 
 public class Hopper extends SubsystemBase{
-    private TalonFX hopperMotor;
+    // private TalonFX hopperMotor;
 
     public Hopper(){
-        hopperMotor = new TalonFX(HopperConstants.HopperId);
-        CurrentLimitsConfigs currentLimits = new CurrentLimitsConfigs().withSupplyCurrentLimit(Amps.of(20)).withSupplyCurrentLimitEnable(true);
-        hopperMotor.getConfigurator().apply(currentLimits);
+        // hopperMotor = new TalonFX(HopperConstants.HopperId);
+        // CurrentLimitsConfigs currentLimits = new CurrentLimitsConfigs().withSupplyCurrentLimit(Amps.of(20)).withSupplyCurrentLimitEnable(true);
+        // hopperMotor.getConfigurator().apply(currentLimits);
     }
     
     public void setHopperSpeed(double speed){
-        hopperMotor.set(speed);
+        // hopperMotor.set(speed);
     }
 
     public void stopHopper(){
-        hopperMotor.set(0);
+        // hopperMotor.set(0);
     }
 
     public class ChangeState extends Command{

@@ -376,6 +376,6 @@ public class AutoAim extends Command {
         shooter.stopShooter();
         shooter.setFeederSpeed(FeederState.STOP.percentage);
         hopper.setHopperSpeed(HopperState.STOP.percentage);
-        CommandScheduler.getInstance().schedule(intake.new ChangeStates(IntakeState.DOWN_OFF));
+        CommandScheduler.getInstance().schedule(intake.new ChangeStates(IntakeState.BOUNCE_UP));
     }
 }

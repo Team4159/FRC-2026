@@ -194,7 +194,7 @@ public final class Constants {
             DOWN_OFF(Degrees.of(-12), 0),
             DOWN_REV(Degrees.of(-12), -0.5),
             UP_OFF(Degrees.of(130), 0),
-            BOUNCE_UP(Degrees.of(45), 0),
+            BOUNCE_UP(Degrees.of(55), 0),
             STOP(Degrees.of(130), 0);
 
             public final Angle rotationLocation;
@@ -343,10 +343,15 @@ public final class Constants {
         };
 
         // Shooter Motor Config and PID
-        public static final double kP = 35;
-        public static final double kI = 10;
+        // public static final double kP = 35;
+        // public static final double kI = 10;
+        public static final double kP = 5;
+        public static final double kI = 1;
         public static final double kD = 0;
         public static final double kS = 10;
+        //remove if doesnt work
+        public static final double kV = 0.25;
+        public static final double kA = 2.14;
         public static final int ShooterIDLeftBottom = 9;
         public static final int ShooterIDLeftTop = 10;
         public static final int ShooterIDRightTop = 12;
@@ -359,6 +364,8 @@ public final class Constants {
                 Slot0.kI = ShooterConstants.kI;
                 Slot0.kD = ShooterConstants.kD;
                 Slot0.kS = ShooterConstants.kS;
+                Slot0.kV = ShooterConstants.kV;
+                Slot0.kA = ShooterConstants.kA;
                 CurrentLimits.SupplyCurrentLimitEnable = true;
                 CurrentLimits.SupplyCurrentLimit = 40;
                 MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
@@ -372,6 +379,8 @@ public final class Constants {
                 Slot0.kI = ShooterConstants.kI;
                 Slot0.kD = ShooterConstants.kD;
                 Slot0.kS = ShooterConstants.kS;
+                Slot0.kV = ShooterConstants.kV;
+                Slot0.kA = ShooterConstants.kA;
                 CurrentLimits.SupplyCurrentLimitEnable = true;
                 CurrentLimits.SupplyCurrentLimit = 40;
                 MotorOutput.Inverted = InvertedValue.Clockwise_Positive;

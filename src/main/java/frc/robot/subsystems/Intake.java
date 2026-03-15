@@ -131,7 +131,7 @@ public class Intake extends SubsystemBase {
 
         @Override 
         public void end(boolean interrupted){
-            setLocation(IntakeState.DOWN_OFF.rotationLocation);
+            setLocation(IntakeState.BOUNCE_UP.rotationLocation);
         }
     }
 }

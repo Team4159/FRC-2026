@@ -108,10 +108,6 @@ public class ConfigurableAuto {
         SmartDashboard.putData("generate", new InstantCommandRunWhenDisabled(() -> generateRoutine(true)));
     }
 
-    public void test(){
-        System.out.println("test");
-    }
-
     private AutoRoutine generateRoutine(boolean display){
         final AutoRoutine routine = factory.newRoutine("Generated Auto");
 
@@ -170,8 +166,6 @@ public class ConfigurableAuto {
         final AutoTrajectory shoot1ToIntake2Traj = routine.trajectory(shoot1ToIntake2Name);
         final AutoTrajectory intake2ToShoot2Traj = routine.trajectory(intake2ToShoot2Name);
 
-        System.out.println(shoot2);
-
         //if shoot1 is climb, disregard shoot1tointake2 and intake2toshoot2
         if(shoot1.contains("Climb")){
             final AutoTrajectory shoot1ToClimbTraj = routine.trajectory(direction + "ShootTo" + climbSide + "Climb");
@@ -193,7 +187,6 @@ public class ConfigurableAuto {
         
         else if(shoot2.contains("Climb")){
             final AutoTrajectory shoot2ToClimbTraj = routine.trajectory(direction + "ShootTo" + climbSide + "Climb");
-            System.out.println(shoot2ToClimbTraj);
             routine.active().onTrue(
                 startToIntake1Traj.resetOdometry().andThen(startToIntake1Traj.cmd())
                 .andThen(intake1ToShoot1Traj.cmd())
@@ -286,7 +279,6 @@ public class ConfigurableAuto {
      * @param trajectories the Choreo AutoTrajectories that make up the routine desired to be displayed
      */
     public void updateField(AutoTrajectory... trajectories){
-        System.out.println("updatefield");
         edu.wpi.first.math.trajectory.Trajectory trajectory = new edu.wpi.first.math.trajectory.Trajectory();
         for(int i = 0; i < trajectories.length; i++){
             Trajectory<SwerveSample> choreoTrajectory = trajectories[i].getRawTrajectory();

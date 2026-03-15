@@ -174,7 +174,7 @@ public class RobotContainer {
 
         // intake
         intakeTrigger.whileTrue(new ParallelCommandGroup(intake.new ChangeStates(IntakeState.DOWN_ON),
-                hopper.new ChangeState(HopperState.FEED)));
+                hopper.new ChangeState(HopperState.FEED))).onFalse(intake.new ChangeStates(IntakeState.BOUNCE_UP));
         outtakeTrigger.whileTrue(new ParallelCommandGroup(intake.new ChangeStates(IntakeState.DOWN_REV),
                 hopper.new ChangeState((HopperState.REVERSE)), shooter.new ChangeState(FeederState.UNSTUCKFEEDER)));
         compressIntakeTrigger.whileTrue(intake.new ChangeStates(IntakeState.UP_OFF));
