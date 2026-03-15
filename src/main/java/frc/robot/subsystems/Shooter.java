@@ -113,11 +113,7 @@ public class Shooter extends SubsystemBase{
         SmartDashboard.putNumber("manual hood target", manualAngle);
         SmartDashboard.putNumber("shooter velocity", leftBottomShooterMotor.getVelocity().getValue().in(RPM));
     }
-
-    public void test(){
-        System.out.println("test");
-    }
-
+    
     public void setFeederSpeed(double speed){
         feederMotor.set(speed);
     }

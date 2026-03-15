@@ -67,11 +67,9 @@ public class PhotonVision extends SubsystemBase{
             leftShooterEstimate = leftShooterEstimator.estimateCoprocMultiTagPose(leftShooterCamResult);
             //multitag no longer defaults to single tag when no others are available so we have this
             if(!leftShooterEstimate.isPresent()){
-                System.out.println("left single tag");
                 leftShooterEstimate = leftShooterEstimator.estimateLowestAmbiguityPose(leftShooterCamResult);
             }
             else{
-                System.out.println("left multi tag");
             }
             //check if estimate exists
             if(leftShooterEstimate.isPresent() && leftShooterCamResult.getBestTarget().getPoseAmbiguity() < 0.15){

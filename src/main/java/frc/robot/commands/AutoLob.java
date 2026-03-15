@@ -126,12 +126,8 @@ public class AutoLob extends Command {
         double robotRelativeBallVelocityHorizontal = getSimLaunchVelocity() * Math.cos(desiredHoodAngle);
         double robotRelativeBallVelocityVertical = getSimLaunchVelocity() * Math.sin(desiredHoodAngle);
 
-        System.out.println("robot relative ball velocity horizontal " + robotRelativeBallVelocityHorizontal);
-        System.out.println("robot relative ball velocity vertical " + robotRelativeBallVelocityVertical);
-
         for(int i = 0; i < 2; i++){
             //calculate TOF(used for calculating adjusted robot pose)
-            System.out.println("desiredhoodangle: " + Units.radiansToDegrees(desiredHoodAngle));
             double timeOfFlight = getTimeOfFlight(desiredHoodAngle, shooter.getFuelSpeed());
             //calculate the distance traveled by the robot during the time of flight
             Transform2d adjustedRobotPoseTransform = new Transform2d(
@@ -140,7 +136,6 @@ public class AutoLob extends Command {
                 new Rotation2d());
             //add the distance traveled during TOF to current robot pose to get the adjusted robot pose
             //this will be used for shooting while moving adjustment
-            System.out.println(timeOfFlight);
             adjustedRobotPose = drivetrain.getState().Pose.plus(adjustedRobotPoseTransform);
 
             //recalculate desired hood angle with new adjustedPose (converges)
@@ -152,13 +147,10 @@ public class AutoLob extends Command {
 
         //calculate robot theta based on adjusted robot pose
         //this allows for shooting while moving
-        System.out.println("target: " + target);
-        System.out.println("adjustedRobotPose: " + adjustedRobotPose);
 
         double desiredRobotAngle = target.getTranslation().minus(adjustedRobotPose.getTranslation()).getAngle()
                 .getRadians();
 
-        System.out.println("desired robot angle: " + desiredRobotAngle);
 
         if (!timer.hasElapsed(ShooterConstants.backwardsTime)){
             //run neck backwards if at the beginning
@@ -212,8 +204,6 @@ public class AutoLob extends Command {
 
         double vz = robotRelativeBallVelocityVertical;
 
-        System.out.println("vx: "  + vx  + " vy: " + vy  + " vz: " + vz);
-
         SmartDashboard.putString("Auto Aim Status", autoAimStatus.name());
 
         //only feed (shown by shooting fuel in simulation) if the status is "SHOOT"
@@ -224,16 +214,14 @@ public class AutoLob extends Command {
      * This also translates the robot using the getInputX() and getInputY() functions in the Drivetrain class
      */
     private void rotateSwerve(double desiredAngle){
-        System.out.println("rotateswerve");
         //PID controller to calculate omega
         double omega = Constants.DrivetrainConstants.AutoAimRotationController.calculate(
                 drivetrain.getState().Pose.getRotation().getRadians(), desiredAngle, Timer.getFPGATimestamp());
         //set ChassisSpeeds
-        System.out.println(omega);
         ChassisSpeeds chassisSpeeds = new ChassisSpeeds(
-                drivetrain.getInputSpeedX(true),
-                drivetrain.getInputSpeedY(true),
-                omega);
+            drivetrain.getInputX(true) * DrivetrainConstants.kAutoAimInputMultiplier,
+            drivetrain.getInputY(true) * DrivetrainConstants.kAutoAimInputMultiplier,
+            omega);
 
         //only actually control the swerve if not in autonomousMode
         if (!autonomousMode) {
@@ -261,7 +249,6 @@ public class AutoLob extends Command {
         if(Double.isNaN(radical)){
             return 0;
         }
-        System.out.println("radical: " + radical);
         double numerator = vy + radical;
         double time = numerator/Constants.FieldConstants.g;
         SmartDashboard.putNumber("time of flight", time);
@@ -286,7 +273,6 @@ public class AutoLob extends Command {
                 / (FieldConstants.g * distance));
 
         if(Double.isNaN(desiredPitch)){
-            System.out.println("desired pitch is nan");
             //equation can only return angles from 45-90 deg (in radians of course), anything lower than that will be NaN
             //the minimum possible hood angle on the physical shooter is 45, so no additional calculation is needed, just set to 45
             desiredPitch = Units.degreesToRadians(45);

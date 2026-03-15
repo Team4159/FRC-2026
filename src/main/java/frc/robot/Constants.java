@@ -269,6 +269,7 @@ public final class Constants {
         public static final double kAimFeedForward = 0.0;
 
         public static final Angle AutoAimTolerance = Degrees.of(5);
+        public static final double kAutoAimInputMultiplier = 1;
 
         public static final PhoenixPIDController AutoAimRotationController = new PhoenixPIDController(kAimKP, kAimKI,
                 kAimKD);
@@ -402,7 +403,7 @@ public final class Constants {
         /** TODO: find the correct distance */
         public static final Distance kShooterRollerRadius = Inches.of(0.75);
 
-        public static final double kShooterEfficiency = 0.6;
+        public static final double kShooterEfficiency = 0.95;
 
         // robot relative shooter offset
         // TODO implement in the calculation
@@ -617,16 +618,15 @@ public final class Constants {
         // stores desired angle and estimated time (from stationary) given a distance
         // from the hub
         public static final Map<Distance, ShotData> joeLookupTable = Map.ofEntries(
-                Map.entry(Meters.of(0),   new ShotData(Degrees.of(87), RPM.of(2000), Seconds.of(1.7277))),
-                Map.entry(Meters.of(0.5), new ShotData(Degrees.of(84), RPM.of(2000), Seconds.of(1.7277))),
-                Map.entry(Meters.of(1),   new ShotData(Degrees.of(82), RPM.of(2000), Seconds.of(1.7277))),
-                Map.entry(Meters.of(1.5), new ShotData(Degrees.of(77), RPM.of(2000), Seconds.of(1.726))),
+                Map.entry(Meters.of(1),   new ShotData(Degrees.of(83), RPM.of(2000), Seconds.of(1.258))),
+                Map.entry(Meters.of(1.5), new ShotData(Degrees.of(79), RPM.of(2000), Seconds.of(1.240))),
                 //3/14 tested
-                Map.entry(Meters.of(2),   new ShotData(Degrees.of(75), RPM.of(2000), Seconds.of(1.718))),
-                Map.entry(Meters.of(2.5), new ShotData(Degrees.of(73), RPM.of(2000), Seconds.of(1.708))),
-                Map.entry(Meters.of(3),   new ShotData(Degrees.of(71), RPM.of(2000), Seconds.of(1.697))),
-                Map.entry(Meters.of(3.5), new ShotData(Degrees.of(69), RPM.of(2000), Seconds.of(1.682))),
-                Map.entry(Meters.of(4),   new ShotData(Degrees.of(67), RPM.of(2000), Seconds.of(1.664)))
+                Map.entry(Meters.of(2),   new ShotData(Degrees.of(75), RPM.of(2000), Seconds.of(1.214))),
+                Map.entry(Meters.of(2.5), new ShotData(Degrees.of(72), RPM.of(2050), Seconds.of(1.229))),
+                Map.entry(Meters.of(3),   new ShotData(Degrees.of(69), RPM.of(2100), Seconds.of(1.238))),
+                Map.entry(Meters.of(3.5), new ShotData(Degrees.of(68), RPM.of(2200), Seconds.of(1.301))),
+                Map.entry(Meters.of(4),   new ShotData(Degrees.of(67), RPM.of(2300), Seconds.of(1.363))),
+                Map.entry(Meters.of(4.5), new ShotData(Degrees.of(66), RPM.of(2400), Seconds.of(1.421)))
         // Map.entry(Meters.of(4.5), new ShotData(Degrees.of(66.726),
         // Seconds.of(1.642))),
         // Map.entry(Meters.of(5.5), new ShotData(Degrees.of(47), Seconds.of(1.556))),
