@@ -1,5 +1,9 @@
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.Amps;
+
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.wpilibj2.command.Command;
@@ -12,6 +16,8 @@ public class Hopper extends SubsystemBase{
 
     public Hopper(){
         hopperMotor = new TalonFX(HopperConstants.HopperId);
+        CurrentLimitsConfigs currentLimits = new CurrentLimitsConfigs().withSupplyCurrentLimit(Amps.of(20)).withSupplyCurrentLimitEnable(true);
+        hopperMotor.getConfigurator().apply(currentLimits);
     }
     
     public void setHopperSpeed(double speed){

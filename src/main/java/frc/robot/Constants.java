@@ -151,6 +151,9 @@ public final class Constants {
                 Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
                 Feedback.SensorToMechanismRatio = IntakeConstants.kSensorToMechanismRatio;
                 Feedback.RotorToSensorRatio = IntakeConstants.kMotorToSensorRatio;
+
+                CurrentLimits.SupplyCurrentLimitEnable = true;
+                CurrentLimits.SupplyCurrentLimit = 20;
             }
         };
 
@@ -187,9 +190,9 @@ public final class Constants {
                 new TrapezoidProfile.Constraints(kCompressRate, 1));
 
         public static enum IntakeState {
-            DOWN_ON(Degrees.of(-12), 0.75),
+            DOWN_ON(Degrees.of(-12), 0.5),
             DOWN_OFF(Degrees.of(-12), 0),
-            DOWN_REV(Degrees.of(-12), -0.75),
+            DOWN_REV(Degrees.of(-12), -0.5),
             UP_OFF(Degrees.of(130), 0),
             BOUNCE_UP(Degrees.of(45), 0),
             STOP(Degrees.of(130), 0);
@@ -260,7 +263,7 @@ public final class Constants {
         public static final double kMaxTranslationSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
         public static final double kMaxRotationSpeed = RotationsPerSecond.of(0.75).in(RadiansPerSecond);
 
-        public static final double kAimKP = 5.0;
+        public static final double kAimKP = 10;
         public static final double kAimKI = 0.0;
         public static final double kAimKD = 0.0;
         public static final double kAimFeedForward = 0.0;
@@ -277,17 +280,17 @@ public final class Constants {
 
     public static class ShooterConstants {
 
-        public static final double kHoodI = 1;
+        public static final double kHoodI = 25;
         public static final double kHoodD = 0;
-        public static final double kHoodP = 100;
-        public static final double kHoodG = 0.25;
-        public static final double kHoodS = 0.1;
+        public static final double kHoodP = 150;
+        public static final double kHoodG = 0.03;
+        public static final double kHoodS = 5;
         // public static final double kHoodV = 1.11;
         // public static final double kHoodA = 0.17;
         // abs encoder
         public static final int HoodId = 8;
         public static final int kHoodEncoderID = 2;
-        public static final Angle kEncoderOffset = Degrees.of(-235);
+        public static final Angle kEncoderOffset = Degrees.of(-248);
         public static final double kSensorToMechanismRatio = 34 / 16;
         public static final double kMotorToSensorRatio = 125;
 
@@ -326,6 +329,9 @@ public final class Constants {
                 Slot0.withGravityType(GravityTypeValue.Arm_Cosine);
                 MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
                 MotorOutput.NeutralMode = NeutralModeValue.Brake;
+
+                CurrentLimits.SupplyCurrentLimitEnable = true;
+                CurrentLimits.SupplyCurrentLimit = 20;
                 // abs encoder
                 Feedback.FeedbackRemoteSensorID = ShooterConstants.kHoodEncoderID;
                 Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
@@ -336,13 +342,14 @@ public final class Constants {
         };
 
         // Shooter Motor Config and PID
-        public static final double kP = 100;
-        public static final double kI = 5;
+        public static final double kP = 35;
+        public static final double kI = 10;
         public static final double kD = 0;
+        public static final double kS = 10;
         public static final int ShooterIDLeftBottom = 9;
         public static final int ShooterIDLeftTop = 10;
-        public static final int ShooterIDRightTop = 11;
-        public static final int ShooterIDRightBottom = 12;
+        public static final int ShooterIDRightTop = 12;
+        public static final int ShooterIDRightBottom = 11;
 
         // shooter motors config
         public static final TalonFXConfiguration rightShooterMotorsConfig = new TalonFXConfiguration() {
@@ -350,6 +357,7 @@ public final class Constants {
                 Slot0.kP = ShooterConstants.kP;
                 Slot0.kI = ShooterConstants.kI;
                 Slot0.kD = ShooterConstants.kD;
+                Slot0.kS = ShooterConstants.kS;
                 CurrentLimits.SupplyCurrentLimitEnable = true;
                 CurrentLimits.SupplyCurrentLimit = 40;
                 MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
@@ -362,6 +370,7 @@ public final class Constants {
                 Slot0.kP = ShooterConstants.kP;
                 Slot0.kI = ShooterConstants.kI;
                 Slot0.kD = ShooterConstants.kD;
+                Slot0.kS = ShooterConstants.kS;
                 CurrentLimits.SupplyCurrentLimitEnable = true;
                 CurrentLimits.SupplyCurrentLimit = 40;
                 MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
@@ -369,14 +378,16 @@ public final class Constants {
             }
         };
 
-        public static final AngularVelocity shooterAngularVelocity = RPM.of(3000);
+        public static final AngularVelocity shooterAngularVelocity = RPM.of(2000);
         public static final AngularVelocity lobAngularVelocity = RPM.of(3200);
-        public static final AngularVelocity restingAngularVelocity = RPM.of(1500);
-        public static final AngularVelocity hubAngularVelocity = RPM.of(2000);
+        public static final AngularVelocity restingAngularVelocity = RPM.of(0);
+        public static final AngularVelocity hubAngularVelocity = RPM.of(2500);
         public static final AngularVelocity towerAngularVelocity = RPM.of(3000);
 
-        public static final Angle hubHoodPitch = Degrees.of(80);
+        public static final Angle hubHoodPitch = Degrees.of(75);
         public static final Angle towerHoodPitch = Degrees.of(70);
+
+        public static final double backwardsTime = 0.05;
 
         // Old equation stuff
         // TODO: find ball launch velocity
@@ -385,7 +396,7 @@ public final class Constants {
         public static final double ratio = 1;
         public static final double shootHeight = Units.inchesToMeters(40);
 
-        public static AngularVelocity kShooterVelocityTolerance = RPM.of(100);
+        public static AngularVelocity kShooterVelocityTolerance = RPM.of(200);
 
         public static final Distance kShooterWheelRadius = Inches.of(2);
         /** TODO: find the correct distance */
@@ -574,13 +585,17 @@ public final class Constants {
 
     public static final class JoeLookupTableConstants {
 
-        public static final record ShotData(Angle angle, Time time) {
+        public static final record ShotData(Angle angle, AngularVelocity shooterVelocity, Time time) {
             public double getAngleRadians() {
                 return angle.in(Radians);
             }
 
             public double getTimeSeconds() {
                 return time.in(Seconds);
+            }
+
+            public double getShooterAngularVelocityRPM(){
+                return shooterVelocity.in(RPM);
             }
         }
 
@@ -602,15 +617,16 @@ public final class Constants {
         // stores desired angle and estimated time (from stationary) given a distance
         // from the hub
         public static final Map<Distance, ShotData> joeLookupTable = Map.ofEntries(
-                Map.entry(Meters.of(0), new ShotData(Degrees.of(87), Seconds.of(1.7277))),
-                Map.entry(Meters.of(0.5), new ShotData(Degrees.of(84), Seconds.of(1.7277))),
-                Map.entry(Meters.of(1), new ShotData(Degrees.of(82), Seconds.of(1.7277))),
-                Map.entry(Meters.of(1.5), new ShotData(Degrees.of(81), Seconds.of(1.726))),
-                Map.entry(Meters.of(2), new ShotData(Degrees.of(80), Seconds.of(1.718))),
-                Map.entry(Meters.of(2.5), new ShotData(Degrees.of(78), Seconds.of(1.708))),
-                Map.entry(Meters.of(3), new ShotData(Degrees.of(76), Seconds.of(1.697))),
-                Map.entry(Meters.of(3.5), new ShotData(Degrees.of(74), Seconds.of(1.682))),
-                Map.entry(Meters.of(4), new ShotData(Degrees.of(72), Seconds.of(1.664)))
+                Map.entry(Meters.of(0),   new ShotData(Degrees.of(87), RPM.of(2000), Seconds.of(1.7277))),
+                Map.entry(Meters.of(0.5), new ShotData(Degrees.of(84), RPM.of(2000), Seconds.of(1.7277))),
+                Map.entry(Meters.of(1),   new ShotData(Degrees.of(82), RPM.of(2000), Seconds.of(1.7277))),
+                Map.entry(Meters.of(1.5), new ShotData(Degrees.of(77), RPM.of(2000), Seconds.of(1.726))),
+                //3/14 tested
+                Map.entry(Meters.of(2),   new ShotData(Degrees.of(75), RPM.of(2000), Seconds.of(1.718))),
+                Map.entry(Meters.of(2.5), new ShotData(Degrees.of(73), RPM.of(2000), Seconds.of(1.708))),
+                Map.entry(Meters.of(3),   new ShotData(Degrees.of(71), RPM.of(2000), Seconds.of(1.697))),
+                Map.entry(Meters.of(3.5), new ShotData(Degrees.of(69), RPM.of(2000), Seconds.of(1.682))),
+                Map.entry(Meters.of(4),   new ShotData(Degrees.of(67), RPM.of(2000), Seconds.of(1.664)))
         // Map.entry(Meters.of(4.5), new ShotData(Degrees.of(66.726),
         // Seconds.of(1.642))),
         // Map.entry(Meters.of(5.5), new ShotData(Degrees.of(47), Seconds.of(1.556))),

@@ -33,6 +33,8 @@ import frc.robot.Constants.IntakeConstants.IntakeState;
 import frc.robot.commands.AutoAim;
 import frc.robot.commands.AutoAlign;
 import frc.robot.commands.AutoLob;
+import frc.robot.commands.HubShoot;
+import frc.robot.commands.TowerShoot;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.LEDs;
@@ -59,8 +61,8 @@ public class RobotContainer {
     private final Trigger primaryRightClimbAlignTrigger = primaryController.povRight();
 
     // Secondary Triggers
-    private final Trigger feedHopperTrigger = secondaryController.x();
-    private final Trigger reverseFeederHopperTrigger = secondaryController.y();
+    private final Trigger feedHopperTrigger = secondaryController.rightBumper();
+    private final Trigger reverseFeederHopperTrigger = secondaryController.rightTrigger(0.1);
 
     private final Trigger manualHoodPitchUpTrigger = secondaryController.povUp();
     private final Trigger manualHoodPitchDownTrigger = secondaryController.povDown();
@@ -70,10 +72,13 @@ public class RobotContainer {
     private final Trigger compressIntakeTrigger = secondaryController.a();
     private final Trigger bounceIntakeTrigger = secondaryController.b();
 
-    private final Trigger raiseClimbTrigger = secondaryController.povLeft();
-    private final Trigger lowerClimbTrigger = secondaryController.povRight();
+    //private final Trigger raiseClimbTrigger = secondaryController.povLeft();
+    //private final Trigger lowerClimbTrigger = secondaryController.povRight();
 
-    private final Trigger shootTrigger = secondaryController.rightBumper();
+    private final Trigger shootTrigger = secondaryController.povRight();
+
+    private final Trigger hubShootTrigger = secondaryController.x();
+    private final Trigger towerShootTrigger = secondaryController.y();
 
     // Subsystems
     private final Intake intake = new Intake();
@@ -172,16 +177,19 @@ public class RobotContainer {
                 hopper.new ChangeState(HopperState.FEED)));
         outtakeTrigger.whileTrue(new ParallelCommandGroup(intake.new ChangeStates(IntakeState.DOWN_REV),
                 hopper.new ChangeState((HopperState.REVERSE)), shooter.new ChangeState(FeederState.UNSTUCKFEEDER)));
-        compressIntakeTrigger.whileTrue(intake.new CompressIntake());
+        compressIntakeTrigger.whileTrue(intake.new ChangeStates(IntakeState.UP_OFF));
         bounceIntakeTrigger.whileTrue(intake.new BounceIntake());
 
-        raiseClimbTrigger.whileTrue(climber.new ChangeState(ClimberState.CLIMB));
-        lowerClimbTrigger.whileTrue(climber.new ChangeState(ClimberState.DOWN));
+        // raiseClimbTrigger.whileTrue(climber.new ChangeState(ClimberState.CLIMB));
+        // lowerClimbTrigger.whileTrue(climber.new ChangeState(ClimberState.DOWN));
 
         manualHoodPitchDownTrigger.onTrue(new InstantCommand(() -> shooter.manualHood(5)));
         manualHoodPitchUpTrigger.onTrue(new InstantCommand(() -> shooter.manualHood(-5)));
 
         shootTrigger.whileTrue(shooter.new ChangeVelocity(ShooterConstants.shooterAngularVelocity));
+
+        hubShootTrigger.whileTrue(new HubShoot(shooter, intake, hopper));
+        towerShootTrigger.whileTrue(new TowerShoot(shooter, intake, hopper));
     }
 
     public Command getAutonomousCommand() {

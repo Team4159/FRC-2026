@@ -44,6 +44,8 @@ public class AutoLob extends Command {
     private final Shooter shooter;
     private final Hopper hopper;
     private final Intake intake;
+
+    private Timer timer;
     
     /** target pose2d (the hub based on alliance) */
     private Pose2d target;
@@ -88,6 +90,8 @@ public class AutoLob extends Command {
         this.leds = leds;
         this.intake = intake;
 
+        this.timer = new Timer();
+
         autoAimStatus = AutoAimStatus.WAITING;
         ledStatusSupplier = () -> {return autoAimStatus.ledStatus;};
         this.autonomousMode = autonomousMode;
@@ -107,6 +111,8 @@ public class AutoLob extends Command {
         timeOffset = MathSharedStore.getTimestamp();
 
         shooter.setSpeed(ShooterConstants.lobAngularVelocity);
+
+        timer.reset();
     }
 
     @Override
@@ -154,7 +160,23 @@ public class AutoLob extends Command {
 
         System.out.println("desired robot angle: " + desiredRobotAngle);
 
-        if(shooter.isAtSpeed() && shooter.isAtPitch() && drivetrain.getState().Pose.getRotation().getMeasure().isNear(Radians.of(desiredRobotAngle), DrivetrainConstants.AutoAimTolerance));
+        if (!timer.hasElapsed(ShooterConstants.backwardsTime)){
+            //run neck backwards if at the beginning
+            autoAimStatus = AutoAimStatus.WAITING;
+            shooter.setFeederSpeed(FeederState.UNSTUCKFEEDER.percentage);
+            hopper.setHopperSpeed(HopperState.STOP.percentage);
+        }
+        if (shooter.isAtPitch() && shooter.isAtSpeed() && isAtDesiredRotation(Radians.of(desiredRobotAngle))) {
+            //shoot the fuel if at the right pitch
+            autoAimStatus = AutoAimStatus.SHOOT;
+            shooter.setFeederSpeed(FeederState.FEED.percentage);
+            hopper.setHopperSpeed(HopperState.FEED.percentage);
+        } else {
+            //otherwise just wait
+            autoAimStatus = AutoAimStatus.WAITING;
+            shooter.setFeederSpeed(FeederState.STOP.percentage);
+            hopper.setHopperSpeed(HopperState.STOP.percentage);
+        }
 
         //rotate the swerve to the desired angle
         rotateSwerve(desiredRobotAngle);
@@ -164,7 +186,7 @@ public class AutoLob extends Command {
 
         SmartDashboard.putBoolean("isAtPitch", shooter.isAtPitch());
         SmartDashboard.putBoolean("isatspeed", shooter.isAtSpeed());
-        SmartDashboard.putBoolean("swerve isatangle", drivetrain.isAtDesiredRotation());
+        SmartDashboard.putBoolean("swerve isatangle", isAtDesiredRotation(Radians.of(desiredRobotAngle)));
         if(shooter.isAtPitch() && shooter.isAtSpeed() && isAtDesiredRotation(Radians.of(desiredRobotAngle))){
             autoAimStatus = AutoAimStatus.SHOOT;
         }
@@ -310,7 +332,8 @@ public class AutoLob extends Command {
     @Override
     public void end(boolean interrupted){
         shooter.adjustHood(Degrees.of(5));
-        shooter.setSpeed(ShooterConstants.restingAngularVelocity);
+        //shooter.setSpeed(ShooterConstants.restingAngularVelocity);
+        shooter.stopShooter();
         shooter.setFeederSpeed(FeederState.STOP.percentage);
         hopper.setHopperSpeed(HopperState.STOP.percentage);
         CommandScheduler.getInstance().schedule(intake.new ChangeStates(IntakeState.DOWN_OFF));

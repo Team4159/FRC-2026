@@ -2,6 +2,7 @@ package frc.robot.commands;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
 
 import java.util.Optional;
@@ -28,7 +29,7 @@ import frc.lib.HIDRumble;
 import frc.lib.HIDRumble.RumbleRequest;
 import frc.robot.Constants;
 import frc.robot.Constants.JoeLookupTableConstants;
-import frc.robot.Constants.ShooterConstants;
+import frc.robot.Constants.JoeLookupTableConstants.ShotData;
 import frc.robot.Constants.FeederConstants.FeederState;
 import frc.robot.Constants.HopperConstants.HopperState;
 import frc.robot.Constants.IntakeConstants.IntakeState;
@@ -48,6 +49,8 @@ public class AutoAim extends Command {
     private final Shooter shooter;
     private final Hopper hopper;
     private final Intake intake;
+
+    private Timer timer;
 
     /**
      * Field relative swerve request used to drive the drivetrain with primary
@@ -122,7 +125,9 @@ public class AutoAim extends Command {
         };
         this.autonomousMode = autonomousMode;
         if (!autonomousMode)
-            addRequirements(drivetrain);
+            addRequirements(drivetrain, shooter, hopper);
+
+        timer = new Timer();
     }
 
     @Override
@@ -139,15 +144,20 @@ public class AutoAim extends Command {
 
         aimFinished = false;
 
-        shooter.setSpeed(ShooterConstants.shooterAngularVelocity);
+        //shooter.setSpeed(ShooterConstants.shooterAngularVelocity);
+
+        timer.reset();
     }
 
     @Override
     public void execute() {
         // calculate desired pitch for hood angle
+        ShotData shotData = JoeLookupTable.getShotData(Meters.of(getDistanceFromHub()));
+
         double desiredHoodAngle = getAdjustedHoodPitch(
-                JoeLookupTable.getShotData(Meters.of(getDistanceFromHub())).getAngleRadians(), getDistanceFromHub());
-        double timeOfFlight = JoeLookupTable.getShotData(Meters.of(getDistanceFromHub())).getTimeSeconds();
+                shotData.getAngleRadians(), getDistanceFromHub());
+        double timeOfFlight = shotData.getTimeSeconds();
+        double desiredShooterVelocity = shotData.getShooterAngularVelocityRPM();
 
         double robotRelativeBallVelocityHorizontal = getLaunchVelocity() * Math.cos(desiredHoodAngle);
         double robotRelativeBallVelocityVertical = getLaunchVelocity() * Math.sin(desiredHoodAngle);
@@ -183,43 +193,51 @@ public class AutoAim extends Command {
 
         // set the desired hood angle
         shooter.adjustTrajectoryAngle(Radians.of(desiredHoodAngle));
+        shooter.setSpeed(RPM.of(desiredShooterVelocity));
 
         // for sim for now will implement actual tolerances later
         SmartDashboard.putBoolean("isAtPitch", shooter.isAtPitch());
         SmartDashboard.putBoolean("isatspeed", shooter.isAtSpeed());
-        SmartDashboard.putBoolean("swerve isatangle", drivetrain.isAtDesiredRotation());
+        SmartDashboard.putBoolean("swerve isatangle", isAtDesiredRotation(Radians.of(desiredRobotAngle)));
+
+        // if (!timer.hasElapsed(ShooterConstants.backwardsTime)){
+        //     //run neck backwards if at the beginning
+        //     autoAimStatus = AutoAimStatus.WAITING;
+        //     shooter.setFeederSpeed(FeederState.UNSTUCKFEEDER.percentage);
+        //     hopper.setHopperSpeed(HopperState.STOP.percentage);
+        // }
         if (shooter.isAtPitch() && shooter.isAtSpeed() && isAtDesiredRotation(Radians.of(desiredRobotAngle))) {
+            //shoot the fuel if at the right pitch
             autoAimStatus = AutoAimStatus.SHOOT;
+            shooter.setFeederSpeed(FeederState.FEED.percentage);
+            hopper.setHopperSpeed(HopperState.FEED.percentage);
         } else {
+            //otherwise just wait
             autoAimStatus = AutoAimStatus.WAITING;
+            shooter.setFeederSpeed(FeederState.STOP.percentage);
+            hopper.setHopperSpeed(HopperState.STOP.percentage);
         }
 
-        if (autoAimStatus == AutoAimStatus.SHOOT) {
-            // shooter.setFeederSpeed(FeederState.FEED.percentage);
-            // hopper.setHopperSpeed(HopperState.FEED.percentage);
+        if(RobotBase.isSimulation()){
+            // AdvantageScope fuel simulation
+            // get the current robot yaw angle
+            double robotYaw = drivetrain.getState().Pose.getRotation().getRadians();
+
+            // calculate field relative initial fuel velocities
+            double vx = robotRelativeBallVelocityHorizontal * Math.cos(desiredRobotAngle)
+                    + drivetrain.getState().Speeds.vxMetersPerSecond * Math.cos(robotYaw)
+                    - drivetrain.getState().Speeds.vyMetersPerSecond * Math.sin(robotYaw);
+
+            double vy = robotRelativeBallVelocityHorizontal * Math.sin(desiredRobotAngle)
+                    + drivetrain.getState().Speeds.vxMetersPerSecond * Math.sin(robotYaw)
+                    + drivetrain.getState().Speeds.vyMetersPerSecond * Math.cos(robotYaw);
+
+            double vz = robotRelativeBallVelocityVertical;
+
+            sim_shootFuel(vx, vy, vz);
         }
-
-        // AdvantageScope fuel simulation
-        // get the current robot yaw angle
-        double robotYaw = drivetrain.getState().Pose.getRotation().getRadians();
-
-        // calculate field relative initial fuel velocities
-        double vx = robotRelativeBallVelocityHorizontal * Math.cos(desiredRobotAngle)
-                + drivetrain.getState().Speeds.vxMetersPerSecond * Math.cos(robotYaw)
-                - drivetrain.getState().Speeds.vyMetersPerSecond * Math.sin(robotYaw);
-
-        double vy = robotRelativeBallVelocityHorizontal * Math.sin(desiredRobotAngle)
-                + drivetrain.getState().Speeds.vxMetersPerSecond * Math.sin(robotYaw)
-                + drivetrain.getState().Speeds.vyMetersPerSecond * Math.cos(robotYaw);
-
-        double vz = robotRelativeBallVelocityVertical;
 
         SmartDashboard.putString("Auto Aim Status", autoAimStatus.name());
-
-        // only feed (shown by shooting fuel in simulation) if the status is "SHOOT"
-        if (autoAimStatus.name() == AutoAimStatus.SHOOT.name())
-            sim_shootFuel(vx, vy, vz);
-
         SmartDashboard.putNumber("distance from hub", getDistanceFromHub());
         SmartDashboard.putNumber("autoaim desired pitch", Units.radiansToDegrees(desiredHoodAngle));
     }

@@ -2,6 +2,7 @@ package frc.robot.lib;
 
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.Seconds;
 
@@ -42,6 +43,8 @@ public class JoeLookupTable {
         //convert the angles and times to doubles(for linear interpolation)
         double bestFitAngle = bestFitShotData.getAngleRadians();
         double secondBestFitAngle = secondBestFitShotData.getAngleRadians();
+        double bestFitAngularVelocity = bestFitShotData.getShooterAngularVelocityRPM();
+        double secondBestFitAngularVelocity = secondBestFitShotData.getShooterAngularVelocityRPM();
         double bestFitTime = bestFitShotData.getTimeSeconds();
         double secondBestFitTime = secondBestFitShotData.getTimeSeconds();
 
@@ -55,7 +58,8 @@ public class JoeLookupTable {
 
         //return a new ShotData object with the interpolated time and angle.
         return new ShotData(
-            Radians.of(MathUtil.interpolate(bestFitAngle, secondBestFitAngle, linearInterpolation)), 
+            Radians.of(MathUtil.interpolate(bestFitAngle, secondBestFitAngle, linearInterpolation)),
+            RPM.of(MathUtil.interpolate(bestFitAngularVelocity, secondBestFitAngularVelocity, linearInterpolation)),
             Seconds.of(MathUtil.interpolate(bestFitTime, secondBestFitTime, linearInterpolation)));
     }
 }

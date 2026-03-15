@@ -1,8 +1,10 @@
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Rotations;
 
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
@@ -38,6 +40,9 @@ public class Intake extends SubsystemBase {
         intakeMotionMagicVoltage = new MotionMagicVoltage(0);
         setLocation(IntakeState.UP_OFF.rotationLocation);
         //intakeVelocityVoltage = new VelocityVoltage(0);
+
+        CurrentLimitsConfigs currentLimits = new CurrentLimitsConfigs().withSupplyCurrentLimit(Amps.of(20)).withSupplyCurrentLimitEnable(true);
+        spinMotor.getConfigurator().apply(currentLimits);
     }
 
     public void setMotionMagic(MotionMagicConfigs motionMagicConfigs){
