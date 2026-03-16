@@ -32,6 +32,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
@@ -122,9 +123,9 @@ public final class Constants {
         public static final double kSlowAcceleration = 5;
         public static final double kSlowJerk = 1600;
 
-        public static final int kAngleEncoderId = 1;
-        public static final int kAngleId = 6; // youre welcome Faye
-        public static final int kIntakeSpinId = 7;
+        public static final int kAngleEncoderId = Robot.isReal() ? 1 : 101;
+        public static final int kAngleId = Robot.isReal() ? 6 : 106; // youre welcome Faye
+        public static final int kIntakeSpinId = Robot.isReal() ? 7 : 107;
 
         public static final Angle kEncoderOffset = Degrees.of(80);
         public static final double kMotorToSensorRatio = 50;
@@ -238,7 +239,7 @@ public final class Constants {
         public static final Distance kTrenchAssistPassPositionTolerance = Meters.of(0.45);
         public static final double kTrenchAssistApproachInputTolerance = 0.2;
         public static final Distance kTrenchAssistAlignPositionTolerance = Meters.of(0.15);
-        public static final double kTrenchAssistAlignStrength = 0.8;
+        public static final double kTrenchAssistAlignStrength = 0.85;
         public static final double kTrenchAssistAlignInfluence = 0.15;
 
         // drive mode constants
@@ -289,8 +290,8 @@ public final class Constants {
         // public static final double kHoodV = 1.11;
         // public static final double kHoodA = 0.17;
         // abs encoder
-        public static final int HoodId = 8;
-        public static final int kHoodEncoderID = 2;
+        public static final int HoodId = Robot.isReal() ? 8 : 108;
+        public static final int kHoodEncoderID = Robot.isReal() ? 2 : 102;
         public static final Angle kEncoderOffset = Degrees.of(-248);
         public static final double kSensorToMechanismRatio = 34 / 16;
         public static final double kMotorToSensorRatio = 125;
@@ -349,7 +350,7 @@ public final class Constants {
         public static final double kI = 1;
         public static final double kD = 0;
         public static final double kS = 10;
-        //remove if doesnt work
+        // remove if doesnt work
         public static final double kV = 0.25;
         public static final double kA = 2.14;
         public static final int ShooterIDLeftBottom = 9;
@@ -475,38 +476,65 @@ public final class Constants {
                 Alliance.Red,
                 redLobPositions);
 
-        public static enum FieldZone {
-            FIELD(Inches.of(651.22), Inches.of(317.69)),
-            ALLIANCE(Inches.of(156.61), Inches.of(317.69)),
-            TRENCH(Inches.of(140.0), Inches.of(49.96));
+        public static Distance kFieldWidth = Inches.of(651.22);
+        public static Distance kFieldHeight = Inches.of(317.69);
 
-            public final Distance width, height;
-
-            private FieldZone(Distance width, Distance height) {
-                this.width = width;
-                this.height = height;
-            }
-        }
-
-        public static enum TrenchZone {
-            BLUE_LEFT(Inches.of(182.11), Inches.of(317.69 - 24.97)),
-            BLUE_RIGHT(Inches.of(182.11), Inches.of(24.97)),
-            RED_LEFT(Inches.of(651.22 - 182.11), Inches.of(24.97)),
-            RED_RIGHT(Inches.of(651.22 - 182.11), Inches.of(317.69 - 24.97));
-
-            public final Distance x, y;
-
-            private TrenchZone(Distance x, Distance y) {
-                this.x = x;
-                this.y = y;
-            }
-        }
+        public static Distance kAllianceWidth = Inches.of(156.61);
+        public static Distance kAllianceHeight = kFieldHeight;
 
         public static Distance kTrenchX = Inches.of(182.11);
+        public static Distance kTrenchZoneWidth = Inches.of(140.0);
+        public static Distance kTrenchZoneHeight = Inches.of(49.96);
 
         public static Distance kTowerX = Inches.of(41.755);
         public static Distance kTowerY = Inches.of(147.47);
         public static Distance kTowerWidth = Inches.of(35.2);
+
+        public static Distance kTrenchZoneYBuffer = DrivetrainConstants.kDrivetrainSizeY.div(4);
+
+        public static enum FieldZone {
+            FIELD(
+                    new Translation2d(kFieldWidth.div(2), kFieldHeight.div(2)),
+                    new Translation2d(kFieldWidth, kFieldHeight)),
+            TRENCH_BLUE_LEFT(
+                    new Translation2d(kTrenchX,
+                            kFieldHeight.minus(kTrenchZoneHeight.div(2)).minus(kTrenchZoneYBuffer.div(2))),
+                    new Translation2d(kTrenchX, kFieldHeight.minus(kTrenchZoneHeight.div(2))),
+                    new Translation2d(kTrenchZoneWidth, kTrenchZoneHeight.plus(kTrenchZoneYBuffer))),
+            TRENCH_BLUE_RIGHT(
+                    new Translation2d(kTrenchX, kTrenchZoneHeight.div(2).plus(kTrenchZoneYBuffer.div(2))),
+                    new Translation2d(kTrenchX, kTrenchZoneHeight.div(2)),
+                    new Translation2d(kTrenchZoneWidth, kTrenchZoneHeight.plus(kTrenchZoneYBuffer))),
+            TRENCH_RED_LEFT(
+                    new Translation2d(kFieldWidth.minus(kTrenchX),
+                            kTrenchZoneHeight.div(2).plus(kTrenchZoneYBuffer.div(2))),
+                    new Translation2d(kFieldWidth.minus(kTrenchX), kTrenchZoneHeight.div(2)),
+                    new Translation2d(kTrenchZoneWidth, kTrenchZoneHeight.plus(kTrenchZoneYBuffer))),
+            TRENCH_RED_RIGHT(
+                    new Translation2d(kFieldWidth.minus(kTrenchX),
+                            kFieldHeight.minus(kTrenchZoneHeight.div(2)).minus(kTrenchZoneYBuffer.div(2))),
+                    new Translation2d(kFieldWidth.minus(kTrenchX), kFieldHeight.minus(kTrenchZoneHeight.div(2))),
+                    new Translation2d(kTrenchZoneWidth, kTrenchZoneHeight.plus(kTrenchZoneYBuffer)));
+
+            public final Translation2d center, focus, size;
+
+            private FieldZone(Translation2d center, Translation2d focus, Translation2d size) {
+                this.center = center;
+                this.focus = focus;
+                this.size = size;
+            }
+
+            private FieldZone(Translation2d center, Translation2d size) {
+                this(center, center, size);
+            }
+        }
+
+        public static final FieldZone[] kTrenchZones = new FieldZone[] {
+                FieldZone.TRENCH_BLUE_LEFT,
+                FieldZone.TRENCH_BLUE_RIGHT,
+                FieldZone.TRENCH_RED_LEFT,
+                FieldZone.TRENCH_RED_RIGHT
+        };
 
         /** Units:m/s^2 */
         public static final double g = 9.80;
@@ -604,7 +632,7 @@ public final class Constants {
                 return time.in(Seconds);
             }
 
-            public double getShooterAngularVelocityRPM(){
+            public double getShooterAngularVelocityRPM() {
                 return shooterVelocity.in(RPM);
             }
         }
@@ -627,14 +655,14 @@ public final class Constants {
         // stores desired angle and estimated time (from stationary) given a distance
         // from the hub
         public static final Map<Distance, ShotData> joeLookupTable = Map.ofEntries(
-                Map.entry(Meters.of(1),   new ShotData(Degrees.of(83), RPM.of(2000), Seconds.of(1.258))),
+                Map.entry(Meters.of(1), new ShotData(Degrees.of(83), RPM.of(2000), Seconds.of(1.258))),
                 Map.entry(Meters.of(1.5), new ShotData(Degrees.of(79), RPM.of(2000), Seconds.of(1.240))),
-                //3/14 tested
-                Map.entry(Meters.of(2),   new ShotData(Degrees.of(75), RPM.of(2000), Seconds.of(1.214))),
+                // 3/14 tested
+                Map.entry(Meters.of(2), new ShotData(Degrees.of(75), RPM.of(2000), Seconds.of(1.214))),
                 Map.entry(Meters.of(2.5), new ShotData(Degrees.of(72), RPM.of(2050), Seconds.of(1.229))),
-                Map.entry(Meters.of(3),   new ShotData(Degrees.of(69), RPM.of(2100), Seconds.of(1.238))),
+                Map.entry(Meters.of(3), new ShotData(Degrees.of(69), RPM.of(2100), Seconds.of(1.238))),
                 Map.entry(Meters.of(3.5), new ShotData(Degrees.of(68), RPM.of(2200), Seconds.of(1.301))),
-                Map.entry(Meters.of(4),   new ShotData(Degrees.of(67), RPM.of(2300), Seconds.of(1.363))),
+                Map.entry(Meters.of(4), new ShotData(Degrees.of(67), RPM.of(2300), Seconds.of(1.363))),
                 Map.entry(Meters.of(4.5), new ShotData(Degrees.of(66), RPM.of(2400), Seconds.of(1.421)))
         // Map.entry(Meters.of(4.5), new ShotData(Degrees.of(66.726),
         // Seconds.of(1.642))),

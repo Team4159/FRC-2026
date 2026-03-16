@@ -76,7 +76,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
 
     public final Trigger crashTrigger = new Trigger(
             () -> Math.hypot(pigeon.getAccelerationX().getValue().in(MetersPerSecondPerSecond),
-                    pigeon.getAccelerationY().getValue().in(MetersPerSecondPerSecond)) >= FieldConstants.g * 3.0);
+                    pigeon.getAccelerationY().getValue().in(MetersPerSecondPerSecond)) >= FieldConstants.g * 2.0);
 
     private final Supplier<Double> inputX;
     private final Supplier<Double> inputY;
@@ -219,13 +219,15 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                     || getDriveFlagValue(DriveFlag.MANUAL_ALIGN)) {
                 return Optional.empty();
             }
+
             Pose2d robotPose = getState().Pose;
 
             // trench assist
             var trenchZone = FieldUtil.getPoseTrenchZone(robotPose);
             if (trenchZone.isPresent()) {
-                Distance errorX = trenchZone.get().x.minus(robotPose.getMeasureX());
-                Distance errorY = trenchZone.get().y.minus(robotPose.getMeasureY());
+                Translation2d focus = trenchZone.get().focus;
+                Distance errorX = focus.getMeasureX().minus(robotPose.getMeasureX());
+                Distance errorY = focus.getMeasureY().minus(robotPose.getMeasureY());
 
                 boolean hasPassed = !errorX.isNear(Meters.zero(), OperatorConstants.kTrenchAssistPassPositionTolerance);
                 boolean isNotApproaching = (Math.signum(getInputX(true)) == -Math.signum(errorX.magnitude()))
@@ -234,8 +236,8 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                     return Optional.empty();
                 }
 
-                double vy = kTrenchAssistAlignStrength * getMaxTranslationSpeed() * Math.signum(errorY.magnitude())
-                        * Math.abs(getInputX(true));
+                double vy = kTrenchAssistAlignStrength * Math.signum(errorY.magnitude())
+                        * Math.abs(getInputSpeedX(true));
                 double influence = OperatorConstants.kTrenchAssistAlignInfluence * getInputSpeedY(true);
                 boolean insideTolerance = errorY.isNear(Meters.zero(),
                         OperatorConstants.kTrenchAssistAlignPositionTolerance);

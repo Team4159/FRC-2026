@@ -11,7 +11,6 @@ import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.FieldConstants;
 
 /*
@@ -25,7 +24,7 @@ public class FuelSimulation {
     private static final Translation3d kGravity = new Translation3d(0, 0, -FieldConstants.g);
     private static final double kAirDensity = 1.2;
     private static final double kFuelRadius = 0.15;
-    private static final double kFuelMass = Units.lbsToKilograms((0.5 + 0.448) / 2.0);
+    // private static final double kFuelMass = Units.lbsToKilograms((0.5 + 0.448) / 2.0);
     private static final double kFuelSpacing = Units.inchesToMeters(6.0);
     private static final double kFuelCrossSectionalArea = Math.PI * Math.pow(kFuelRadius, 2);
     private static final double kFuelDragCoefficient = 0.47; // of a sphere
@@ -77,6 +76,7 @@ public class FuelSimulation {
                 linearVelocity = linearVelocity.plus(kGravity.times(deltaTime));
                 // air resistance
                 double airResistanceMagnitude = 0.5 * kFuelDragCoefficient * kAirDensity * kFuelCrossSectionalArea * Math.pow(linearVelocityMagnitude, 2);
+                @SuppressWarnings("unused")
                 Translation3d airResistanceForce = new Translation3d(linearUnitVector.times(airResistanceMagnitude));
                 //linearVelocity = linearVelocity.minus(airResistanceForce.div(kFuelMass).times(deltaTime));
             } else {
