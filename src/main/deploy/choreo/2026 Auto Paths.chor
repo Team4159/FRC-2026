@@ -3,20 +3,287 @@
  "version":2,
  "type":"Swerve",
  "variables":{
-  "expressions":{},
+  "expressions":{
+   "fieldWidth":{
+    "dimension":"Length",
+    "var":{
+     "exp":"317.69 in",
+     "val":8.069326
+    }
+   },
+   "maxAccel":{
+    "dimension":"LinAcc",
+    "var":{
+     "exp":"5 m / s ^ 2",
+     "val":5.0
+    }
+   },
+   "maxIntakeVelocity":{
+    "dimension":"LinVel",
+    "var":{
+     "exp":"2 m / s",
+     "val":2.0
+    }
+   },
+   "maxVelo":{
+    "dimension":"LinVel",
+    "var":{
+     "exp":"3 m / s",
+     "val":3.0
+    }
+   }
+  },
   "poses":{
-   "L1end":{
+   "MLScore":{
     "x":{
-     "exp":"3.2625224590301514 m",
-     "val":3.2625224590301514
+     "exp":"3 m",
+     "val":3.0
     },
     "y":{
-     "exp":"5.168680191040039 m",
-     "val":5.168680191040039
+     "exp":"MLStart.y",
+     "val":5.062317371368408
     },
     "heading":{
-     "exp":"-0.7229797367916491 rad",
-     "val":-0.7229797367916491
+     "exp":"-0.5620392308055918 rad",
+     "val":-0.5620392308055918
+    }
+   },
+   "MLStart":{
+    "x":{
+     "exp":"3.5447375774383545 m",
+     "val":3.5447375774383545
+    },
+    "y":{
+     "exp":"5.062317371368408 m",
+     "val":5.062317371368408
+    },
+    "heading":{
+     "exp":"0 deg",
+     "val":0.0
+    }
+   },
+   "MRScore":{
+    "x":{
+     "exp":"3 m",
+     "val":3.0
+    },
+    "y":{
+     "exp":"MRStart.y",
+     "val":3.0037829875946045
+    },
+    "heading":{
+     "exp":"0.5635890545210516 rad",
+     "val":0.5635890545210516
+    }
+   },
+   "MRStart":{
+    "x":{
+     "exp":"3.547607421875 m",
+     "val":3.547607421875
+    },
+    "y":{
+     "exp":"3.0037829875946045 m",
+     "val":3.0037829875946045
+    },
+    "heading":{
+     "exp":"0 deg",
+     "val":0.0
+    }
+   },
+   "MScore":{
+    "x":{
+     "exp":"2.450996160507202 m",
+     "val":2.450996160507202
+    },
+    "y":{
+     "exp":"4.035680770874023 m",
+     "val":4.035680770874023
+    },
+    "heading":{
+     "exp":"0 deg",
+     "val":0.0
+    }
+   },
+   "MStart":{
+    "x":{
+     "exp":"3.5957932472229004 m",
+     "val":3.5957932472229004
+    },
+    "y":{
+     "exp":"4.034634590148926 m",
+     "val":4.034634590148926
+    },
+    "heading":{
+     "exp":"0 deg",
+     "val":0.0
+    }
+   },
+   "lClimb":{
+    "x":{
+     "exp":"1.3813281059265137 m",
+     "val":1.3813281059265137
+    },
+    "y":{
+     "exp":"5.201143741607666 m",
+     "val":5.201143741607666
+    },
+    "heading":{
+     "exp":"0 deg",
+     "val":0.0
+    }
+   },
+   "lScore":{
+    "x":{
+     "exp":"rScore.x",
+     "val":3.054912805557251
+    },
+    "y":{
+     "exp":"fieldWidth - rScore.y",
+     "val":7.0497461126098635
+    },
+    "heading":{
+     "exp":"360 deg - rScore.heading",
+     "val":159.11826774164814
+    }
+   },
+   "lStart":{
+    "x":{
+     "exp":"3.684030294418335 m",
+     "val":3.684030294418335
+    },
+    "y":{
+     "exp":"7.419393062591553 m",
+     "val":7.419393062591553
+    },
+    "heading":{
+     "exp":"0 deg",
+     "val":0.0
+    }
+   },
+   "lcIntakeEnd":{
+    "x":{
+     "exp":"rcIntakeEnd.x",
+     "val":6.0
+    },
+    "y":{
+     "exp":"fieldWidth - rcIntakeEnd.y",
+     "val":4.7835059926757815
+    },
+    "heading":{
+     "exp":"360 deg - rcIntakeEnd.heading",
+     "val":4.483185307179586
+    }
+   },
+   "lfIntakeEnd":{
+    "x":{
+     "exp":"rfIntakeEnd.x",
+     "val":7.67844820022583
+    },
+    "y":{
+     "exp":"fieldWidth - rfIntakeEnd.y",
+     "val":4.7835059926757815
+    },
+    "heading":{
+     "exp":"360 deg - rfIntakeEnd.heading",
+     "val":4.083185307179586
+    }
+   },
+   "lmIntakeEnd":{
+    "x":{
+     "exp":"rmIntakeEnd.x",
+     "val":6.75
+    },
+    "y":{
+     "exp":"fieldWidth - rmIntakeEnd.y",
+     "val":4.7835059926757815
+    },
+    "heading":{
+     "exp":"360 deg - rmIntakeEnd.heading",
+     "val":4.483185307179586
+    }
+   },
+   "rClimb":{
+    "x":{
+     "exp":"1.163791537284851 m",
+     "val":1.163791537284851
+    },
+    "y":{
+     "exp":"2.4997687339782715 m",
+     "val":2.4997687339782715
+    },
+    "heading":{
+     "exp":"180 deg",
+     "val":3.141592653589793
+    }
+   },
+   "rScore":{
+    "x":{
+     "exp":"lScore.x",
+     "val":3.054912805557251
+    },
+    "y":{
+     "exp":"fieldWidth - lScore.y",
+     "val":1.0195798873901367
+    },
+    "heading":{
+     "exp":"180 deg - lScore.heading",
+     "val":-155.97667508805836
+    }
+   },
+   "rStart":{
+    "x":{
+     "exp":"3.6688082218170166 m",
+     "val":3.6688082218170166
+    },
+    "y":{
+     "exp":"0.6558676958084106 m",
+     "val":0.6558676958084106
+    },
+    "heading":{
+     "exp":"0 deg",
+     "val":0.0
+    }
+   },
+   "rcIntakeEnd":{
+    "x":{
+     "exp":"6 m",
+     "val":6.0
+    },
+    "y":{
+     "exp":"3.2858200073242188 m",
+     "val":3.2858200073242188
+    },
+    "heading":{
+     "exp":"1.8 rad",
+     "val":1.8
+    }
+   },
+   "rfIntakeEnd":{
+    "x":{
+     "exp":"7.67844820022583 m",
+     "val":7.67844820022583
+    },
+    "y":{
+     "exp":"3.2858200073242188 m",
+     "val":3.2858200073242188
+    },
+    "heading":{
+     "exp":"2.2 rad",
+     "val":2.2
+    }
+   },
+   "rmIntakeEnd":{
+    "x":{
+     "exp":"6.75 m",
+     "val":6.75
+    },
+    "y":{
+     "exp":"3.2858200073242188 m",
+     "val":3.2858200073242188
+    },
+    "heading":{
+     "exp":"1.8 rad",
+     "val":1.8
     }
    }
   }
