@@ -126,9 +126,11 @@ public final class Constants {
         public static final int kAngleId = 6; // youre welcome Faye
         public static final int kIntakeSpinId = 7;
 
+        //TODO: retune offset after moving encoder to jackshaft
         public static final Angle kEncoderOffset = Degrees.of(80);
-        public static final double kMotorToSensorRatio = 50;
-        public static final double kSensorToMechanismRatio = 1;
+        //now 25 and 2 because encoder is on the jackshaft now.
+        public static final double kMotorToSensorRatio = 25;
+        public static final double kSensorToMechanismRatio = 2;
 
         // motor configs
         public static final CANcoderConfiguration canCoderConfig = new CANcoderConfiguration() {
