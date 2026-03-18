@@ -17,7 +17,6 @@ import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.lib.Elastic;
 import frc.lib.InstantCommandRunWhenDisabled;
 import frc.lib.PoseTrajectory;
-import frc.robot.Constants.AlignConstants.TowerAlignGoal;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.IntakeConstants.IntakeState;
 import frc.robot.commands.AutoAim;
@@ -77,6 +76,7 @@ public class ConfigurableAuto {
         intakeChooser1.addOption("Far", "FarIntake");
         intakeChooser1.addOption("Mid", "MidIntake");
         intakeChooser1.addOption("Close", "CloseIntake");
+        intakeChooser1.addOption("Outpost (for middle auto)", "OutpostIntake");
         intakeChooser1.setDefaultOption("None", "None");
 
         //shoot chooser 1
@@ -125,10 +125,39 @@ public class ConfigurableAuto {
         final String shoot2 = shootChooser2.getSelected();
         final String climbSide = climbSideChooser.getSelected();
 
-        final TowerAlignGoal towerAlignGoal = climbSide.equals("L") ? TowerAlignGoal.LEFT : TowerAlignGoal.RIGHT;
-
         // if mid auto selected disregard other options since only 1 auto per mid side
         if (direction.contains("M")) {
+            //outpost auto
+            if(intake1.contains("Outpost")) {
+                final String startToIntakeName = direction + "StartToMROutpostIntake";
+                final String intakeToShootName = "MROutpostIntakeToMRShoot";
+
+                final AutoTrajectory startToIntakeTraj = routine.trajectory(startToIntakeName);
+                final AutoTrajectory intakeToShootTraj = routine.trajectory(intakeToShootName);
+
+                routine.active().onTrue(
+                    startToIntakeTraj.resetOdometry()
+                    .andThen(startToIntakeTraj.cmd())
+                    .andThen(intakeToShootTraj.cmd())
+                    .andThen(new ParallelDeadlineGroup(
+                        //new WaitCommand(AutoConstants.ShootTime),
+                        new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())))
+                );
+
+                startToIntakeTraj.atTime("intake").onTrue(intake.new ChangeStates(IntakeState.DOWN_ON));
+                startToIntakeTraj.atTime("stopIntake").onTrue(intake.new ChangeStates(IntakeState.DOWN_OFF));
+
+                if(display){
+                    updateField(startToIntakeTraj, intakeToShootTraj);
+                }
+
+                generatedRoutine = routine;
+
+                displayGenerationStatus(startToIntakeTraj, intakeToShootTraj);
+
+                return routine;
+            }
+
             final String startToShootName = direction + "StartToShoot";
             final String shootToClimbName = direction + "ShootTo" + climbSide +"Climb";
 
