@@ -108,10 +108,10 @@ public final class Constants {
     }
 
     public static class IntakeConstants {
-        public static final double kAngleI = 0.1;
+        public static final double kAngleI = 1;
         public static final double kAngleD = 0;
-        public static final double kAngleP = 20;
-        public static final double kAngleG = 0.08;
+        public static final double kAngleP = 40;
+        public static final double kAngleG = 0.06;
 
         // motion magic
         public static final double kFastCruiseVelocity = 160;
@@ -126,8 +126,7 @@ public final class Constants {
         public static final int kAngleId = 6; // youre welcome Faye
         public static final int kIntakeSpinId = 7;
 
-        //TODO: retune offset after moving encoder to jackshaft
-        public static final Angle kEncoderOffset = Degrees.of(80);
+        public static final Angle kEncoderOffset = Degrees.of(0);
         //now 25 and 2 because encoder is on the jackshaft now.
         public static final double kMotorToSensorRatio = 25;
         public static final double kSensorToMechanismRatio = 2;
@@ -135,8 +134,8 @@ public final class Constants {
         // motor configs
         public static final CANcoderConfiguration canCoderConfig = new CANcoderConfiguration() {
             {
-                MagnetSensor.withAbsoluteSensorDiscontinuityPoint(Rotations.of(0.5));
-                MagnetSensor.SensorDirection = SensorDirectionValue.Clockwise_Positive;
+                MagnetSensor.withAbsoluteSensorDiscontinuityPoint(Rotations.of(0.9));
+                MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
                 MagnetSensor.withMagnetOffset(IntakeConstants.kEncoderOffset);
             }
         };
@@ -347,7 +346,7 @@ public final class Constants {
         // Shooter Motor Config and PID
         // public static final double kP = 35;
         // public static final double kI = 10;
-        public static final double kP = 5;
+        public static final double kP = 10;
         public static final double kI = 1;
         public static final double kD = 0;
         public static final double kS = 10;

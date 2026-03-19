@@ -259,15 +259,15 @@ public class AutoAim extends Command {
      *                     getInputY() functions in the Drivetrain class
      */
     private void rotateSwerve(double desiredAngle) {
-        if (drivetrain.getInputTranslation(true).getNorm() == 0.0) {
-            boolean aimingAtHub = isAtDesiredRotation(Radians.of(desiredAngle));
-            boolean robotIsStill = Math.toDegrees(drivetrain.getState().Speeds.omegaRadiansPerSecond) <= 1;
-            if (aimingAtHub && robotIsStill) {
-                aimFinished = true;
-            }
-        } else {
-            aimFinished = false;
-        }
+        // if (drivetrain.getInputTranslation(true).getNorm() == 0.0) {
+        //     boolean aimingAtHub = isAtDesiredRotation(Radians.of(desiredAngle));
+        //     boolean robotIsStill = Math.toDegrees(drivetrain.getState().Speeds.omegaRadiansPerSecond) <= 1;
+        //     if (aimingAtHub && robotIsStill) {
+        //         aimFinished = true;
+        //     }
+        // } else {
+        //     aimFinished = false;
+        // }
 
         double omega = Constants.DrivetrainConstants.AutoAimRotationController.calculate(
                 drivetrain.getState().Pose.getRotation().getRadians(), desiredAngle, Timer.getFPGATimestamp());
