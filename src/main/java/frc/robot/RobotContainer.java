@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.RPM;
+
 import java.util.Optional;
 
 import choreo.auto.AutoChooser;
@@ -186,7 +188,7 @@ public class RobotContainer {
         manualHoodPitchDownTrigger.onTrue(new InstantCommand(() -> shooter.manualHood(5)));
         manualHoodPitchUpTrigger.onTrue(new InstantCommand(() -> shooter.manualHood(-5)));
 
-        shootTrigger.whileTrue(shooter.new ChangeVelocity(ShooterConstants.shooterAngularVelocity));
+        shootTrigger.whileTrue(shooter.new ChangeVelocity(RPM.of(6000)));
 
         hubShootTrigger.whileTrue(new HubShoot(shooter, intake, hopper));
         towerShootTrigger.whileTrue(new TowerShoot(shooter, intake, hopper));

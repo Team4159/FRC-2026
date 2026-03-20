@@ -27,7 +27,7 @@ import frc.robot.Constants.ShooterConstants;
 
 public class Shooter extends SubsystemBase{
     private final TalonFX hoodMotor, feederMotor, leftBottomShooterMotor, 
-    //leftTopShooterMotor, rightTopShooterMotor, 
+    leftTopShooterMotor, rightTopShooterMotor, 
     rightBottomShooterMotor;
     //private final TalonFX leaderShooterMotor;
     private final CANcoder canCoder;
@@ -42,20 +42,20 @@ public class Shooter extends SubsystemBase{
         canCoder = new CANcoder(ShooterConstants.kHoodEncoderID);
         feederMotor = new TalonFX(FeederConstants.FeederID);
         leftBottomShooterMotor = new TalonFX(ShooterConstants.ShooterIDLeftBottom);
-        // leftTopShooterMotor = new TalonFX(ShooterConstants.ShooterIDLeftTop);
-        // rightTopShooterMotor = new TalonFX(ShooterConstants.ShooterIDRightTop);
+        leftTopShooterMotor = new TalonFX(ShooterConstants.ShooterIDLeftTop);
+        rightTopShooterMotor = new TalonFX(ShooterConstants.ShooterIDRightTop);
         rightBottomShooterMotor = new TalonFX(ShooterConstants.ShooterIDRightBottom);
 
         //leaderShooterMotor = leftBottomShooterMotor; 
         
         leftBottomShooterMotor.getConfigurator().apply(new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive));
-        //leftTopShooterMotor.getConfigurator().apply(new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive));
+        leftTopShooterMotor.getConfigurator().apply(new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive));
         
         canCoder.getConfigurator().apply(ShooterConstants.canCoderConfig);
         hoodMotor.getConfigurator().apply(ShooterConstants.hoodConfig);
         leftBottomShooterMotor.getConfigurator().apply(ShooterConstants.leftShooterMotorsConfig);
-        // leftTopShooterMotor.getConfigurator().apply(ShooterConstants.leftShooterMotorsConfig);
-        // rightTopShooterMotor.getConfigurator().apply(ShooterConstants.rightShooterMotorsConfig);
+        leftTopShooterMotor.getConfigurator().apply(ShooterConstants.leftShooterMotorsConfig);
+        rightTopShooterMotor.getConfigurator().apply(ShooterConstants.rightShooterMotorsConfig);
         rightBottomShooterMotor.getConfigurator().apply(ShooterConstants.rightShooterMotorsConfig);
 
         shooterVelocityVoltage = new VelocityVoltage(0);
@@ -73,8 +73,8 @@ public class Shooter extends SubsystemBase{
         shooterVelocityVoltage.withVelocity(speed.in(RotationsPerSecond));
         //leaderShooterMotor.setControl(shooterVelocityVoltage);
         leftBottomShooterMotor.setControl(shooterVelocityVoltage.withVelocity(speed.in(RotationsPerSecond)));
-        // leftTopShooterMotor.setControl(shooterVelocityVoltage.withVelocity(speed.in(RotationsPerSecond)));
-        // rightTopShooterMotor.setControl(shooterVelocityVoltage.withVelocity(speed.in(RotationsPerSecond)));
+        leftTopShooterMotor.setControl(shooterVelocityVoltage.withVelocity(speed.in(RotationsPerSecond)));
+        rightTopShooterMotor.setControl(shooterVelocityVoltage.withVelocity(speed.in(RotationsPerSecond)));
         rightBottomShooterMotor.setControl(shooterVelocityVoltage.withVelocity(speed.in(RotationsPerSecond)));
     }
 
@@ -93,9 +93,9 @@ public class Shooter extends SubsystemBase{
     public AngularVelocity getShooterVelocity(){
             return  
             RadiansPerSecond.of((leftBottomShooterMotor.getVelocity().getValue().in(RadiansPerSecond)
-        //   + leftTopShooterMotor.getVelocity().getValue().in(RadiansPerSecond)
-        //   + rightTopShooterMotor.getVelocity().getValue().in(RadiansPerSecond)
-          + rightBottomShooterMotor.getVelocity().getValue().in(RadiansPerSecond))/2);
+          + leftTopShooterMotor.getVelocity().getValue().in(RadiansPerSecond)
+          + rightTopShooterMotor.getVelocity().getValue().in(RadiansPerSecond)
+          + rightBottomShooterMotor.getVelocity().getValue().in(RadiansPerSecond))/4);
     }
 
     public boolean isAtSpeed(){
@@ -138,8 +138,8 @@ public class Shooter extends SubsystemBase{
 
     public void stopShooter(){
         leftBottomShooterMotor.stopMotor();
-        // leftTopShooterMotor.stopMotor();
-        // rightTopShooterMotor.stopMotor();
+        leftTopShooterMotor.stopMotor();
+        rightTopShooterMotor.stopMotor();
         rightBottomShooterMotor.stopMotor();
     }
     
