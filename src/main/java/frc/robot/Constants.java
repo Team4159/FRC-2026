@@ -346,8 +346,8 @@ public final class Constants {
         // Shooter Motor Config and PID
         // public static final double kP = 35;
         // public static final double kI = 10;
-        public static final double kP = 10;
-        public static final double kI = 1;
+        public static final double kP = 15;
+        public static final double kI = 2;
         public static final double kD = 0;
         public static final double kS = 10;
         //remove if doesnt work
@@ -407,7 +407,7 @@ public final class Constants {
         public static final double ratio = 1;
         public static final double shootHeight = Units.inchesToMeters(40);
 
-        public static AngularVelocity kShooterVelocityTolerance = RPM.of(200);
+        public static AngularVelocity kShooterVelocityTolerance = RPM.of(100);
 
         public static final Distance kShooterWheelRadius = Inches.of(2);
         /** TODO: find the correct distance */
@@ -628,10 +628,10 @@ public final class Constants {
         // stores desired angle and estimated time (from stationary) given a distance
         // from the hub
         public static final Map<Distance, ShotData> joeLookupTable = Map.ofEntries(
-                Map.entry(Meters.of(1),   new ShotData(Degrees.of(83), RPM.of(2000), Seconds.of(1.258))),
-                Map.entry(Meters.of(1.5), new ShotData(Degrees.of(79), RPM.of(2000), Seconds.of(1.240))),
+                Map.entry(Meters.of(1),   new ShotData(Degrees.of(85), RPM.of(2000), Seconds.of(1.258))),
+                Map.entry(Meters.of(1.5), new ShotData(Degrees.of(83), RPM.of(2000), Seconds.of(1.240))),
                 //3/14 tested
-                Map.entry(Meters.of(2),   new ShotData(Degrees.of(75), RPM.of(2000), Seconds.of(1.214))),
+                Map.entry(Meters.of(2),   new ShotData(Degrees.of(77), RPM.of(2000), Seconds.of(1.214))),
                 Map.entry(Meters.of(2.5), new ShotData(Degrees.of(72), RPM.of(2050), Seconds.of(1.229))),
                 Map.entry(Meters.of(3),   new ShotData(Degrees.of(69), RPM.of(2100), Seconds.of(1.238))),
                 Map.entry(Meters.of(3.5), new ShotData(Degrees.of(68), RPM.of(2200), Seconds.of(1.301))),
