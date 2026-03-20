@@ -125,7 +125,6 @@ public class ConfigurableAuto {
         final String shoot2 = shootChooser2.getSelected();
         final String climbSide = climbSideChooser.getSelected();
 
-        // if mid auto selected disregard other options since only 1 auto per mid side
         if (direction.contains("M")) {
             //outpost auto
             if(intake1.contains("Outpost")) {

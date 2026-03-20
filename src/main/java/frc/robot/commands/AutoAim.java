@@ -6,9 +6,12 @@ import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
 
 import java.util.Optional;
+
+import edu.wpi.first.math.MathSharedStore;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -18,17 +21,21 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.lib.FuelSimulation;
 import frc.lib.HIDRumble;
 import frc.lib.HIDRumble.RumbleRequest;
 import frc.robot.Constants;
 import frc.robot.Constants.DrivetrainConstants;
 import frc.robot.Constants.JoeLookupTableConstants;
 import frc.robot.Constants.JoeLookupTableConstants.ShotData;
+import frc.robot.Constants.ShooterConstants;
 import frc.robot.Constants.FeederConstants.FeederState;
+import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.HopperConstants.HopperState;
 import frc.robot.Constants.IntakeConstants.IntakeState;
 import frc.robot.Constants.ShooterConstants.AutoAimStatus;
@@ -88,9 +95,9 @@ public class AutoAim extends Command {
 
     // advantagescope sim
     /** keeps track of when the last fuel was shot during sim */
-    // private double lastShoot = MathSharedStore.getTimestamp();
+    private double lastShoot = MathSharedStore.getTimestamp();
 
-    // private final double height = FieldConstants.hubZ - Units.inchesToMeters(20);
+    private final double height = FieldConstants.hubZ - Units.inchesToMeters(20);
 
     /** used to push adjusted robot pose to advantagescope robot sim */
     private StructPublisher<Pose2d> adjustedRobotPosePublisher = NetworkTableInstance.getDefault()
@@ -168,8 +175,8 @@ public class AutoAim extends Command {
         double timeOfFlight = shotData.getTimeSeconds();
         double desiredShooterVelocity = shotData.getShooterAngularVelocityRPM();
 
-        // double robotRelativeBallVelocityHorizontal = getLaunchVelocity(Units.rotationsPerMinuteToRadiansPerSecond(desiredShooterVelocity)) * Math.cos(desiredHoodAngle);
-        // double robotRelativeBallVelocityVertical = getLaunchVelocity(Units.rotationsPerMinuteToRadiansPerSecond(desiredShooterVelocity)) * Math.sin(desiredHoodAngle);
+        double robotRelativeBallVelocityHorizontal = getLaunchVelocity(Units.rotationsPerMinuteToRadiansPerSecond(desiredShooterVelocity)) * Math.cos(desiredHoodAngle);
+        double robotRelativeBallVelocityVertical = getLaunchVelocity(Units.rotationsPerMinuteToRadiansPerSecond(desiredShooterVelocity)) * Math.sin(desiredHoodAngle);
 
         // Transform of the current robot pose to the adjusted robot pose
         Transform2d adjustedRobotPoseTransform = new Transform2d(
@@ -181,6 +188,8 @@ public class AutoAim extends Command {
         // adjusted robot pose
         // this will be used for shooting while moving adjustment
         adjustedRobotPose = drivetrain.getState().Pose.plus(adjustedRobotPoseTransform);
+
+        shotData = JoeLookupTable.getShotData(Meters.of(getDistanceFromHub()));
 
         // check if in range, return if out of range
         if (getDistanceFromHub() > JoeLookupTableConstants.kMaxDistance.in(Meters)) {
@@ -227,26 +236,26 @@ public class AutoAim extends Command {
             hopper.setHopperSpeed(HopperState.STOP.percentage);
         }
 
-        // if(RobotBase.isSimulation()){
-        //     // AdvantageScope fuel simulation
-        //     // get the current robot yaw angle
-        //     double robotYaw = drivetrain.getState().Pose.getRotation().getRadians();
+        if(RobotBase.isSimulation()){
+            // AdvantageScope fuel simulation
+            // get the current robot yaw angle
+            double robotYaw = drivetrain.getState().Pose.getRotation().getRadians();
 
-        //     // calculate field relative initial fuel velocities
-        //     double vx = robotRelativeBallVelocityHorizontal * Math.cos(desiredRobotAngle)
-        //             + drivetrain.getState().Speeds.vxMetersPerSecond * Math.cos(robotYaw)
-        //             - drivetrain.getState().Speeds.vyMetersPerSecond * Math.sin(robotYaw);
+            // calculate field relative initial fuel velocities
+            double vx = robotRelativeBallVelocityHorizontal * Math.cos(desiredRobotAngle)
+                    + drivetrain.getState().Speeds.vxMetersPerSecond * Math.cos(robotYaw)
+                    - drivetrain.getState().Speeds.vyMetersPerSecond * Math.sin(robotYaw);
 
-        //     double vy = robotRelativeBallVelocityHorizontal * Math.sin(desiredRobotAngle)
-        //             + drivetrain.getState().Speeds.vxMetersPerSecond * Math.sin(robotYaw)
-        //             + drivetrain.getState().Speeds.vyMetersPerSecond * Math.cos(robotYaw);
+            double vy = robotRelativeBallVelocityHorizontal * Math.sin(desiredRobotAngle)
+                    + drivetrain.getState().Speeds.vxMetersPerSecond * Math.sin(robotYaw)
+                    + drivetrain.getState().Speeds.vyMetersPerSecond * Math.cos(robotYaw);
 
-        //     double vz = robotRelativeBallVelocityVertical;
+            double vz = robotRelativeBallVelocityVertical;
 
-        //     System.out.println("vx: " + vx + " vy: " + vy + " vz: " + vz);
+            System.out.println("vx: " + vx + " vy: " + vy + " vz: " + vz);
 
-        //     sim_shootFuel(vx, vy, vz);
-        // }
+            sim_shootFuel(vx, vy, vz);
+        }
 
         SmartDashboard.putString("Auto Aim Status", autoAimStatus.name());
         SmartDashboard.putNumber("distance from hub", getDistanceFromHub());
@@ -305,7 +314,7 @@ public class AutoAim extends Command {
 
     /** Units: meters */
     private double getDistanceFromHub() {
-        return drivetrain.getState().Pose.getTranslation().getDistance(target.getTranslation());
+        return adjustedRobotPose.getTranslation().getDistance(target.getTranslation());
     }
 
     /**
@@ -314,14 +323,14 @@ public class AutoAim extends Command {
      *         with shooter will return current launch velocity based on shooter
      *         angular velocity
      */
-    // private double getLaunchVelocity(double desiredMotorVelocity) {
-    //     double shooterOmega = desiredMotorVelocity * ShooterConstants.ratio;
+    private double getLaunchVelocity(double desiredMotorVelocity) {
+        double shooterOmega = desiredMotorVelocity * ShooterConstants.ratio;
 
-    //     double wheelTangentialSpeed = shooterOmega * ShooterConstants.kShooterWheelRadius.in(Meters);
-    //     double rollerTangentialSpeed = shooterOmega * ShooterConstants.kShooterRollerRadius.in(Meters);
+        double wheelTangentialSpeed = shooterOmega * ShooterConstants.kShooterWheelRadius.in(Meters);
+        double rollerTangentialSpeed = shooterOmega * ShooterConstants.kShooterRollerRadius.in(Meters);
 
-    //     return ShooterConstants.kShooterEfficiency * (wheelTangentialSpeed + rollerTangentialSpeed)/2;
-    // }
+        return ShooterConstants.kShooterEfficiency * (wheelTangentialSpeed + rollerTangentialSpeed)/2;
+    }
 
     /**
      * AdvantageScope fuel shooting simulation
@@ -331,18 +340,18 @@ public class AutoAim extends Command {
      * @param vz initial field relative fuel velocity z component (FuelSimulation
      *           class will simulate gravity)
      */
-    // private void sim_shootFuel(double vx, double vy, double vz) {
-    //     if (!RobotBase.isSimulation() || MathSharedStore.getTimestamp() - lastShoot <= 1.0 / 10.0) {
-    //         return;
-    //     }
-    //     FuelSimulation.getInstance().shootFuel(
-    //     new Translation3d(drivetrain.getState().Pose.getTranslation().getX(),
-    //     drivetrain.getState().Pose.getTranslation().getY(), 0),
-    //     new Translation3d(vx,
-    //     vy, vz),
-    //     new Translation3d(0, 0, 0));
-    //     lastShoot = MathSharedStore.getTimestamp();
-    // }
+    private void sim_shootFuel(double vx, double vy, double vz) {
+        if (!RobotBase.isSimulation() || MathSharedStore.getTimestamp() - lastShoot <= 1.0 / 10.0) {
+            return;
+        }
+        FuelSimulation.getInstance().shootFuel(
+        new Translation3d(drivetrain.getState().Pose.getTranslation().getX(),
+        drivetrain.getState().Pose.getTranslation().getY(), 0),
+        new Translation3d(vx,
+        vy, vz),
+        new Translation3d(0, 0, 0));
+        lastShoot = MathSharedStore.getTimestamp();
+    }
 
     // used for auto
     public double getDesiredOmega() {
