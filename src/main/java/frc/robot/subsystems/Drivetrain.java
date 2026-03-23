@@ -28,6 +28,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
@@ -38,7 +39,6 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.FieldUtil;
-import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.OperatorConstants.DriveFlag;
 import frc.robot.Constants.OperatorConstants.DriveMode;
@@ -74,9 +74,8 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     public final SwerveRequest.PointWheelsAt pointDrive = new SwerveRequest.PointWheelsAt();
     public final SwerveRequest.Idle idleDrive = new SwerveRequest.Idle();
 
-    public final Trigger crashTrigger = new Trigger(
-            () -> Math.hypot(pigeon.getAccelerationX().getValue().in(MetersPerSecondPerSecond),
-                    pigeon.getAccelerationY().getValue().in(MetersPerSecondPerSecond)) >= FieldConstants.g * 3.0);
+    public final Trigger crashTrigger = new Trigger(this::isCrashing);
+    public final Trigger slipTrigger = new Trigger(this::isSlipping);
 
     private final Supplier<Double> inputX;
     private final Supplier<Double> inputY;
@@ -590,4 +589,23 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         return getDriveFlagValue(DriveFlag.AUTO_BRAKE) && isDriveIdle() && atDesiredRotation;
     }
 
+    public boolean isCrashing() {
+        double xyAccelerationMagnitude = Math.hypot(pigeon.getAccelerationX().getValue().in(MetersPerSecondPerSecond),
+                pigeon.getAccelerationY().getValue().in(MetersPerSecondPerSecond));
+        return xyAccelerationMagnitude >= 20.0;
+    }
+
+    public boolean isSlipping() {
+        Translation2d expectedVelocitySum = new Translation2d();
+        for (SwerveModuleState swerveModuleState : getState().ModuleStates) {
+            Translation2d swerveModuleVelocity = new Translation2d(
+                swerveModuleState.speedMetersPerSecond * swerveModuleState.angle.getCos(),
+                swerveModuleState.speedMetersPerSecond * swerveModuleState.angle.getSin()
+            );
+            expectedVelocitySum = expectedVelocitySum.plus(swerveModuleVelocity);
+        }
+        double expectedSpeed = expectedVelocitySum.div(getState().ModuleStates.length).getNorm();
+        double actualSpeed = Math.hypot(getState().Speeds.vxMetersPerSecond, getState().Speeds.vyMetersPerSecond);
+        return expectedSpeed - actualSpeed > 2.5;
+    }
 }

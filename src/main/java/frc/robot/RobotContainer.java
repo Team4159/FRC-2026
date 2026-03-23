@@ -55,8 +55,8 @@ public class RobotContainer {
     // private final Trigger primaryRadialModeTrigger = primaryController.y();
     private final Trigger primaryRobotManualAlignModeTrigger = primaryController.leftBumper();
     private final Trigger primaryRobotRelativeTrigger = primaryController.leftTrigger();
-    private final Trigger primaryReduceSpeedTrigger = primaryController.rightTrigger();
-    private final Trigger primaryDriverAssistTrigger = primaryController.start();
+    private final Trigger primarySlowModeTrigger = primaryController.rightTrigger();
+    private final Trigger primaryDriveAssistTrigger = primaryController.start();
     private final Trigger primaryLeftClimbAlignTrigger = primaryController.povLeft();
     private final Trigger primaryAutoAimTrigger = primaryController.x();
     private final Trigger primaryAutoLobTrigger = primaryController.a();
@@ -74,8 +74,8 @@ public class RobotContainer {
     private final Trigger compressIntakeTrigger = secondaryController.a();
     private final Trigger bounceIntakeTrigger = secondaryController.b();
 
-    //private final Trigger raiseClimbTrigger = secondaryController.povLeft();
-    //private final Trigger lowerClimbTrigger = secondaryController.povRight();
+    // private final Trigger raiseClimbTrigger = secondaryController.povLeft();
+    // private final Trigger lowerClimbTrigger = secondaryController.povRight();
 
     private final Trigger shootTrigger = secondaryController.povRight();
 
@@ -101,7 +101,8 @@ public class RobotContainer {
 
     public RobotContainer() {
         // set auto command for drivetrain
-        drivetrain.setAutonomousAutoAimCommand(new AutoAim(drivetrain, shooter, hopper, intake, leds, true, Optional.empty()));
+        drivetrain.setAutonomousAutoAimCommand(
+                new AutoAim(drivetrain, shooter, hopper, intake, leds, true, Optional.empty()));
         // Choreo Auto
         autoFactory = drivetrain.createAutoFactory();
         autoRoutines = new AutoRoutines(autoFactory, drivetrain);
@@ -135,22 +136,19 @@ public class RobotContainer {
         primaryController.b().and(DriverStation::isTest).whileTrue(drivetrain.new Drive(DriveMode.POINT));
 
         // teleop mode
-        primaryReduceSpeedTrigger.and(DriverStation::isTeleop).onChange(
-                Commands.runOnce(() -> drivetrain.setDriveFlagValue(DriveFlag.SLOW_MODE,
-                        primaryReduceSpeedTrigger.getAsBoolean())));
-        primaryDriverAssistTrigger.and(DriverStation::isTeleop).onTrue(
+        primarySlowModeTrigger.and(DriverStation::isTeleop)
+                .whileTrue(drivetrain.new DriveFlagToggler(DriveFlag.SLOW_MODE));
+        primaryDriveAssistTrigger.and(DriverStation::isTeleop).onTrue(
                 Commands.runOnce(() -> {
-                    HIDRumble.rumble(primaryController.getHID(), new RumbleRequest(RumbleType.kLeftRumble, 0.5, 0.25));
+                    HIDRumble.rumble(primaryController.getHID(),
+                            new RumbleRequest(RumbleType.kLeftRumble, 0.5, 0.25));
                     drivetrain.setDriveFlagValue(DriveFlag.DRIVE_ASSIST,
                             !drivetrain.getDriveFlagValue(DriveFlag.DRIVE_ASSIST));
                 }));
-        primaryRobotManualAlignModeTrigger.and(DriverStation::isTeleop).onChange(
-                Commands.runOnce(() -> {drivetrain.setDriveFlagValue(DriveFlag.MANUAL_ALIGN,
-                        primaryRobotManualAlignModeTrigger.getAsBoolean());
-                    System.out.println(primaryRobotManualAlignModeTrigger.getAsBoolean());}));
-        primaryIntakeAssistTrigger.and(DriverStation::isTeleop).onChange(
-                Commands.runOnce(() -> drivetrain.setDriveFlagValue(DriveFlag.INTAKE_ASSIST,
-                        primaryIntakeAssistTrigger.getAsBoolean())));
+        primaryRobotManualAlignModeTrigger.and(DriverStation::isTeleop)
+                .whileTrue(drivetrain.new DriveFlagToggler(DriveFlag.MANUAL_ALIGN));
+        primaryIntakeAssistTrigger.and(DriverStation::isTeleop)
+                .whileTrue(drivetrain.new DriveFlagToggler(DriveFlag.INTAKE_ASSIST));
         FluentTrigger.build()
                 .bind(1, primaryLeftClimbAlignTrigger.and(DriverStation::isTeleop),
                         new AutoAlign(drivetrain, TowerAlignGoal.LEFT))
