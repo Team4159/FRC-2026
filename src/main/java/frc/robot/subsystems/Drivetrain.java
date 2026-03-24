@@ -38,7 +38,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.lib.FieldUtil;
+import frc.lib.PoseUtil;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.OperatorConstants.DriveFlag;
 import frc.robot.Constants.OperatorConstants.DriveMode;
@@ -221,7 +221,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
             Pose2d robotPose = getState().Pose;
 
             // trench assist
-            var trenchZone = FieldUtil.getPoseTrenchZone(robotPose);
+            var trenchZone = PoseUtil.getPoseTrenchZone(robotPose);
             if (trenchZone.isPresent()) {
                 Distance errorX = trenchZone.get().x.minus(robotPose.getMeasureX());
                 Distance errorY = trenchZone.get().y.minus(robotPose.getMeasureY());

@@ -1,10 +1,12 @@
 package frc.robot.commands;
 
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Radians;
 
 import edu.wpi.first.math.MathSharedStore;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.Constants.DrivetrainConstants;
 import frc.robot.subsystems.Drivetrain;
 
 public class AutoBeachRecovery extends Command {
@@ -18,6 +20,9 @@ public class AutoBeachRecovery extends Command {
         RECOVER,
         SHOOT,
     }
+
+    private static final double kUnbeachTurnSpeed = 45.0;
+    private static final double kUnbeachTranslationSpeed = DrivetrainConstants.kMaxTranslationSpeed / 2.0;
 
     private final Drivetrain drivetrain;
     private final BeachRecoveryMode beachRecoveryMode;
@@ -36,6 +41,9 @@ public class AutoBeachRecovery extends Command {
 
     @Override
     public void execute() {
+        if (beachRecoveryState == BeachRecoveryState.UNBEACH && !drivetrain.isSlipping()) {
+            beachRecoveryState = BeachRecoveryState.RECOVER;
+        }
         switch (beachRecoveryState) {
             case UNBEACH -> unbeach();
             case RECOVER -> recover();
@@ -44,11 +52,12 @@ public class AutoBeachRecovery extends Command {
     }
 
     private void unbeach() {
-        Angle driveAngle = Degrees.of(MathSharedStore.getTimestamp() * 10.0);
+        Angle driveAngle = Degrees.of(Math.abs((MathSharedStore.getTimestamp() * kUnbeachTurnSpeed % 360.0) - 180)).plus(Degrees.of(90.0));
 
         drivetrain.setControl(
           drivetrain.fieldCentricDrive
-            .withVelocityX()  
+            .withVelocityX(kUnbeachTranslationSpeed * Math.cos(driveAngle.in(Radians)))
+            .withVelocityY(kUnbeachTranslationSpeed * Math.sin(driveAngle.in(Radians)))  
         );
     }
 

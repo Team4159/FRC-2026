@@ -10,7 +10,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.Constants.FieldConstants.FieldZone;
 import frc.robot.Constants.FieldConstants.TrenchZone;
 
-public final class FieldUtil {
+public final class PoseUtil {
 
     public static final Pose2d flipPoseToOtherAlliance(Pose2d pose) {
         return new Pose2d(
