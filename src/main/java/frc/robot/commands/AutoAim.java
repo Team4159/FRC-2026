@@ -5,6 +5,7 @@ import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
 
+import java.util.ArrayList;
 import java.util.Optional;
 
 import edu.wpi.first.math.MathSharedStore;
@@ -156,14 +157,14 @@ public class AutoAim extends Command {
         timer.reset();
 
         //calculate and display TOF
-        // Double[] times = new Double[JoeLookupTableConstants.joeLookupTable.size()];
-        // ArrayList<Double> timesList = new ArrayList<>();
+        Double[] times = new Double[JoeLookupTableConstants.joeLookupTable.size()];
+        ArrayList<Double> timesList = new ArrayList<>();
 
-        // JoeLookupTableConstants.joeLookupTable.forEach((key, value) -> {
-        //     timesList.add(getTimeOfFlight(value.getAngleRadians(), getLaunchVelocity(Units.rotationsPerMinuteToRadiansPerSecond(value.getShooterAngularVelocityRPM()))));
-        // });
+        JoeLookupTableConstants.joeLookupTable.forEach((key, value) -> {
+            timesList.add(getTimeOfFlight(value.getAngleRadians(), getLaunchVelocity(Units.rotationsPerMinuteToRadiansPerSecond(value.getShooterAngularVelocityRPM()))));
+        });
 
-        // SmartDashboard.putNumberArray("times", timesList.toArray(times));
+        SmartDashboard.putNumberArray("times", timesList.toArray(times));
     }
 
     @Override
@@ -358,23 +359,23 @@ public class AutoAim extends Command {
         return desiredOmega;
     }
 
-    // private double getTimeOfFlight(double hoodPitch, double launchVelocity){
-    //     //initial y component of launch velocity
-    //     double vy = launchVelocity * Math.sin(hoodPitch);
-    //     //the calculation is based on delta y = vy * TOF - (1/2)g * TOF^2 (where g is a positive constant)
-    //     //the delta y for TOF would be the height
-    //     //the equation then becomes 0 = -(1/2)g * TOF^2 + vy * TOF - height -> 0 = (1/2)g * TOF^2 - vy * TOF + height
-    //     //then use quadratic formula and always add the radical to get the 2nd time the fuel is at the target height (so that it is on the way down)
-    //     double radical = Math.sqrt(Math.pow(vy, 2) - 2 * Constants.FieldConstants.g * height);
-    //     if(Double.isNaN(radical)){
-    //         return 0;
-    //     }
-    //     System.out.println("radical: " + radical);
-    //     double numerator = vy + radical;
-    //     double time = numerator/Constants.FieldConstants.g;
-    //     SmartDashboard.putNumber("time of flight", time);
-    //     return time;
-    // }
+    private double getTimeOfFlight(double hoodPitch, double launchVelocity){
+        //initial y component of launch velocity
+        double vy = launchVelocity * Math.sin(hoodPitch);
+        //the calculation is based on delta y = vy * TOF - (1/2)g * TOF^2 (where g is a positive constant)
+        //the delta y for TOF would be the height
+        //the equation then becomes 0 = -(1/2)g * TOF^2 + vy * TOF - height -> 0 = (1/2)g * TOF^2 - vy * TOF + height
+        //then use quadratic formula and always add the radical to get the 2nd time the fuel is at the target height (so that it is on the way down)
+        double radical = Math.sqrt(Math.pow(vy, 2) - 2 * Constants.FieldConstants.g * height);
+        if(Double.isNaN(radical)){
+            return 0;
+        }
+        System.out.println("radical: " + radical);
+        double numerator = vy + radical;
+        double time = numerator/Constants.FieldConstants.g;
+        SmartDashboard.putNumber("time of flight", time);
+        return time;
+    }
 
     @Override
     public void end(boolean interrupted) {
