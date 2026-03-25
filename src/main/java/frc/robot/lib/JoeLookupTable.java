@@ -3,22 +3,20 @@ package frc.robot.lib;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.RPM;
-import static edu.wpi.first.units.Units.Radians;
-import static edu.wpi.first.units.Units.Seconds;
 
 import java.util.Set;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.JoeLookupTableConstants;
-import frc.robot.Constants.JoeLookupTableConstants.ShotData;
 
 public class JoeLookupTable {
     /** @param distance distance away from hub 
      * @return the corresponding ShotData object (time and angle) from linearly interpolating the best 2 joeLookupTable points
     */
-    public static ShotData getShotData(Distance distance){
+    public static AngularVelocity getDesiredAngularVelocity(Distance distance){
         Distance bestFitDistance = Inches.of(Double.MAX_VALUE);
         Distance secondBestFitDistance = Inches.of(Double.MAX_VALUE);
 
@@ -36,17 +34,9 @@ public class JoeLookupTable {
                 secondBestFitDistance = currentDistance;
             }
         }
-        //get the ShotData objects from the 2 best fit points
-        ShotData bestFitShotData = JoeLookupTableConstants.joeLookupTable.get(bestFitDistance);
-        ShotData secondBestFitShotData = JoeLookupTableConstants.joeLookupTable.get(secondBestFitDistance);
-
-        //convert the angles and times to doubles(for linear interpolation)
-        double bestFitAngle = bestFitShotData.getAngleRadians();
-        double secondBestFitAngle = secondBestFitShotData.getAngleRadians();
-        double bestFitAngularVelocity = bestFitShotData.getShooterAngularVelocityRPM();
-        double secondBestFitAngularVelocity = secondBestFitShotData.getShooterAngularVelocityRPM();
-        double bestFitTime = bestFitShotData.getTimeSeconds();
-        double secondBestFitTime = secondBestFitShotData.getTimeSeconds();
+        //get avs as doubles from 2 closest points
+        double bestFitAV = JoeLookupTableConstants.joeLookupTable.get(bestFitDistance).in(RPM);
+        double secondBestFitAV = JoeLookupTableConstants.joeLookupTable.get(secondBestFitDistance).in(RPM);
 
         //get the interpolation point
         double linearInterpolation = 
@@ -57,9 +47,6 @@ public class JoeLookupTable {
         SmartDashboard.putNumber("bestFitDistance", bestFitDistance.in(Meters));
 
         //return a new ShotData object with the interpolated time and angle.
-        return new ShotData(
-            Radians.of(MathUtil.interpolate(bestFitAngle, secondBestFitAngle, linearInterpolation)),
-            RPM.of(MathUtil.interpolate(bestFitAngularVelocity, secondBestFitAngularVelocity, linearInterpolation)),
-            Seconds.of(MathUtil.interpolate(bestFitTime, secondBestFitTime, linearInterpolation)));
+        return RPM.of(MathUtil.interpolate(bestFitAV, secondBestFitAV, linearInterpolation));
     }
 }

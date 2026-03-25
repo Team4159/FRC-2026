@@ -409,6 +409,7 @@ public final class Constants {
         public static final double shootHeight = Units.inchesToMeters(40);
 
         public static AngularVelocity kShooterVelocityTolerance = RPM.of(300);
+        public static Angle maxPitch = Degrees.of(85);
 
         public static final Distance kShooterWheelRadius = Inches.of(2);
         /** TODO: find the correct distance */
@@ -638,20 +639,6 @@ public final class Constants {
 
     public static final class JoeLookupTableConstants {
 
-        public static final record ShotData(Angle angle, AngularVelocity shooterVelocity, Time time) {
-            public double getAngleRadians() {
-                return angle.in(Radians);
-            }
-
-            public double getTimeSeconds() {
-                return time.in(Seconds);
-            }
-
-            public double getShooterAngularVelocityRPM() {
-                return shooterVelocity.in(RPM);
-            }
-        }
-
         /**
          * adjust the angle of the hood down by this much (in radians) for each
          * meter/second slow the calculated tangential speed is
@@ -667,9 +654,8 @@ public final class Constants {
 
         public static final Distance kMaxDistance = Meters.of(4.5);
 
-        // stores desired angle and estimated time (from stationary) given a distance
-        // from the hub
-        public static final Map<Distance, ShotData> joeLookupTable = Map.ofEntries(
+        // stores desired velocity based on position
+        public static final Map<Distance, AngularVelocity> joeLookupTable = Map.ofEntries(
                 //+0.5 s to old simulated
                 // Map.entry(Meters.of(1),   new ShotData(Degrees.of(85), RPM.of(2000), Seconds.of(1.758))),
                 // Map.entry(Meters.of(1.5), new ShotData(Degrees.of(83), RPM.of(2000), Seconds.of(1.740))),
@@ -682,15 +668,15 @@ public final class Constants {
                 // Map.entry(Meters.of(4.5), new ShotData(Degrees.of(66), RPM.of(2400), Seconds.of(1.921)))
 
                 //new simulated
-                Map.entry(Meters.of(1),   new ShotData(Degrees.of(85), RPM.of(2000), Seconds.of(1.422))),
-                Map.entry(Meters.of(1.5), new ShotData(Degrees.of(83), RPM.of(2000), Seconds.of(1.363))),
+                Map.entry(Meters.of(1),   RPM.of(2000)),
+                Map.entry(Meters.of(1.5), RPM.of(2000)),
                 //3/14 tested
-                Map.entry(Meters.of(2),   new ShotData(Degrees.of(77), RPM.of(2000), Seconds.of(1.301))),
-                Map.entry(Meters.of(2.5), new ShotData(Degrees.of(72), RPM.of(2050), Seconds.of(1.238))),
-                Map.entry(Meters.of(3),   new ShotData(Degrees.of(69), RPM.of(2100), Seconds.of(1.229))),
-                Map.entry(Meters.of(3.5), new ShotData(Degrees.of(68), RPM.of(2200), Seconds.of(1.228))),
-                Map.entry(Meters.of(4),   new ShotData(Degrees.of(67), RPM.of(2300), Seconds.of(1.258))),
-                Map.entry(Meters.of(4.5), new ShotData(Degrees.of(66), RPM.of(2400), Seconds.of(1.263)))
+                Map.entry(Meters.of(2),   RPM.of(2000)),
+                Map.entry(Meters.of(2.5), RPM.of(2050)),
+                Map.entry(Meters.of(3),   RPM.of(2100)),
+                Map.entry(Meters.of(3.5), RPM.of(2200)),
+                Map.entry(Meters.of(4),   RPM.of(2300)),
+                Map.entry(Meters.of(4.5), RPM.of(2400))
 
         // Map.entry(Meters.of(4.5), new ShotData(Degrees.of(66.726),
         // Seconds.of(1.642))),
