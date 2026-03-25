@@ -5,15 +5,20 @@ import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Radians;
 
 import com.therekrab.autopilot.APTarget;
+import com.therekrab.autopilot.Autopilot;
+import com.therekrab.autopilot.Autopilot.APResult;
 
 import edu.wpi.first.math.MathSharedStore;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.lib.PoseUtil;
+import frc.robot.Constants.AlignConstants;
+import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DrivetrainConstants;
 import frc.robot.subsystems.Drivetrain;
 
@@ -36,22 +41,35 @@ public class AutoBeachRecovery extends Command {
         SHOOT,
     }
 
+    private record PathTarget(APTarget target, Autopilot controller) {
+        public PathTarget {
+            if (controller == null) {
+                controller = AutoConstants.kAutopilotCruiseController;
+            }
+        }
+    }
+
     private static final double kUnbeachTurnSpeed = 45.0;
     private static final double kUnbeachTranslationSpeed = DrivetrainConstants.kMaxTranslationSpeed / 2.0;
     private static final Distance kTrenchEntryDistance = Inches.of(50.0);
 
     private final Drivetrain drivetrain;
+
+    private final Command shootCommand;
+
     private final BeachRecoveryMode beachRecoveryMode;
     private final BeachRecoverySide beachRecoverySide;
     private BeachRecoveryState beachRecoveryState;
 
-    private APTarget[] pathTargets = new APTarget[0]; 
+    private PathTarget[] pathTargets = new PathTarget[0];
+    private Autopilot pathController;
     private int pathProgress = 0;
 
-    public AutoBeachRecovery(Drivetrain drivetrain, BeachRecoveryMode beachRecoveryMode, BeachRecoverySide beachRecoverySide) {
+    public AutoBeachRecovery(Drivetrain drivetrain, BeachRecoveryMode beachRecoveryMode, BeachRecoverySide beachRecoverySide, Command shootCommand) {
         this.drivetrain = drivetrain;
         this.beachRecoveryMode = beachRecoveryMode;
         this.beachRecoverySide = beachRecoverySide;
+        this.shootCommand = shootCommand;
         addRequirements(drivetrain);
     }
 
@@ -60,12 +78,16 @@ public class AutoBeachRecovery extends Command {
         beachRecoveryState = BeachRecoveryState.UNBEACH;
         pathTargets = getPathTargets();
         pathProgress = 0;
+        pathController = pathTargets[pathProgress].controller;
     }
 
     @Override
     public void execute() {
         if (beachRecoveryState == BeachRecoveryState.UNBEACH && !drivetrain.isSlipping()) {
             beachRecoveryState = BeachRecoveryState.RECOVER;
+        }
+        if (beachRecoveryState == BeachRecoveryState.RECOVER && pathController.atTarget(drivetrain.getState().Pose, pathTargets[pathProgress].target)) {
+            pathProgress++;
         }
         if (beachRecoveryState == BeachRecoveryState.RECOVER && pathProgress >= pathTargets.length) {
             beachRecoveryState = BeachRecoveryState.SHOOT;
@@ -83,28 +105,36 @@ public class AutoBeachRecovery extends Command {
         drivetrain.setControl(
           drivetrain.fieldCentricDrive
             .withVelocityX(kUnbeachTranslationSpeed * Math.cos(driveAngle.in(Radians)))
-            .withVelocityY(kUnbeachTranslationSpeed * Math.sin(driveAngle.in(Radians)))  
+            .withVelocityY(kUnbeachTranslationSpeed * Math.sin(driveAngle.in(Radians)))
+            .withRotationalRate(0.0)
         );
     }
 
     private void recover() {
-        APTarget target = pathTargets[pathProgress];
+        APResult result = pathController.calculate(drivetrain.getState().Pose, drivetrain.getState().Speeds, pathTargets[pathProgress].target);
+        Rotation2d targetDirection = pathController == AutoConstants.kAutopilotAlignController ? result.targetAngle() : drivetrain.getState().Pose.getRotation();
+        drivetrain.setControl(
+            drivetrain.trajectoryFacingAngleDrive
+                .withVelocityX(result.vx())
+                .withVelocityY(result.vy())
+                .withTargetDirection(targetDirection)
+        );
     }
 
     private void shoot() {
 
     }
 
-    private APTarget[] getPathTargets() {
+    private PathTarget[] getPathTargets() {
         // TODO: finish paths
-        APTarget[] newPathTargets = switch(beachRecoveryMode) {
-            case ZIG_ZAG_FULL -> new APTarget[0];
-            case ZIG_ZAG_HALF -> new APTarget[0];
-            case BLINE -> new APTarget[0];
+        PathTarget[] newPathTargets = switch(beachRecoveryMode) {
+            case ZIG_ZAG_FULL -> new PathTarget[0];
+            case ZIG_ZAG_HALF -> new PathTarget[0];
+            case BLINE -> new PathTarget[0];
         };
 
         for (int i = 0; i < newPathTargets.length; i++) {
-            Pose2d reference = newPathTargets[i].getReference();
+            Pose2d reference = newPathTargets[i].target.getReference();
             if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red) {
                 reference = PoseUtil.flipPoseAlongMiddleXY(reference);
             }
@@ -112,7 +142,7 @@ public class AutoBeachRecovery extends Command {
                 reference = PoseUtil.flipPoseAlongMiddleY(reference);
             }
             // TODO: decide whether or not to support entry angle
-            newPathTargets[i] = newPathTargets[i].withReference(reference).withoutEntryAngle();
+            newPathTargets[i] = new PathTarget(newPathTargets[i].target.withReference(reference).withoutEntryAngle(), newPathTargets[i].controller);
         }
 
         return newPathTargets;

@@ -518,6 +518,21 @@ public final class Constants {
     public static class AutoConstants {
         /** units: seconds */
         public static final double ShootTime = 3;
+
+        public static final APConstraints kAutopilotConstraints = new APConstraints()
+                .withVelocity(kMaxTranslationSpeed)
+                .withAcceleration(6.0)
+                .withJerk(3.0);
+        public static final APProfile kAutopilotAlignProfile = new APProfile(kAutopilotConstraints)
+                .withErrorXY(Centimeters.of(2.0))
+                .withErrorTheta(Degrees.of(1.0))
+                .withBeelineRadius(Centimeters.of(5.0));
+        public static final Autopilot kAutopilotAlignController = new Autopilot(kAutopilotAlignProfile);
+        public static final APProfile kAutopilotCruiseProfile = new APProfile(kAutopilotConstraints)
+                .withErrorXY(Centimeters.of(15.0))
+                .withErrorTheta(Degrees.of(5.0))
+                .withBeelineRadius(Centimeters.of(17.0));
+        public static final Autopilot kAutopilotCruiseController = new Autopilot(kAutopilotCruiseProfile);
     }
 
     public static class AlignConstants {
