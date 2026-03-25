@@ -54,7 +54,7 @@ public class RobotContainer {
     private final Trigger primaryIntakeAssistTrigger = primaryController.rightBumper();
     // private final Trigger primaryRadialModeTrigger = primaryController.y();
     private final Trigger primaryRobotManualAlignModeTrigger = primaryController.leftBumper();
-    private final Trigger primaryRobotRelativeTrigger = primaryController.leftTrigger();
+    private final Trigger primaryRobotRelativeTrigger = primaryController.leftTrigger(0.1);
     private final Trigger primaryReduceSpeedTrigger = primaryController.rightTrigger();
     private final Trigger primaryDriverAssistTrigger = primaryController.start();
     private final Trigger primaryLeftClimbAlignTrigger = primaryController.povLeft();
@@ -188,7 +188,7 @@ public class RobotContainer {
         manualHoodPitchDownTrigger.onTrue(new InstantCommand(() -> shooter.manualHood(5)));
         manualHoodPitchUpTrigger.onTrue(new InstantCommand(() -> shooter.manualHood(-5)));
 
-        shootTrigger.whileTrue(shooter.new ChangeVelocity(RPM.of(6000)));
+        shootTrigger.whileTrue(shooter.new ChangeVelocity(ShooterConstants.shooterAngularVelocity));
 
         hubShootTrigger.whileTrue(new HubShoot(shooter, intake, hopper));
         towerShootTrigger.whileTrue(new TowerShoot(shooter, intake, hopper));

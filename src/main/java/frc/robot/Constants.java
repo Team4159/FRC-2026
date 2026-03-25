@@ -32,6 +32,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
@@ -239,7 +240,7 @@ public final class Constants {
         public static final Distance kTrenchAssistPassPositionTolerance = Meters.of(0.45);
         public static final double kTrenchAssistApproachInputTolerance = 0.2;
         public static final Distance kTrenchAssistAlignPositionTolerance = Meters.of(0.15);
-        public static final double kTrenchAssistAlignStrength = 0.8;
+        public static final double kTrenchAssistAlignStrength = 0.85;
         public static final double kTrenchAssistAlignInfluence = 0.15;
 
         // drive mode constants
@@ -476,19 +477,6 @@ public final class Constants {
                 Alliance.Red,
                 redLobPositions);
 
-        public static enum FieldZone {
-            FIELD(Inches.of(651.22), Inches.of(317.69)),
-            ALLIANCE(Inches.of(156.61), Inches.of(317.69)),
-            TRENCH(Inches.of(140.0), Inches.of(49.96));
-
-            public final Distance width, height;
-
-            private FieldZone(Distance width, Distance height) {
-                this.width = width;
-                this.height = height;
-            }
-        }
-
         public static enum TrenchZone {
             BLUE_LEFT(Inches.of(182.11), Inches.of(317.69 - 24.97)),
             BLUE_RIGHT(Inches.of(182.11), Inches.of(24.97)),
@@ -503,11 +491,65 @@ public final class Constants {
             }
         }
 
+        public static Distance kFieldWidth = Inches.of(651.22);
+        public static Distance kFieldHeight = Inches.of(317.69);
+
+        public static Distance kAllianceWidth = Inches.of(156.61);
+        public static Distance kAllianceHeight = kFieldHeight;
+
         public static Distance kTrenchX = Inches.of(182.11);
+        public static Distance kTrenchZoneWidth = Inches.of(140.0);
+        public static Distance kTrenchZoneHeight = Inches.of(49.96);
 
         public static Distance kTowerX = Inches.of(41.755);
         public static Distance kTowerY = Inches.of(147.47);
         public static Distance kTowerWidth = Inches.of(35.2);
+
+        public static Distance kTrenchZoneYBuffer = DrivetrainConstants.kDrivetrainSizeY.div(4);
+
+        public static enum FieldZone {
+            FIELD(
+                    new Translation2d(kFieldWidth.div(2), kFieldHeight.div(2)),
+                    new Translation2d(kFieldWidth, kFieldHeight)),
+            TRENCH_BLUE_LEFT(
+                    new Translation2d(kTrenchX,
+                            kFieldHeight.minus(kTrenchZoneHeight.div(2)).minus(kTrenchZoneYBuffer.div(2))),
+                    new Translation2d(kTrenchX, kFieldHeight.minus(kTrenchZoneHeight.div(2))),
+                    new Translation2d(kTrenchZoneWidth, kTrenchZoneHeight.plus(kTrenchZoneYBuffer))),
+            TRENCH_BLUE_RIGHT(
+                    new Translation2d(kTrenchX, kTrenchZoneHeight.div(2).plus(kTrenchZoneYBuffer.div(2))),
+                    new Translation2d(kTrenchX, kTrenchZoneHeight.div(2)),
+                    new Translation2d(kTrenchZoneWidth, kTrenchZoneHeight.plus(kTrenchZoneYBuffer))),
+            TRENCH_RED_LEFT(
+                    new Translation2d(kFieldWidth.minus(kTrenchX),
+                            kTrenchZoneHeight.div(2).plus(kTrenchZoneYBuffer.div(2))),
+                    new Translation2d(kFieldWidth.minus(kTrenchX), kTrenchZoneHeight.div(2)),
+                    new Translation2d(kTrenchZoneWidth, kTrenchZoneHeight.plus(kTrenchZoneYBuffer))),
+            TRENCH_RED_RIGHT(
+                    new Translation2d(kFieldWidth.minus(kTrenchX),
+                            kFieldHeight.minus(kTrenchZoneHeight.div(2)).minus(kTrenchZoneYBuffer.div(2))),
+                    new Translation2d(kFieldWidth.minus(kTrenchX), kFieldHeight.minus(kTrenchZoneHeight.div(2))),
+                    new Translation2d(kTrenchZoneWidth, kTrenchZoneHeight.plus(kTrenchZoneYBuffer)));
+
+            public final Translation2d center, focus, size;
+
+            private FieldZone(Translation2d center, Translation2d focus, Translation2d size) {
+                this.center = center;
+                this.focus = focus;
+                this.size = size;
+            }
+
+            private FieldZone(Translation2d center, Translation2d size) {
+                this(center, center, size);
+            }
+        }
+
+        public static final FieldZone[] kTrenchZones = new FieldZone[] {
+                FieldZone.TRENCH_BLUE_LEFT,
+                FieldZone.TRENCH_BLUE_RIGHT,
+                FieldZone.TRENCH_RED_LEFT,
+                FieldZone.TRENCH_RED_RIGHT
+        };
 
         /** Units:m/s^2 */
         public static final double g = 9.80;
@@ -605,7 +647,7 @@ public final class Constants {
                 return time.in(Seconds);
             }
 
-            public double getShooterAngularVelocityRPM(){
+            public double getShooterAngularVelocityRPM() {
                 return shooterVelocity.in(RPM);
             }
         }

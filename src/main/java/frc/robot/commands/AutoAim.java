@@ -309,15 +309,6 @@ public class AutoAim extends Command {
         }
     }
 
-    private boolean isAtDesiredRotation(Angle angle) {
-        return drivetrain.getState().Pose.getRotation().getMeasure().isNear(angle, Degrees.of(5));
-    }
-
-    /** Units: meters */
-    private double getDistanceFromHub() {
-        return adjustedRobotPose.getTranslation().getDistance(target.getTranslation());
-    }
-
     /**
      * @return currently returns theoretical max that declines at a rate of 0.1 m/s
      *         (to simulate shooter slowing down over time), but when implemented
@@ -354,11 +345,6 @@ public class AutoAim extends Command {
         lastShoot = MathSharedStore.getTimestamp();
     }
 
-    // used for auto
-    public double getDesiredOmega() {
-        return desiredOmega;
-    }
-
     private double getTimeOfFlight(double hoodPitch, double launchVelocity){
         //initial y component of launch velocity
         double vy = launchVelocity * Math.sin(hoodPitch);
@@ -376,6 +362,74 @@ public class AutoAim extends Command {
         SmartDashboard.putNumber("time of flight", time);
         return time;
     }
+
+    private boolean isAtDesiredRotation(Angle angle) {
+        return drivetrain.getState().Pose.getRotation().getMeasure().isNear(angle, Degrees.of(5));
+    }
+
+    /** Units: meters */
+    private double getDistanceFromHub() {
+        return drivetrain.getState().Pose.getTranslation().getDistance(target.getTranslation());
+    }
+
+    /**
+     * @return currently returns theoretical max that declines at a rate of 0.1 m/s
+     *         (to simulate shooter slowing down over time), but when implemented
+     *         with shooter will return current launch velocity based on shooter
+     *         angular velocity
+     */
+    // private double getLaunchVelocity(double desiredMotorVelocity) {
+    //     double shooterOmega = desiredMotorVelocity * ShooterConstants.ratio;
+
+    //     double wheelTangentialSpeed = shooterOmega * ShooterConstants.kShooterWheelRadius.in(Meters);
+    //     double rollerTangentialSpeed = shooterOmega * ShooterConstants.kShooterRollerRadius.in(Meters);
+
+    //     return ShooterConstants.kShooterEfficiency * (wheelTangentialSpeed + rollerTangentialSpeed)/2;
+    // }
+
+    /**
+     * AdvantageScope fuel shooting simulation
+     * 
+     * @param vx initial field relative fuel velocity x component
+     * @param vy initial field relative fuel velocity y component
+     * @param vz initial field relative fuel velocity z component (FuelSimulation
+     *           class will simulate gravity)
+     */
+    // private void sim_shootFuel(double vx, double vy, double vz) {
+    //     if (!RobotBase.isSimulation() || MathSharedStore.getTimestamp() - lastShoot <= 1.0 / 10.0) {
+    //         return;
+    //     }
+    //     FuelSimulation.getInstance().shootFuel(
+    //     new Translation3d(drivetrain.getState().Pose.getTranslation().getX(),
+    //     drivetrain.getState().Pose.getTranslation().getY(), 0),
+    //     new Translation3d(vx,
+    //     vy, vz),
+    //     new Translation3d(0, 0, 0));
+    //     lastShoot = MathSharedStore.getTimestamp();
+    // }
+
+    // used for auto
+    public double getDesiredOmega() {
+        return desiredOmega;
+    }
+
+    // private double getTimeOfFlight(double hoodPitch, double launchVelocity){
+    //     //initial y component of launch velocity
+    //     double vy = launchVelocity * Math.sin(hoodPitch);
+    //     //the calculation is based on delta y = vy * TOF - (1/2)g * TOF^2 (where g is a positive constant)
+    //     //the delta y for TOF would be the height
+    //     //the equation then becomes 0 = -(1/2)g * TOF^2 + vy * TOF - height -> 0 = (1/2)g * TOF^2 - vy * TOF + height
+    //     //then use quadratic formula and always add the radical to get the 2nd time the fuel is at the target height (so that it is on the way down)
+    //     double radical = Math.sqrt(Math.pow(vy, 2) - 2 * Constants.FieldConstants.g * height);
+    //     if(Double.isNaN(radical)){
+    //         return 0;
+    //     }
+    //     System.out.println("radical: " + radical);
+    //     double numerator = vy + radical;
+    //     double time = numerator/Constants.FieldConstants.g;
+    //     SmartDashboard.putNumber("time of flight", time);
+    //     return time;
+    // }
 
     @Override
     public void end(boolean interrupted) {
