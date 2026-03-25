@@ -77,7 +77,7 @@ public class AutoAlign extends Command {
     private APTarget getNextTarget(int progress) {
         APTarget nextTarget = goal.targets[progress];
         if (DriverStation.getAlliance().orElse(Alliance.Blue).equals(Alliance.Red)) {
-            nextTarget = nextTarget.withReference(PoseUtil.flipPoseToOtherAlliance(nextTarget.getReference()));
+            nextTarget = nextTarget.withReference(PoseUtil.flipPoseAlongMiddleXY(nextTarget.getReference()));
             if (nextTarget.getEntryAngle().isPresent()) {
                 nextTarget = nextTarget.withEntryAngle(nextTarget.getEntryAngle().get().plus(Rotation2d.k180deg));
             }

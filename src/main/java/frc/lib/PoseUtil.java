@@ -1,5 +1,6 @@
 package frc.lib;
 
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Meters;
 
 import java.util.Optional;
@@ -12,17 +13,33 @@ import frc.robot.Constants.FieldConstants.TrenchZone;
 
 public final class PoseUtil {
 
-    public static final Pose2d flipPoseToOtherAlliance(Pose2d pose) {
+    public static final Pose2d flipPoseAlongMiddleXY(Pose2d pose) {
         return new Pose2d(
-                FieldZone.FIELD.width.in(Meters) - pose.getX(),
-                FieldZone.FIELD.height.in(Meters) - pose.getY(),
+                FieldZone.FIELD.width.baseUnitMagnitude() - pose.getX(),
+                FieldZone.FIELD.height.baseUnitMagnitude() - pose.getY(),
                 pose.getRotation().plus(Rotation2d.k180deg)
+        );
+    }
+
+    public static final Pose2d flipPoseAlongMiddleY(Pose2d pose) {
+        return new Pose2d(
+                FieldZone.FIELD.width.baseUnitMagnitude(),
+                FieldZone.FIELD.height.baseUnitMagnitude() - pose.getY(),
+                Rotation2d.k180deg.minus(pose.getRotation())
+        );
+    }
+
+    public static final Pose2d flipPoseAlongMiddleX(Pose2d pose) {
+        return new Pose2d(
+                FieldZone.FIELD.width.baseUnitMagnitude() - pose.getX(),
+                FieldZone.FIELD.height.baseUnitMagnitude(),
+                pose.getRotation().times(-1)
         );
     }
 
     public static final boolean isPoseInAllianceZone(Alliance alliance, Pose2d pose) {
         if (alliance == Alliance.Red) {
-            pose = flipPoseToOtherAlliance(pose);
+            pose = flipPoseAlongMiddleXY(pose);
         }
         return pose.getX() <= FieldZone.ALLIANCE.width.in(Meters);
     }
