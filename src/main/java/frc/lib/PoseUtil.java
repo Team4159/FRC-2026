@@ -1,6 +1,5 @@
 package frc.lib;
 
-import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Meters;
 
 import java.util.Optional;

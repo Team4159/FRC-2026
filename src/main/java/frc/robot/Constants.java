@@ -530,7 +530,7 @@ public final class Constants {
         public static final Autopilot kAutopilotAlignController = new Autopilot(kAutopilotAlignProfile);
         public static final APProfile kAutopilotCruiseProfile = new APProfile(kAutopilotConstraints)
                 .withErrorXY(Centimeters.of(15.0))
-                .withErrorTheta(Degrees.of(5.0))
+                .withErrorTheta(Degrees.of(3600.0))
                 .withBeelineRadius(Centimeters.of(17.0));
         public static final Autopilot kAutopilotCruiseController = new Autopilot(kAutopilotCruiseProfile);
     }

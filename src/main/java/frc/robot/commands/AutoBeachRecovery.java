@@ -3,6 +3,9 @@ package frc.robot.commands;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.Rotation;
+
+import java.util.ArrayList;
 
 import com.therekrab.autopilot.APTarget;
 import com.therekrab.autopilot.Autopilot;
@@ -11,22 +14,25 @@ import com.therekrab.autopilot.Autopilot.APResult;
 import edu.wpi.first.math.MathSharedStore;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.lib.PoseUtil;
-import frc.robot.Constants.AlignConstants;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DrivetrainConstants;
+import frc.robot.Constants.FieldConstants;
+import frc.robot.Constants.FieldConstants.TrenchZone;
 import frc.robot.subsystems.Drivetrain;
 
 public class AutoBeachRecovery extends Command {
     
     public static enum BeachRecoveryMode {
-        ZIG_ZAG_FULL,
-        ZIG_ZAG_HALF,
+        ZIG_ZAG,
+        HOOK,
         BLINE,
     }
 
@@ -42,16 +48,14 @@ public class AutoBeachRecovery extends Command {
     }
 
     private record PathTarget(APTarget target, Autopilot controller) {
-        public PathTarget {
-            if (controller == null) {
-                controller = AutoConstants.kAutopilotCruiseController;
-            }
+        public PathTarget(APTarget target) {
+            this(target, AutoConstants.kAutopilotCruiseController);
         }
     }
 
     private static final double kUnbeachTurnSpeed = 45.0;
     private static final double kUnbeachTranslationSpeed = DrivetrainConstants.kMaxTranslationSpeed / 2.0;
-    private static final Distance kTrenchEntryDistance = Inches.of(50.0);
+    private static final Distance kTrenchEntryDistance = Inches.of(60.0);
 
     private final Drivetrain drivetrain;
 
@@ -70,13 +74,12 @@ public class AutoBeachRecovery extends Command {
         this.beachRecoveryMode = beachRecoveryMode;
         this.beachRecoverySide = beachRecoverySide;
         this.shootCommand = shootCommand;
-        addRequirements(drivetrain);
     }
 
     @Override
     public void initialize() {
         beachRecoveryState = BeachRecoveryState.UNBEACH;
-        pathTargets = getPathTargets();
+        pathTargets = getPathTargets(beachRecoveryMode, beachRecoverySide);
         pathProgress = 0;
         pathController = pathTargets[pathProgress].controller;
     }
@@ -86,8 +89,11 @@ public class AutoBeachRecovery extends Command {
         if (beachRecoveryState == BeachRecoveryState.UNBEACH && !drivetrain.isSlipping()) {
             beachRecoveryState = BeachRecoveryState.RECOVER;
         }
-        if (beachRecoveryState == BeachRecoveryState.RECOVER && pathController.atTarget(drivetrain.getState().Pose, pathTargets[pathProgress].target)) {
+        if (beachRecoveryState == BeachRecoveryState.RECOVER && pathProgress < pathTargets.length && pathController.atTarget(drivetrain.getState().Pose, pathTargets[pathProgress].target)) {
             pathProgress++;
+            if (pathProgress < pathTargets.length) {
+                pathController = pathTargets[pathProgress].controller;
+            }
         }
         if (beachRecoveryState == BeachRecoveryState.RECOVER && pathProgress >= pathTargets.length) {
             beachRecoveryState = BeachRecoveryState.SHOOT;
@@ -97,6 +103,11 @@ public class AutoBeachRecovery extends Command {
             case RECOVER -> recover();
             case SHOOT -> shoot();
         }
+    }
+
+    @Override
+    public void end(boolean interrupted) {
+        CommandScheduler.getInstance().cancel(shootCommand);
     }
 
     private void unbeach() {
@@ -112,7 +123,7 @@ public class AutoBeachRecovery extends Command {
 
     private void recover() {
         APResult result = pathController.calculate(drivetrain.getState().Pose, drivetrain.getState().Speeds, pathTargets[pathProgress].target);
-        Rotation2d targetDirection = pathController == AutoConstants.kAutopilotAlignController ? result.targetAngle() : drivetrain.getState().Pose.getRotation();
+        Rotation2d targetDirection = pathController == AutoConstants.kAutopilotAlignController ? result.targetAngle() : new Rotation2d(result.vx().baseUnitMagnitude(), result.vy().baseUnitMagnitude());
         drivetrain.setControl(
             drivetrain.trajectoryFacingAngleDrive
                 .withVelocityX(result.vx())
@@ -122,29 +133,55 @@ public class AutoBeachRecovery extends Command {
     }
 
     private void shoot() {
-
+        CommandScheduler.getInstance().schedule(shootCommand);
     }
 
-    private PathTarget[] getPathTargets() {
+    private PathTarget[] getPathTargets(BeachRecoveryMode beachRecoveryMode, BeachRecoverySide beachRecoverySide) {
         // TODO: finish paths
-        PathTarget[] newPathTargets = switch(beachRecoveryMode) {
-            case ZIG_ZAG_FULL -> new PathTarget[0];
-            case ZIG_ZAG_HALF -> new PathTarget[0];
-            case BLINE -> new PathTarget[0];
-        };
+        ArrayList<PathTarget> newPathTargets = new ArrayList<>();
 
-        for (int i = 0; i < newPathTargets.length; i++) {
-            Pose2d reference = newPathTargets[i].target.getReference();
-            if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red) {
+        // targets are filtered to have no entry angle
+        switch (beachRecoveryMode) {
+            case ZIG_ZAG: {
+                addIntakePointToPathTargets(newPathTargets, new Translation2d(Inches.of(300.0), Inches.of(79.0)));
+                addIntakePointToPathTargets(newPathTargets, new Translation2d(Inches.of(280.0), Inches.of(40.0)));
+                addIntakePointToPathTargets(newPathTargets, new Translation2d(Inches.of(260.0), Inches.of(130.0)));
+                addIntakePointToPathTargets(newPathTargets, new Translation2d(Inches.of(240.0), Inches.of(130.0)));
+                break;
+            }
+            case HOOK: {
+                addIntakePointToPathTargets(newPathTargets, new Translation2d(Inches.of(300.0), Inches.of(79.0)));
+                addIntakePointToPathTargets(newPathTargets, new Translation2d(Inches.of(270.0), Inches.of(130.0)));
+                addIntakePointToPathTargets(newPathTargets, new Translation2d(Inches.of(240.0), Inches.of(130.0)));
+                break;
+            }
+            case BLINE: {
+                // nothing
+                break;
+            }
+        }
+        // return
+        newPathTargets.add(new PathTarget(new APTarget(new Pose2d(TrenchZone.BLUE_RIGHT.x.plus(kTrenchEntryDistance), TrenchZone.BLUE_RIGHT.y, Rotation2d.kZero)), AutoConstants.kAutopilotCruiseController));
+        newPathTargets.add(new PathTarget(new APTarget(new Pose2d(TrenchZone.BLUE_RIGHT.x.plus(kTrenchEntryDistance), TrenchZone.BLUE_RIGHT.y, Rotation2d.kZero)), AutoConstants.kAutopilotAlignController));
+        newPathTargets.add(new PathTarget(new APTarget(new Pose2d(TrenchZone.BLUE_RIGHT.x.minus(kTrenchEntryDistance), TrenchZone.BLUE_RIGHT.y, Rotation2d.kZero)), AutoConstants.kAutopilotAlignController));
+        newPathTargets.add(new PathTarget(new APTarget(new Pose2d(TrenchZone.BLUE_RIGHT.x.minus(kTrenchEntryDistance), Inches.of(50.0), Rotation2d.kZero)), AutoConstants.kAutopilotAlignController));
+        
+        Alliance alliance = DriverStation.getAlliance().orElse(Alliance.Blue);
+        for (int i = 0; i < newPathTargets.size(); i++) {
+            Pose2d reference = newPathTargets.get(i).target.getReference();
+            if (alliance == Alliance.Red) {
                 reference = PoseUtil.flipPoseAlongMiddleXY(reference);
             }
             if (beachRecoverySide == BeachRecoverySide.LEFT) {
                 reference = PoseUtil.flipPoseAlongMiddleY(reference);
             }
-            // TODO: decide whether or not to support entry angle
-            newPathTargets[i] = new PathTarget(newPathTargets[i].target.withReference(reference).withoutEntryAngle(), newPathTargets[i].controller);
+            newPathTargets.set(i, new PathTarget(newPathTargets.get(i).target.withReference(reference).withoutEntryAngle(), newPathTargets.get(i).controller));
         }
 
-        return newPathTargets;
+        return newPathTargets.toArray(PathTarget[]::new);
+    }
+
+    private void addIntakePointToPathTargets(ArrayList<PathTarget> pathTargets, Translation2d position) {
+        pathTargets.add(new PathTarget(new APTarget(new Pose2d(position, Rotation2d.kZero)).withVelocity(DrivetrainConstants.kMaxTranslationSpeed * 0.5)));
     }
 }

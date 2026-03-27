@@ -24,9 +24,7 @@ import frc.lib.FluentTrigger;
 import frc.lib.HIDRumble;
 import frc.lib.HIDRumble.RumbleRequest;
 import frc.robot.Constants.OperatorConstants;
-import frc.robot.Constants.ShooterConstants;
 import frc.robot.Constants.AlignConstants.TowerAlignGoal;
-import frc.robot.Constants.ClimberConstants.ClimberState;
 import frc.robot.Constants.OperatorConstants.DriveFlag;
 import frc.robot.Constants.OperatorConstants.DriveMode;
 import frc.robot.Constants.FeederConstants.FeederState;
@@ -34,9 +32,12 @@ import frc.robot.Constants.HopperConstants.HopperState;
 import frc.robot.Constants.IntakeConstants.IntakeState;
 import frc.robot.commands.AutoAim;
 import frc.robot.commands.AutoAlign;
+import frc.robot.commands.AutoBeachRecovery;
 import frc.robot.commands.AutoLob;
 import frc.robot.commands.HubShoot;
 import frc.robot.commands.TowerShoot;
+import frc.robot.commands.AutoBeachRecovery.BeachRecoveryMode;
+import frc.robot.commands.AutoBeachRecovery.BeachRecoverySide;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.LEDs;
@@ -132,8 +133,10 @@ public class RobotContainer {
                 drivetrain.new Drive(DriveMode.IDLE).ignoringDisable(true));
 
         // test mode
-        primaryController.a().and(DriverStation::isTest).whileTrue(drivetrain.new Drive(DriveMode.BRAKE));
+        // primaryController.a().and(DriverStation::isTest).whileTrue(drivetrain.new Drive(DriveMode.BRAKE));
         primaryController.b().and(DriverStation::isTest).whileTrue(drivetrain.new Drive(DriveMode.POINT));
+
+        primaryController.a().and(DriverStation::isTest).whileTrue(new AutoBeachRecovery(drivetrain, BeachRecoveryMode.ZIG_ZAG, BeachRecoverySide.RIGHT, new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())));
 
         // teleop mode
         primarySlowModeTrigger.and(DriverStation::isTeleop)
