@@ -433,7 +433,7 @@ public class ConfigurableAuto {
         }
 
         private boolean shouldTrip() {
-            return true;
+            return drivetrain.isSlipping();
         }
 
         private double getTime() {
