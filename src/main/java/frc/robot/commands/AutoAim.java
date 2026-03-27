@@ -278,8 +278,8 @@ public class AutoAim extends Command {
             // PID controller to calculate omega
             // set ChassisSpeeds
             ChassisSpeeds chassisSpeeds = new ChassisSpeeds(
-                    drivetrain.getInputX(true) * DrivetrainConstants.kAutoAimInputMultiplier,
-                    drivetrain.getInputY(true) * DrivetrainConstants.kAutoAimInputMultiplier,
+                    drivetrain.getInputSpeedX(true) * DrivetrainConstants.kAutoAimInputMultiplier,
+                    drivetrain.getInputSpeedY(true) * DrivetrainConstants.kAutoAimInputMultiplier,
                     omega);
 
             if (!autonomousMode) {

@@ -219,8 +219,8 @@ public class AutoLob extends Command {
                 drivetrain.getState().Pose.getRotation().getRadians(), desiredAngle, Timer.getFPGATimestamp());
         //set ChassisSpeeds
         ChassisSpeeds chassisSpeeds = new ChassisSpeeds(
-            drivetrain.getInputX(true) * DrivetrainConstants.kAutoAimInputMultiplier,
-            drivetrain.getInputY(true) * DrivetrainConstants.kAutoAimInputMultiplier,
+            drivetrain.getInputSpeedX(true) * DrivetrainConstants.kAutoAimInputMultiplier,
+            drivetrain.getInputSpeedY(true) * DrivetrainConstants.kAutoAimInputMultiplier,
             omega);
 
         //only actually control the swerve if not in autonomousMode
