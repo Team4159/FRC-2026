@@ -57,10 +57,6 @@ public class Intake extends SubsystemBase {
         locationMotor.setControl(intakeMotionMagicVoltage.withPosition(angle));
     }
 
-    private void setPivotPercentage(double percentage){
-        locationMotor.set(percentage);
-    }
-
     private Angle getPivotAngle(){
         return Rotations.of(locationMotor.getPosition().getValueAsDouble());
     }

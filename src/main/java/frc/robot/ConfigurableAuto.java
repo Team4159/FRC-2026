@@ -73,6 +73,7 @@ public class ConfigurableAuto {
         sideChooser.setDefaultOption("None", "None");
 
         //intake chooser 1
+        intakeChooser1.addOption("Line", "LineIntake");
         intakeChooser1.addOption("Far", "FarIntake");
         intakeChooser1.addOption("Mid", "MidIntake");
         intakeChooser1.addOption("Close", "CloseIntake");
@@ -85,6 +86,7 @@ public class ConfigurableAuto {
         shootChooser1.setDefaultOption("None", "None");
 
         //intake chooser 2
+        intakeChooser2.addOption("Line", "LineIntake");
         intakeChooser2.addOption("Far", "FarIntake");
         intakeChooser2.addOption("Mid", "MidIntake");
         intakeChooser2.addOption("Close", "CloseIntake");

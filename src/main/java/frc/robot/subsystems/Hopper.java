@@ -32,7 +32,7 @@ public class Hopper extends SubsystemBase{
         
         public ChangeState(HopperState hopperState) {
             this.hopperState = hopperState;
-            addRequirements(Hopper.this);
+            // addRequirements(Hopper.this);
         }
 
         @Override

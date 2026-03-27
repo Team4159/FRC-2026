@@ -104,7 +104,7 @@ public class Shooter extends SubsystemBase{
 
     
     public boolean isAtPitch() {
-        return hoodMotor.getClosedLoopReference().isNear(hoodMotor.getPosition().getValueAsDouble(), Units.degreesToRotations(1));
+        return hoodMotor.getClosedLoopReference().isNear(hoodMotor.getPosition().getValueAsDouble(), Units.degreesToRotations(5));
     }
 
     @Override
@@ -142,29 +142,6 @@ public class Shooter extends SubsystemBase{
         rightTopShooterMotor.stopMotor();
         rightBottomShooterMotor.stopMotor();
     }
-    
-    // public class ShooterCommand extends Command{
-    //     private double velocity;
-    //     private Angle angle;
-        
-    //     public ShooterCommand(double velocity, Angle angle){
-    //         this.velocity=velocity;
-    //         this.angle=angle;
-            
-    //         addRequirements(Shooter.this);
-    //     }
-        
-    //     @Override
-    //     public void initialize() {
-    //         Shooter.this.adjustHood(angle);
-    //         Shooter.this.setSpeed(velocity);
-    //     }
-
-    //     @Override
-    //     public void end(boolean interrupt) {
-    //         Shooter.this.setSpeed(0);
-    //     }
-    // }
 
     public class ChangeVelocity extends Command{
         private AngularVelocity velocity;
@@ -190,7 +167,6 @@ public class Shooter extends SubsystemBase{
         
         public ChangeState(FeederState feederState){
             this.feederState = feederState;
-            //addRequirements(Shooter.this);
         }
 
         @Override

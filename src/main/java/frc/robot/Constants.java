@@ -40,7 +40,6 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
-import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.generated.TunerConstants;
@@ -84,7 +83,7 @@ public final class Constants {
         public static final int HopperId = 30;
 
         public static enum HopperState {
-            FEED(0.75), REVERSE(-0.75), STOP(0);
+            FEED(1), REVERSE(-1), STOP(0);
 
             public double percentage;
 
@@ -98,7 +97,7 @@ public final class Constants {
         public static final int FeederID = 20; // idk if this port is used yet plz check
 
         public static enum FeederState {
-            FEED(0.75), UNSTUCKFEEDER(-0.75), STOP(0);
+            FEED(1), UNSTUCKFEEDER(-1), STOP(0);
 
             public double percentage;
 
@@ -115,7 +114,7 @@ public final class Constants {
         public static final double kAngleG = 0.07;
 
         // motion magic
-        public static final double kFastCruiseVelocity = 160;
+        public static final double kFastCruiseVelocity = 200;
         public static final double kFastAcceleration = 500;
         public static final double kFastJerk = 1600;
 
@@ -347,13 +346,17 @@ public final class Constants {
         // Shooter Motor Config and PID
         // public static final double kP = 35;
         // public static final double kI = 10;
-        public static final double kP = 100;
-        public static final double kI = 2;
+        public static final double kP = 5;
+        public static final double kI = 0;
         public static final double kD = 0;
-        public static final double kS = 10;
+        public static final double kS = 1;
         //remove if doesnt work
         public static final double kV = 0.25;
         public static final double kA = 2.14;
+
+        public static final double kCurrentLimit = 30;
+        public static final double kRampRate = 0.2;
+
         public static final int ShooterIDLeftBottom = 9;
         public static final int ShooterIDLeftTop = 10;
         public static final int ShooterIDRightTop = 12;
@@ -369,9 +372,10 @@ public final class Constants {
                 Slot0.kV = ShooterConstants.kV;
                 Slot0.kA = ShooterConstants.kA;
                 CurrentLimits.SupplyCurrentLimitEnable = true;
-                CurrentLimits.SupplyCurrentLimit = 40;
+                CurrentLimits.SupplyCurrentLimit = kCurrentLimit;
                 MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
                 MotorOutput.NeutralMode = NeutralModeValue.Coast;
+                ClosedLoopRamps.VoltageClosedLoopRampPeriod=kRampRate;
             }
         };
 
@@ -384,9 +388,10 @@ public final class Constants {
                 Slot0.kV = ShooterConstants.kV;
                 Slot0.kA = ShooterConstants.kA;
                 CurrentLimits.SupplyCurrentLimitEnable = true;
-                CurrentLimits.SupplyCurrentLimit = 40;
+                CurrentLimits.SupplyCurrentLimit = kCurrentLimit;
                 MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
                 MotorOutput.NeutralMode = NeutralModeValue.Coast;
+                ClosedLoopRamps.VoltageClosedLoopRampPeriod=kRampRate;
             }
         };
 
@@ -408,14 +413,14 @@ public final class Constants {
         public static final double ratio = 1;
         public static final double shootHeight = Units.inchesToMeters(40);
 
-        public static AngularVelocity kShooterVelocityTolerance = RPM.of(300);
+        public static AngularVelocity kShooterVelocityTolerance = RPM.of(500);
         public static Angle maxPitch = Degrees.of(85);
 
         public static final Distance kShooterWheelRadius = Inches.of(2);
         /** TODO: find the correct distance */
         public static final Distance kShooterRollerRadius = Inches.of(0.75);
 
-        public static final double kShooterEfficiency = 0.95;
+        public static final double kShooterEfficiency = 0.85;
 
         // robot relative shooter offset
         // TODO implement in the calculation
@@ -437,7 +442,7 @@ public final class Constants {
     public static class PhotonVisionConstants {
 
         // TODO: tune stddev values
-        public static final Matrix<N3, N1> kSingleTagStdDevs = VecBuilder.fill(4, 4, 8);
+        public static final Matrix<N3, N1> kSingleTagStdDevs = VecBuilder.fill(2, 2, 4);
         public static final Matrix<N3, N1> kMultiTagStdDevs = VecBuilder.fill(0.5, 0.5, 1);
 
         public final static Transform3d leftShooterCamTransform = new Transform3d(
@@ -668,15 +673,15 @@ public final class Constants {
                 // Map.entry(Meters.of(4.5), new ShotData(Degrees.of(66), RPM.of(2400), Seconds.of(1.921)))
 
                 //new simulated
-                Map.entry(Meters.of(1),   RPM.of(2000)),
-                Map.entry(Meters.of(1.5), RPM.of(2000)),
+                Map.entry(Meters.of(1),   RPM.of(2600)),
+                Map.entry(Meters.of(1.5), RPM.of(2600)),
                 //3/14 tested
-                Map.entry(Meters.of(2),   RPM.of(2000)),
-                Map.entry(Meters.of(2.5), RPM.of(2050)),
-                Map.entry(Meters.of(3),   RPM.of(2100)),
-                Map.entry(Meters.of(3.5), RPM.of(2200)),
-                Map.entry(Meters.of(4),   RPM.of(2300)),
-                Map.entry(Meters.of(4.5), RPM.of(2400))
+                Map.entry(Meters.of(2),   RPM.of(2600)),
+                Map.entry(Meters.of(2.5), RPM.of(270)),
+                Map.entry(Meters.of(3),   RPM.of(2800)),
+                Map.entry(Meters.of(3.5), RPM.of(2900)),
+                Map.entry(Meters.of(4),   RPM.of(3100)),
+                Map.entry(Meters.of(4.5), RPM.of(3300))
 
         // Map.entry(Meters.of(4.5), new ShotData(Degrees.of(66.726),
         // Seconds.of(1.642))),

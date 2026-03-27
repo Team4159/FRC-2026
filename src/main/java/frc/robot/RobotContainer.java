@@ -4,15 +4,11 @@
 
 package frc.robot;
 
-import static edu.wpi.first.units.Units.RPM;
-
 import java.util.Optional;
 
-import choreo.auto.AutoChooser;
 import choreo.auto.AutoFactory;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -26,7 +22,6 @@ import frc.lib.HIDRumble.RumbleRequest;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.Constants.AlignConstants.TowerAlignGoal;
-import frc.robot.Constants.ClimberConstants.ClimberState;
 import frc.robot.Constants.OperatorConstants.DriveFlag;
 import frc.robot.Constants.OperatorConstants.DriveMode;
 import frc.robot.Constants.FeederConstants.FeederState;
@@ -37,7 +32,6 @@ import frc.robot.commands.AutoAlign;
 import frc.robot.commands.AutoLob;
 import frc.robot.commands.HubShoot;
 import frc.robot.commands.TowerShoot;
-import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.LEDs;
 import frc.robot.subsystems.PhotonVision;
@@ -87,14 +81,13 @@ public class RobotContainer {
     private final Shooter shooter = new Shooter();
     private final Hopper hopper = new Hopper();
     private final LEDs leds = new LEDs();
-    private final Climber climber = new Climber();
     private final Drivetrain drivetrain = new Drivetrain(primaryController);
+    @SuppressWarnings("unused")
+    //periodic function inside photon vision class used to send vision data
     private final PhotonVision photonVision = new PhotonVision(drivetrain);
 
     /* Path follower */
     private final AutoFactory autoFactory;
-    private final AutoRoutines autoRoutines;
-    private final AutoChooser autoChooser = new AutoChooser();
     private final ConfigurableAuto configurableAuto;
 
     private final Telemetry logger = new Telemetry();
@@ -104,14 +97,8 @@ public class RobotContainer {
         drivetrain.setAutonomousAutoAimCommand(new AutoAim(drivetrain, shooter, hopper, intake, leds, true, Optional.empty()));
         // Choreo Auto
         autoFactory = drivetrain.createAutoFactory();
-        autoRoutines = new AutoRoutines(autoFactory, drivetrain);
 
         configurableAuto = new ConfigurableAuto(autoFactory, drivetrain, shooter, intake, hopper, leds);
-
-        autoChooser.addRoutine("SimplePath", autoRoutines::simplePathAuto);
-        autoChooser.addRoutine("Left", autoRoutines::leftAuto);
-        autoChooser.addRoutine("Right", autoRoutines::rightAuto);
-        SmartDashboard.putData("Auto Chooser", autoChooser);
 
         drivetrain.crashTrigger.onTrue(Commands
                 .runOnce(() -> HIDRumble.rumble(primaryController.getHID(),
