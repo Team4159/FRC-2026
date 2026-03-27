@@ -29,9 +29,13 @@ import frc.robot.Constants.HopperConstants.HopperState;
 import frc.robot.Constants.IntakeConstants.IntakeState;
 import frc.robot.commands.AutoAim;
 import frc.robot.commands.AutoAlign;
+import frc.robot.commands.AutoBeachRecovery;
 import frc.robot.commands.AutoLob;
 import frc.robot.commands.HubShoot;
 import frc.robot.commands.TowerShoot;
+import frc.robot.commands.AutoBeachRecovery.BeachRecoveryMode;
+import frc.robot.commands.AutoBeachRecovery.BeachRecoverySide;
+import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.LEDs;
 import frc.robot.subsystems.PhotonVision;
@@ -49,8 +53,8 @@ public class RobotContainer {
     // private final Trigger primaryRadialModeTrigger = primaryController.y();
     private final Trigger primaryRobotManualAlignModeTrigger = primaryController.leftBumper();
     private final Trigger primaryRobotRelativeTrigger = primaryController.leftTrigger(0.1);
-    private final Trigger primaryReduceSpeedTrigger = primaryController.rightTrigger();
-    private final Trigger primaryDriverAssistTrigger = primaryController.start();
+    private final Trigger primarySlowModeTrigger = primaryController.rightTrigger();
+    private final Trigger primaryDriveAssistTrigger = primaryController.start();
     private final Trigger primaryLeftClimbAlignTrigger = primaryController.povLeft();
     private final Trigger primaryAutoAimTrigger = primaryController.x();
     private final Trigger primaryAutoLobTrigger = primaryController.a();
@@ -68,8 +72,8 @@ public class RobotContainer {
     private final Trigger compressIntakeTrigger = secondaryController.a();
     private final Trigger bounceIntakeTrigger = secondaryController.b();
 
-    //private final Trigger raiseClimbTrigger = secondaryController.povLeft();
-    //private final Trigger lowerClimbTrigger = secondaryController.povRight();
+    // private final Trigger raiseClimbTrigger = secondaryController.povLeft();
+    // private final Trigger lowerClimbTrigger = secondaryController.povRight();
 
     private final Trigger shootTrigger = secondaryController.povRight();
 
@@ -94,7 +98,8 @@ public class RobotContainer {
 
     public RobotContainer() {
         // set auto command for drivetrain
-        drivetrain.setAutonomousAutoAimCommand(new AutoAim(drivetrain, shooter, hopper, intake, leds, true, Optional.empty()));
+        drivetrain.setAutonomousAutoAimCommand(
+                new AutoAim(drivetrain, shooter, hopper, intake, leds, true, Optional.empty()));
         // Choreo Auto
         autoFactory = drivetrain.createAutoFactory();
 
@@ -118,26 +123,24 @@ public class RobotContainer {
                 drivetrain.new Drive(DriveMode.IDLE).ignoringDisable(true));
 
         // test mode
-        primaryController.a().and(DriverStation::isTest).whileTrue(drivetrain.new Drive(DriveMode.BRAKE));
+        // primaryController.a().and(DriverStation::isTest).whileTrue(drivetrain.new Drive(DriveMode.BRAKE));
         primaryController.b().and(DriverStation::isTest).whileTrue(drivetrain.new Drive(DriveMode.POINT));
+        primaryController.a().and(DriverStation::isTest).whileTrue(new AutoBeachRecovery(drivetrain, intake, BeachRecoveryMode.ZIG_ZAG, BeachRecoverySide.LEFT, new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())));
 
         // teleop mode
-        primaryReduceSpeedTrigger.and(DriverStation::isTeleop).onChange(
-                Commands.runOnce(() -> drivetrain.setDriveFlagValue(DriveFlag.SLOW_MODE,
-                        primaryReduceSpeedTrigger.getAsBoolean())));
-        primaryDriverAssistTrigger.and(DriverStation::isTeleop).onTrue(
+        primarySlowModeTrigger.and(DriverStation::isTeleop)
+                .whileTrue(drivetrain.new DriveFlagToggler(DriveFlag.SLOW_MODE));
+        primaryDriveAssistTrigger.and(DriverStation::isTeleop).onTrue(
                 Commands.runOnce(() -> {
-                    HIDRumble.rumble(primaryController.getHID(), new RumbleRequest(RumbleType.kLeftRumble, 0.5, 0.25));
+                    HIDRumble.rumble(primaryController.getHID(),
+                            new RumbleRequest(RumbleType.kLeftRumble, 0.5, 0.25));
                     drivetrain.setDriveFlagValue(DriveFlag.DRIVE_ASSIST,
                             !drivetrain.getDriveFlagValue(DriveFlag.DRIVE_ASSIST));
                 }));
-        primaryRobotManualAlignModeTrigger.and(DriverStation::isTeleop).onChange(
-                Commands.runOnce(() -> {drivetrain.setDriveFlagValue(DriveFlag.MANUAL_ALIGN,
-                        primaryRobotManualAlignModeTrigger.getAsBoolean());
-                    System.out.println(primaryRobotManualAlignModeTrigger.getAsBoolean());}));
-        primaryIntakeAssistTrigger.and(DriverStation::isTeleop).onChange(
-                Commands.runOnce(() -> drivetrain.setDriveFlagValue(DriveFlag.INTAKE_ASSIST,
-                        primaryIntakeAssistTrigger.getAsBoolean())));
+        primaryRobotManualAlignModeTrigger.and(DriverStation::isTeleop)
+                .whileTrue(drivetrain.new DriveFlagToggler(DriveFlag.MANUAL_ALIGN));
+        primaryIntakeAssistTrigger.and(DriverStation::isTeleop)
+                .whileTrue(drivetrain.new DriveFlagToggler(DriveFlag.INTAKE_ASSIST));
         FluentTrigger.build()
                 .bind(1, primaryLeftClimbAlignTrigger.and(DriverStation::isTeleop),
                         new AutoAlign(drivetrain, TowerAlignGoal.LEFT))

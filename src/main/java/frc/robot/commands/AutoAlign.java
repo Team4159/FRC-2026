@@ -9,7 +9,7 @@ import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.lib.FieldUtil;
+import frc.lib.PoseUtil;
 import frc.robot.Constants.AlignConstants;
 import frc.robot.Constants.AlignConstants.TowerAlignGoal;
 import frc.robot.subsystems.Drivetrain;
@@ -77,7 +77,7 @@ public class AutoAlign extends Command {
     private APTarget getNextTarget(int progress) {
         APTarget nextTarget = goal.targets[progress];
         if (DriverStation.getAlliance().orElse(Alliance.Blue).equals(Alliance.Red)) {
-            nextTarget = nextTarget.withReference(FieldUtil.flipPoseToOtherAlliance(nextTarget.getReference()));
+            nextTarget = nextTarget.withReference(PoseUtil.flipPoseAlongMiddleXY(nextTarget.getReference()));
             if (nextTarget.getEntryAngle().isPresent()) {
                 nextTarget = nextTarget.withEntryAngle(nextTarget.getEntryAngle().get().plus(Rotation2d.k180deg));
             }

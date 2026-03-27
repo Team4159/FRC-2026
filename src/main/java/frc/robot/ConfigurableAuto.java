@@ -8,18 +8,28 @@ import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
 import choreo.trajectory.SwerveSample;
 import choreo.trajectory.Trajectory;
+import edu.wpi.first.math.MathSharedStore;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.lib.Elastic;
 import frc.lib.InstantCommandRunWhenDisabled;
 import frc.lib.PoseTrajectory;
+import frc.lib.PoseUtil;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.IntakeConstants.IntakeState;
 import frc.robot.commands.AutoAim;
+import frc.robot.commands.AutoBeachRecovery;
+import frc.robot.commands.AutoBeachRecovery.BeachRecoveryMode;
+import frc.robot.commands.AutoBeachRecovery.BeachRecoverySide;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Hopper;
 import frc.robot.subsystems.Intake;
@@ -27,7 +37,8 @@ import frc.robot.subsystems.LEDs;
 import frc.robot.subsystems.Shooter;
 
 public class ConfigurableAuto {
-    private SendableChooser<String> sideChooser, intakeChooser1, shootChooser1, intakeChooser2, shootChooser2, climbSideChooser;
+    private SendableChooser<String> sideChooser, intakeChooser1, shootChooser1, intakeChooser2, shootChooser2,
+            climbSideChooser;
 
     private Field2d generatedRoutineDisplay = new Field2d();
 
@@ -40,18 +51,19 @@ public class ConfigurableAuto {
 
     private AutoRoutine generatedRoutine;
 
-    public ConfigurableAuto(AutoFactory factory, Drivetrain drivetrain, Shooter shooter, Intake intake, Hopper hopper, LEDs leds) {
-        //auto factory
+    public ConfigurableAuto(AutoFactory factory, Drivetrain drivetrain, Shooter shooter, Intake intake, Hopper hopper,
+            LEDs leds) {
+        // auto factory
         this.factory = factory;
 
-        //subsystems
+        // subsystems
         this.drivetrain = drivetrain;
         this.shooter = shooter;
         this.intake = intake;
         this.hopper = hopper;
         this.leds = leds;
 
-        //sendable choosers
+        // sendable choosers
         sideChooser = new SendableChooser<>();
         intakeChooser1 = new SendableChooser<>();
         shootChooser1 = new SendableChooser<>();
@@ -62,9 +74,11 @@ public class ConfigurableAuto {
         displayChoosers();
     }
 
-    /** displays sendable chooser options for configuration and the generate button */
-    public void displayChoosers(){
-        //side chooser
+    /**
+     * displays sendable chooser options for configuration and the generate button
+     */
+    public void displayChoosers() {
+        // side chooser
         sideChooser.addOption("Left", "L");
         sideChooser.addOption("Right", "R");
         sideChooser.addOption("Mid", "M");
@@ -80,7 +94,7 @@ public class ConfigurableAuto {
         intakeChooser1.addOption("Outpost (for middle auto)", "OutpostIntake");
         intakeChooser1.setDefaultOption("None", "None");
 
-        //shoot chooser 1
+        // shoot chooser 1
         shootChooser1.addOption("Shoot", "Shoot");
         shootChooser1.addOption("Shoot and Climb", "Climb");
         shootChooser1.setDefaultOption("None", "None");
@@ -92,7 +106,7 @@ public class ConfigurableAuto {
         intakeChooser2.addOption("Close", "CloseIntake");
         intakeChooser2.setDefaultOption("None", "None");
 
-        //shoot chooser 2
+        // shoot chooser 2
         shootChooser2.addOption("Shoot", "Shoot");
         shootChooser2.addOption("Shoot and Climb", "Climb");
         shootChooser2.setDefaultOption("None", "None");
@@ -100,7 +114,7 @@ public class ConfigurableAuto {
         climbSideChooser.setDefaultOption("Left", "L");
         climbSideChooser.addOption("Right", "R");
 
-        //display on smartdashboard -> elastic
+        // display on smartdashboard -> elastic
         SmartDashboard.putData("side", sideChooser);
         SmartDashboard.putData("Intake 1", intakeChooser1);
         SmartDashboard.putData("Shoot 1", shootChooser1);
@@ -110,13 +124,15 @@ public class ConfigurableAuto {
         SmartDashboard.putData("generate", new InstantCommandRunWhenDisabled(() -> generateRoutine(true)));
     }
 
-    private AutoRoutine generateRoutine(boolean display){
+    private AutoRoutine generateRoutine(boolean display) {
         final AutoRoutine routine = factory.newRoutine("Generated Auto");
 
-        //if there direction is none return the default routine (does absolutely nothing)
+        // if there direction is none return the default routine (does absolutely
+        // nothing)
         final String direction = sideChooser.getSelected();
-        if(direction.equals("None")) {
-            Elastic.Notification notification = new Elastic.Notification(Elastic.NotificationLevel.INFO, "Empty auto generated", "this auto will do absolutely nothing");
+        if (direction.equals("None")) {
+            Elastic.Notification notification = new Elastic.Notification(Elastic.NotificationLevel.INFO,
+                    "Empty auto generated", "this auto will do absolutely nothing");
             Elastic.sendNotification(notification);
             return routine;
         }
@@ -128,8 +144,8 @@ public class ConfigurableAuto {
         final String climbSide = climbSideChooser.getSelected();
 
         if (direction.contains("M")) {
-            //outpost auto
-            if(intake1.contains("Outpost")) {
+            // outpost auto
+            if (intake1.contains("Outpost")) {
                 final String startToIntakeName = direction + "StartToMROutpostIntake";
                 final String intakeToShootName = "MROutpostIntakeToMRShoot";
 
@@ -137,18 +153,18 @@ public class ConfigurableAuto {
                 final AutoTrajectory intakeToShootTraj = routine.trajectory(intakeToShootName);
 
                 routine.active().onTrue(
-                    startToIntakeTraj.resetOdometry()
-                    .andThen(startToIntakeTraj.cmd())
-                    .andThen(intakeToShootTraj.cmd())
-                    .andThen(new ParallelDeadlineGroup(
-                        //new WaitCommand(AutoConstants.ShootTime),
-                        new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())))
-                );
+                        startToIntakeTraj.resetOdometry()
+                                .andThen(startToIntakeTraj.cmd())
+                                .andThen(intakeToShootTraj.cmd())
+                                .andThen(new ParallelDeadlineGroup(
+                                        // new WaitCommand(AutoConstants.ShootTime),
+                                        new AutoAim(drivetrain, shooter, hopper, intake, leds, false,
+                                                Optional.empty()))));
 
                 startToIntakeTraj.atTime("intake").onTrue(intake.new ChangeStates(IntakeState.DOWN_ON));
                 startToIntakeTraj.atTime("stopIntake").onTrue(intake.new ChangeStates(IntakeState.DOWN_OFF));
 
-                if(display){
+                if (display) {
                     updateField(startToIntakeTraj, intakeToShootTraj);
                 }
 
@@ -160,22 +176,23 @@ public class ConfigurableAuto {
             }
 
             final String startToShootName = direction + "StartToShoot";
-            final String shootToClimbName = direction + "ShootTo" + climbSide +"Climb";
+            final String shootToClimbName = direction + "ShootTo" + climbSide + "Climb";
 
             final AutoTrajectory startToShootTraj = routine.trajectory(startToShootName);
             final AutoTrajectory shootToClimbTraj = routine.trajectory(shootToClimbName);
 
             routine.active().onTrue(
-                startToShootTraj.resetOdometry()
-                .andThen(startToShootTraj.cmd())
-                .andThen(new ParallelDeadlineGroup(
-                    //new WaitCommand(AutoConstants.ShootTime),
-                    new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())))
-                //.andThen(shootToClimbTraj.cmd())
-                //.andThen(new AutoAlign(drivetrain, towerAlignGoal, primaryRobotRelativeTrigger))
+                    startToShootTraj.resetOdometry()
+                            .andThen(startToShootTraj.cmd())
+                            .andThen(new ParallelDeadlineGroup(
+                                    // new WaitCommand(AutoConstants.ShootTime),
+                                    new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())))
+            // .andThen(shootToClimbTraj.cmd())
+            // .andThen(new AutoAlign(drivetrain, towerAlignGoal,
+            // primaryRobotRelativeTrigger))
             );
 
-            if(display){
+            if (display) {
                 updateField(startToShootTraj, shootToClimbTraj);
             }
 
@@ -196,125 +213,143 @@ public class ConfigurableAuto {
         final AutoTrajectory shoot1ToIntake2Traj = routine.trajectory(shoot1ToIntake2Name);
         final AutoTrajectory intake2ToShoot2Traj = routine.trajectory(intake2ToShoot2Name);
 
-        //if shoot1 is climb, disregard shoot1tointake2 and intake2toshoot2
-        if(shoot1.contains("Climb")){
+        // if shoot1 is climb, disregard shoot1tointake2 and intake2toshoot2
+        if (shoot1.contains("Climb")) {
             final AutoTrajectory shoot1ToClimbTraj = routine.trajectory(direction + "ShootTo" + climbSide + "Climb");
             routine.active().onTrue(
-                startToIntake1Traj.resetOdometry().andThen(startToIntake1Traj.cmd())
-                .andThen(intake1ToShoot1Traj.cmd())
-                .andThen(new ParallelDeadlineGroup(
-                    new WaitCommand(AutoConstants.ShootTime), 
-                    new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())))
-                .andThen(shoot1ToClimbTraj.cmd())
-            );
+                    startToIntake1Traj.resetOdometry().andThen(startToIntake1Traj.cmd())
+                            .andThen(intake1ToShoot1Traj.cmd())
+                            .andThen(new ParallelDeadlineGroup(
+                                    new WaitCommand(AutoConstants.ShootTime),
+                                    new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())))
+                            .andThen(shoot1ToClimbTraj.cmd()));
 
             displayGenerationStatus(startToIntake1Traj, intake1ToShoot1Traj, shoot1ToClimbTraj);
 
-            if(display){
+            if (display) {
                 updateField(startToIntake1Traj, intake1ToShoot1Traj, shoot1ToClimbTraj);
             }
         }
-        
-        else if(shoot2.contains("Climb")){
+
+        else if (shoot2.contains("Climb")) {
             final AutoTrajectory shoot2ToClimbTraj = routine.trajectory(direction + "ShootTo" + climbSide + "Climb");
             routine.active().onTrue(
-                startToIntake1Traj.resetOdometry().andThen(startToIntake1Traj.cmd())
-                .andThen(intake1ToShoot1Traj.cmd())
-                .andThen(new ParallelDeadlineGroup(
-                    new WaitCommand(AutoConstants.ShootTime), 
-                    new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())))
-                .andThen(shoot1ToIntake2Traj.cmd())
-                .andThen(intake2ToShoot2Traj.cmd())
-                .andThen(new ParallelDeadlineGroup(
-                    new WaitCommand(AutoConstants.ShootTime), 
-                    new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())))
-                .andThen(shoot2ToClimbTraj.cmd())
-            );
+                    startToIntake1Traj.resetOdometry().andThen(startToIntake1Traj.cmd())
+                            .andThen(intake1ToShoot1Traj.cmd())
+                            .andThen(new ParallelDeadlineGroup(
+                                    new WaitCommand(AutoConstants.ShootTime),
+                                    new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())))
+                            .andThen(shoot1ToIntake2Traj.cmd())
+                            .andThen(intake2ToShoot2Traj.cmd())
+                            .andThen(new ParallelDeadlineGroup(
+                                    new WaitCommand(AutoConstants.ShootTime),
+                                    new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())))
+                            .andThen(shoot2ToClimbTraj.cmd()));
 
-            displayGenerationStatus(startToIntake1Traj, intake1ToShoot1Traj, shoot1ToIntake2Traj, intake2ToShoot2Traj, shoot2ToClimbTraj);
+            displayGenerationStatus(startToIntake1Traj, intake1ToShoot1Traj, shoot1ToIntake2Traj, intake2ToShoot2Traj,
+                    shoot2ToClimbTraj);
 
-            if(display){
-                updateField(startToIntake1Traj, intake1ToShoot1Traj, shoot1ToIntake2Traj, intake2ToShoot2Traj, shoot2ToClimbTraj);
+            if (display) {
+                updateField(startToIntake1Traj, intake1ToShoot1Traj, shoot1ToIntake2Traj, intake2ToShoot2Traj,
+                        shoot2ToClimbTraj);
             }
         }
 
-        else{
+        else {
             routine.active().onTrue(
-                startToIntake1Traj.resetOdometry().andThen(startToIntake1Traj.cmd())
-                .andThen(intake1ToShoot1Traj.cmd())
-                .andThen(new ParallelDeadlineGroup(
-                    new WaitCommand(AutoConstants.ShootTime), 
-                    new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())))
-                .andThen(shoot1ToIntake2Traj.cmd())
-                .andThen(intake2ToShoot2Traj.cmd())
-                .andThen(new ParallelDeadlineGroup(
-                    new WaitCommand(AutoConstants.ShootTime), 
-                    new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())))
-            );
+                    startToIntake1Traj.resetOdometry().andThen(startToIntake1Traj.cmd())
+                            .andThen(intake1ToShoot1Traj.cmd())
+                            .andThen(new ParallelDeadlineGroup(
+                                    new WaitCommand(AutoConstants.ShootTime),
+                                    new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())))
+                            .andThen(shoot1ToIntake2Traj.cmd())
+                            .andThen(intake2ToShoot2Traj.cmd())
+                            .andThen(new ParallelDeadlineGroup(
+                                    new WaitCommand(AutoConstants.ShootTime),
+                                    new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty()))));
 
             displayGenerationStatus(startToIntake1Traj, intake1ToShoot1Traj, shoot1ToIntake2Traj, intake2ToShoot2Traj);
 
-            if(display){
+            if (display) {
                 updateField(startToIntake1Traj, intake1ToShoot1Traj, shoot1ToIntake2Traj, intake2ToShoot2Traj);
             }
         }
-        
-        shoot1ToIntake2Traj.atTime("intake").onTrue(intake.new ChangeStates(IntakeState.DOWN_ON));
-        shoot1ToIntake2Traj.atTime("stopIntake").onTrue(intake.new ChangeStates(IntakeState.DOWN_OFF));
 
-        startToIntake1Traj.atTime("intake").onTrue(intake.new ChangeStates(IntakeState.DOWN_ON));
-        startToIntake1Traj.atTime("stopIntake").onTrue(intake.new ChangeStates(IntakeState.DOWN_OFF));
-        
-        //store the routine so don't need to generate at the start of auto
+        UnbeachTrip unbeachTrip = new UnbeachTrip(routine);
+
+        shoot1ToIntake2Traj.atTime("intake").onTrue(Commands.parallel(
+                Commands.runOnce(() -> CommandScheduler.getInstance().schedule(unbeachTrip)),
+                intake.new ChangeStates(IntakeState.DOWN_ON)));
+        shoot1ToIntake2Traj.atTime("stopIntake").onTrue(Commands.parallel(
+                Commands.runOnce(() -> CommandScheduler.getInstance().schedule(unbeachTrip)),
+                intake.new ChangeStates(IntakeState.DOWN_OFF)));
+
+        startToIntake1Traj.atTime("intake").onTrue(Commands.parallel(
+                Commands.runOnce(() -> CommandScheduler.getInstance().schedule(unbeachTrip)),
+                intake.new ChangeStates(IntakeState.DOWN_ON)));
+        startToIntake1Traj.atTime("stopIntake").onTrue(Commands.parallel(
+                Commands.runOnce(() -> CommandScheduler.getInstance().schedule(unbeachTrip)),
+                intake.new ChangeStates(IntakeState.DOWN_OFF)));
+
+        // store the routine so don't need to generate at the start of auto
         generatedRoutine = routine;
 
         return routine;
     }
 
-    /** returns the generated routine if it exists otherwise it generates the routine and returns it
+    /**
+     * returns the generated routine if it exists otherwise it generates the routine
+     * and returns it
      */
-    public AutoRoutine getRoutine(){
-        if(generatedRoutine == null) return generateRoutine(true);
+    public AutoRoutine getRoutine() {
+        if (generatedRoutine == null)
+            return generateRoutine(true);
         return generatedRoutine;
     }
 
-    /** throws an elastic error message if 1 or more of the paths dont exist
+    /**
+     * throws an elastic error message if 1 or more of the paths dont exist
+     * 
      * @return true if there is at least 1 missing path, false if all paths exist
      */
-    public boolean checkForErrors(AutoTrajectory... trajectories){
+    public boolean checkForErrors(AutoTrajectory... trajectories) {
         boolean errors = false;
-        for(AutoTrajectory trajectory : trajectories){
-            if(trajectory.getRawTrajectory().getPoses().length == 0){
+        for (AutoTrajectory trajectory : trajectories) {
+            if (trajectory.getRawTrajectory().getPoses().length == 0) {
                 String invalidTrajectoryName = trajectory.getRawTrajectory().name();
-                Elastic.Notification notification = new Elastic.Notification(Elastic.NotificationLevel.ERROR, "Auto Path Generation Failed", invalidTrajectoryName + " is invalid with current settings");
+                Elastic.Notification notification = new Elastic.Notification(Elastic.NotificationLevel.ERROR,
+                        "Auto Path Generation Failed", invalidTrajectoryName + " is invalid with current settings");
                 Elastic.sendNotification(notification);
             }
         }
         return errors;
     }
 
-    public void displayGenerationStatus(AutoTrajectory... trajectories){
-        if(checkForErrors(trajectories)){
-            Elastic.Notification notification = new Elastic.Notification(Elastic.NotificationLevel.INFO, "Auto Path Generated With Errors", "this just means some paths are missing/invalid");
+    public void displayGenerationStatus(AutoTrajectory... trajectories) {
+        if (checkForErrors(trajectories)) {
+            Elastic.Notification notification = new Elastic.Notification(Elastic.NotificationLevel.INFO,
+                    "Auto Path Generated With Errors", "this just means some paths are missing/invalid");
             Elastic.sendNotification(notification);
-        }
-        else{
-            Elastic.Notification notification = new Elastic.Notification(Elastic.NotificationLevel.INFO, "Auto Path Generated", "");
+        } else {
+            Elastic.Notification notification = new Elastic.Notification(Elastic.NotificationLevel.INFO,
+                    "Auto Path Generated", "");
             Elastic.sendNotification(notification);
         }
     }
 
     /**
      * displays an autoroutine on smartdashboard
-     * @param trajectories the Choreo AutoTrajectories that make up the routine desired to be displayed
+     * 
+     * @param trajectories the Choreo AutoTrajectories that make up the routine
+     *                     desired to be displayed
      */
-    public void updateField(AutoTrajectory... trajectories){
+    public void updateField(AutoTrajectory... trajectories) {
         edu.wpi.first.math.trajectory.Trajectory trajectory = new edu.wpi.first.math.trajectory.Trajectory();
-        for(int i = 0; i < trajectories.length; i++){
+        for (int i = 0; i < trajectories.length; i++) {
             Trajectory<SwerveSample> choreoTrajectory = trajectories[i].getRawTrajectory();
 
             ArrayList<Pose2d> poses = new ArrayList<Pose2d>();
-            for(int j = 0; j < choreoTrajectory.getPoses().length; j++){
+            for (int j = 0; j < choreoTrajectory.getPoses().length; j++) {
                 poses.add(choreoTrajectory.getPoses()[j]);
             }
             PoseTrajectory pt = new PoseTrajectory(poses);
@@ -322,5 +357,87 @@ public class ConfigurableAuto {
         }
         generatedRoutineDisplay.getObject("traj").setTrajectory(trajectory);
         SmartDashboard.putData("Generated Routine Display", generatedRoutineDisplay);
+    }
+
+    private class UnbeachTrip extends Command {
+        private final AutoRoutine routine;
+
+        private boolean bufferTripped;
+        private double bufferTripTime;
+        private boolean tripped;
+
+        public UnbeachTrip(AutoRoutine routine) {
+            this.routine = routine;
+        }
+
+        @Override
+        public void initialize() {
+            bufferTripped = false;
+            tripped = false;
+        }
+
+        @Override
+        public void execute() {
+            if (shouldTrip()) {
+                if (!bufferTripped) {
+                    bufferTripped = true;
+                    bufferTripTime = getTime();
+                }
+            } else {
+                bufferTripped = false;
+            }
+
+            if (bufferTripped && getTime() - bufferTripTime > 1) {
+                tripped = true;
+            }
+        }
+
+        @Override
+        public boolean isFinished() {
+            return tripped;
+        }
+
+        @Override
+        public void end(boolean interrupted) {
+            if (tripped) {
+                trip();
+            }
+        }
+
+        private void trip() {
+            routine.kill();
+            CommandScheduler.getInstance().schedule(Commands.run(() -> {}, drivetrain));
+
+            double timeLeftInAuto = DriverStation.getMatchTime();
+            BeachRecoveryMode beachRecoveryMode;
+            if (timeLeftInAuto < 5) {
+                beachRecoveryMode = BeachRecoveryMode.BLINE;
+            } else if (timeLeftInAuto < 10) {
+                beachRecoveryMode = BeachRecoveryMode.HOOK;
+            } else {
+                beachRecoveryMode = BeachRecoveryMode.ZIG_ZAG;
+            }
+            BeachRecoverySide beachRecoverySide = PoseUtil.isPoseOnRight(drivetrain.getState().Pose)
+                    ? BeachRecoverySide.RIGHT
+                    : BeachRecoverySide.LEFT;
+            if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red) {
+                beachRecoverySide = (beachRecoverySide == BeachRecoverySide.RIGHT) ? BeachRecoverySide.LEFT
+                        : BeachRecoverySide.RIGHT;
+            }
+            CommandScheduler.getInstance().schedule(new AutoBeachRecovery(
+                    drivetrain,
+                    intake,
+                    beachRecoveryMode,
+                    beachRecoverySide,
+                    new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())));
+        }
+
+        private boolean shouldTrip() {
+            return true;
+        }
+
+        private double getTime() {
+            return MathSharedStore.getTimestamp();
+        }
     }
 }
