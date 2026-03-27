@@ -606,6 +606,6 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         }
         double expectedSpeed = expectedVelocitySum.div(getState().ModuleStates.length).getNorm();
         double actualSpeed = Math.hypot(getState().Speeds.vxMetersPerSecond, getState().Speeds.vyMetersPerSecond);
-        return expectedSpeed - actualSpeed > 2.5;
+        return expectedSpeed - actualSpeed > 1.0;
     }
 }

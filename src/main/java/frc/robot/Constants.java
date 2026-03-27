@@ -520,7 +520,6 @@ public final class Constants {
         public static final double ShootTime = 3;
 
         public static final APConstraints kAutopilotConstraints = new APConstraints()
-                .withVelocity(kMaxTranslationSpeed)
                 .withAcceleration(6.0)
                 .withJerk(3.0);
         public static final APProfile kAutopilotAlignProfile = new APProfile(kAutopilotConstraints)

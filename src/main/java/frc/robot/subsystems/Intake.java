@@ -50,6 +50,7 @@ public class Intake extends SubsystemBase {
     }
 
     public void setSpinSpeed(double speed) {
+        System.out.println(speed);
         spinMotor.set(speed);
     }
 

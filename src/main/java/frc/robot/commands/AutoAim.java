@@ -252,7 +252,7 @@ public class AutoAim extends Command {
 
             double vz = robotRelativeBallVelocityVertical;
 
-            System.out.println("vx: " + vx + " vy: " + vy + " vz: " + vz);
+            //System.out.println("vx: " + vx + " vy: " + vy + " vz: " + vz);
 
             sim_shootFuel(vx, vy, vz);
         }

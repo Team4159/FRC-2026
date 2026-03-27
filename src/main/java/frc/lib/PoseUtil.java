@@ -1,7 +1,5 @@
 package frc.lib;
 
-import static edu.wpi.first.units.Units.Meters;
-
 import java.util.Optional;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -22,17 +20,17 @@ public final class PoseUtil {
 
     public static final Pose2d flipPoseAlongMiddleY(Pose2d pose) {
         return new Pose2d(
-                FieldZone.FIELD.width.baseUnitMagnitude(),
+                pose.getX(),
                 FieldZone.FIELD.height.baseUnitMagnitude() - pose.getY(),
-                Rotation2d.k180deg.minus(pose.getRotation())
+                pose.getRotation().times(-1)
         );
     }
 
     public static final Pose2d flipPoseAlongMiddleX(Pose2d pose) {
         return new Pose2d(
                 FieldZone.FIELD.width.baseUnitMagnitude() - pose.getX(),
-                FieldZone.FIELD.height.baseUnitMagnitude(),
-                pose.getRotation().times(-1)
+                pose.getY(),
+                Rotation2d.k180deg.minus(pose.getRotation())
         );
     }
 
@@ -40,11 +38,11 @@ public final class PoseUtil {
         if (alliance == Alliance.Red) {
             pose = flipPoseAlongMiddleXY(pose);
         }
-        return pose.getX() <= FieldZone.ALLIANCE.width.in(Meters);
+        return pose.getX() <= FieldZone.ALLIANCE.width.baseUnitMagnitude();
     }
 
     public static final boolean isPoseOnRight(Pose2d pose) {
-        return pose.getY() <= FieldZone.ALLIANCE.height.in(Meters);
+        return pose.getY() <= FieldZone.ALLIANCE.height.baseUnitMagnitude() / 2;
     }
 
     public static final boolean isPoseOnLeft(Pose2d pose) {
