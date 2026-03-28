@@ -112,6 +112,11 @@ public class Shooter extends SubsystemBase{
         SmartDashboard.putNumber("hood position", Units.rotationsToDegrees(hoodMotor.getPosition().getValueAsDouble()));
         SmartDashboard.putNumber("manual hood target", manualAngle);
         SmartDashboard.putNumber("shooter velocity", leftBottomShooterMotor.getVelocity().getValue().in(RPM));
+
+        SmartDashboard.putNumber("bottom left shooter motor current", leftBottomShooterMotor.getSupplyCurrent().getValue().in(Amps));
+        SmartDashboard.putNumber("top left shooter motor current", leftTopShooterMotor.getSupplyCurrent().getValue().in(Amps));
+        SmartDashboard.putNumber("bottom right shooter motor current", rightBottomShooterMotor.getSupplyCurrent().getValue().in(Amps));
+        SmartDashboard.putNumber("top right shooter motor current", rightTopShooterMotor.getSupplyCurrent().getValue().in(Amps));
     }
     
     public void setFeederSpeed(double speed){

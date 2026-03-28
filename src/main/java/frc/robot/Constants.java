@@ -349,12 +349,12 @@ public final class Constants {
         public static final double kP = 5;
         public static final double kI = 0;
         public static final double kD = 0;
-        public static final double kS = 1;
+        public static final double kS = 0;
         //remove if doesnt work
         public static final double kV = 0.25;
         public static final double kA = 2.14;
 
-        public static final double kCurrentLimit = 30;
+        public static final double kCurrentLimit = 20;
         public static final double kRampRate = 0.2;
 
         public static final int ShooterIDLeftBottom = 9;
@@ -644,11 +644,6 @@ public final class Constants {
 
     public static final class JoeLookupTableConstants {
 
-        /**
-         * adjust the angle of the hood down by this much (in radians) for each
-         * meter/second slow the calculated tangential speed is
-         */
-        public static final double kShooterVelocityCorrection = 0.05;
         /**
          * adjust the angle of the hood down by this much (in radians for each
          * meter/second slow the calculated tangential speed is
