@@ -433,7 +433,7 @@ public class ConfigurableAuto {
         }
 
         private boolean shouldTrip() {
-            return drivetrain.isSlipping();
+            return !PoseUtil.isPoseInAllianceZone(DriverStation.getAlliance().orElse(Alliance.Blue), drivetrain.getState().Pose) && drivetrain.isSlipping();
         }
 
         private double getTime() {
