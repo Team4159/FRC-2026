@@ -24,11 +24,11 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Vector;
+import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
@@ -76,12 +76,18 @@ public class Drivetrain extends CommandSwerveDrivetrain {
 
     public final Trigger crashTrigger = new Trigger(this::isCrashing);
     public final Trigger slipTrigger = new Trigger(this::isSlipping);
+    private final LinearFilter slippingBucketFilter = LinearFilter.movingAverage(25);
 
     private final Supplier<Double> inputX;
     private final Supplier<Double> inputY;
     private final Supplier<Double> inputRotationVelocity;
     private final Supplier<Double> inputRotationX;
     private final Supplier<Double> inputRotationY;
+
+    private final ChassisSpeeds estimatedRealChassisSpeeds = new ChassisSpeeds(0, 0, pigeon.getAngularVelocityYWorld().getValueAsDouble());
+    private final LinearFilter estimatedRealChassisSpeedXFilter = LinearFilter.movingAverage(5);
+    private final LinearFilter estimatedRealChassisSpeedYFilter = LinearFilter.movingAverage(5);
+    private Pose2d lastPose = getState().Pose;
 
     private class DriveFlagValue {
         public final boolean defaultValue;
@@ -105,10 +111,10 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         driveFlags.put(DriveFlag.INTAKE_ASSIST, new DriveFlagValue(false));
         driveFlags.put(DriveFlag.MANUAL_ALIGN, new DriveFlagValue(false));
     }
+    private Optional<Rotation2d> externalDesiredRotation = Optional.empty();
+
     private boolean autoPathAutoAimMode = false;
     private AutoAim autoAimCommand;
-
-    private Optional<Rotation2d> externalDesiredRotation = Optional.empty();
 
     public Drivetrain(CommandXboxController controller) {
         super(TunerConstants.DrivetrainConstants, TunerConstants.FrontLeft, TunerConstants.FrontRight,
@@ -118,6 +124,17 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         this.inputRotationVelocity = () -> -controller.getRightX();
         this.inputRotationX = () -> -controller.getRightY();
         this.inputRotationY = () -> -controller.getRightX();
+    }
+
+    @Override
+    public void periodic() {
+        Pose2d currentPose = getState().Pose;
+        Translation2d displacement = currentPose.getTranslation().minus(lastPose.getTranslation());
+        lastPose = currentPose;
+        estimatedRealChassisSpeeds.vxMetersPerSecond = estimatedRealChassisSpeedXFilter.calculate(displacement.getX() / 0.02);
+        estimatedRealChassisSpeeds.vyMetersPerSecond = estimatedRealChassisSpeedYFilter.calculate(displacement.getY() / 0.02);
+        estimatedRealChassisSpeeds.omegaRadiansPerSecond = pigeon.getAngularVelocityYWorld().getValueAsDouble();
+        isSlipping();
     }
 
     public class Drive extends Command {
@@ -598,16 +615,8 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     }
 
     public boolean isSlipping() {
-        Translation2d expectedVelocitySum = new Translation2d();
-        for (SwerveModuleState swerveModuleState : getState().ModuleStates) {
-            Translation2d swerveModuleVelocity = new Translation2d(
-                swerveModuleState.speedMetersPerSecond * swerveModuleState.angle.getCos(),
-                swerveModuleState.speedMetersPerSecond * swerveModuleState.angle.getSin()
-            );
-            expectedVelocitySum = expectedVelocitySum.plus(swerveModuleVelocity);
-        }
-        double expectedSpeed = expectedVelocitySum.div(getState().ModuleStates.length).getNorm();
-        double actualSpeed = Math.hypot(getState().Speeds.vxMetersPerSecond, getState().Speeds.vyMetersPerSecond);
-        return expectedSpeed - actualSpeed > 1.0;
+        double expectedSpeed = Math.hypot(getState().Speeds.vxMetersPerSecond, getState().Speeds.vyMetersPerSecond);
+        double actualSpeed = Math.hypot(estimatedRealChassisSpeeds.vxMetersPerSecond, estimatedRealChassisSpeeds.vyMetersPerSecond);
+        return slippingBucketFilter.calculate(expectedSpeed - actualSpeed) > 2.0;
     }
 }
