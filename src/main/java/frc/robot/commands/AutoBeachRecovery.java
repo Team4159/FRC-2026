@@ -118,6 +118,10 @@ public class AutoBeachRecovery extends Command {
     private void unbeach() {
         Angle driveAngle = Degrees.of(Math.abs((MathSharedStore.getTimestamp() * kUnbeachTurnSpeed % 360.0) - 180)).plus(Degrees.of(90.0));
 
+        if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red) {
+            driveAngle = driveAngle.plus(Degrees.of(180.0));
+        }
+
         drivetrain.setControl(
           drivetrain.fieldCentricDrive
             .withVelocityX(kUnbeachTranslationSpeed * Math.cos(driveAngle.in(Radians)))
