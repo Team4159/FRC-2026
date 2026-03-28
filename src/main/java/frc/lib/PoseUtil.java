@@ -8,19 +8,35 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.FieldConstants.FieldZone;
 
-public final class FieldUtil {
+public final class PoseUtil {
 
-    public static final Pose2d flipPoseToOtherAlliance(Pose2d pose) {
+    public static final Pose2d flipPoseAlongMiddleXY(Pose2d pose) {
         return new Pose2d(
-                FieldZone.FIELD.size.getMeasureX().minus(pose.getMeasureX()),
-                FieldZone.FIELD.size.getMeasureY().minus(pose.getMeasureY()),
+                FieldZone.FIELD.size.getX() - pose.getX(),
+                FieldZone.FIELD.size.getY() - pose.getY(),
                 pose.getRotation().plus(Rotation2d.k180deg)
+        );
+    }
+
+    public static final Pose2d flipPoseAlongMiddleY(Pose2d pose) {
+        return new Pose2d(
+                pose.getX(),
+                FieldZone.FIELD.size.getY() - pose.getY(),
+                pose.getRotation().times(-1)
+        );
+    }
+
+    public static final Pose2d flipPoseAlongMiddleX(Pose2d pose) {
+        return new Pose2d(
+                FieldZone.FIELD.size.getX() - pose.getX(),
+                pose.getY(),
+                Rotation2d.k180deg.minus(pose.getRotation())
         );
     }
 
     public static final boolean isPoseInAllianceZone(Alliance alliance, Pose2d pose) {
         if (alliance == Alliance.Red) {
-            pose = flipPoseToOtherAlliance(pose);
+            pose = flipPoseAlongMiddleXY(pose);
         }
         return pose.getX() <= FieldConstants.kAllianceWidth.baseUnitMagnitude();
     }

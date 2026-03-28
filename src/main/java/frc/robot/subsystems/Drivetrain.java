@@ -24,6 +24,7 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Vector;
+import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -37,8 +38,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.lib.FieldUtil;
-import frc.robot.Constants.FieldConstants;
+import frc.lib.PoseUtil;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.OperatorConstants.DriveFlag;
 import frc.robot.Constants.OperatorConstants.DriveMode;
@@ -74,15 +74,20 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     public final SwerveRequest.PointWheelsAt pointDrive = new SwerveRequest.PointWheelsAt();
     public final SwerveRequest.Idle idleDrive = new SwerveRequest.Idle();
 
-    public final Trigger crashTrigger = new Trigger(
-            () -> Math.hypot(pigeon.getAccelerationX().getValue().in(MetersPerSecondPerSecond),
-                    pigeon.getAccelerationY().getValue().in(MetersPerSecondPerSecond)) >= FieldConstants.g * 2.0);
+    public final Trigger crashTrigger = new Trigger(this::isCrashing);
+    public final Trigger slipTrigger = new Trigger(this::isSlipping);
+    private final LinearFilter slippingBucketFilter = LinearFilter.movingAverage(25);
 
     private final Supplier<Double> inputX;
     private final Supplier<Double> inputY;
     private final Supplier<Double> inputRotationVelocity;
     private final Supplier<Double> inputRotationX;
     private final Supplier<Double> inputRotationY;
+
+    private final ChassisSpeeds estimatedRealChassisSpeeds = new ChassisSpeeds(0, 0, pigeon.getAngularVelocityYWorld().getValueAsDouble());
+    private final LinearFilter estimatedRealChassisSpeedXFilter = LinearFilter.movingAverage(5);
+    private final LinearFilter estimatedRealChassisSpeedYFilter = LinearFilter.movingAverage(5);
+    private Pose2d lastPose = getState().Pose;
 
     private class DriveFlagValue {
         public final boolean defaultValue;
@@ -106,10 +111,10 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         driveFlags.put(DriveFlag.INTAKE_ASSIST, new DriveFlagValue(false));
         driveFlags.put(DriveFlag.MANUAL_ALIGN, new DriveFlagValue(false));
     }
+    private Optional<Rotation2d> externalDesiredRotation = Optional.empty();
+
     private boolean autoPathAutoAimMode = false;
     private AutoAim autoAimCommand;
-
-    private Optional<Rotation2d> externalDesiredRotation = Optional.empty();
 
     public Drivetrain(CommandXboxController controller) {
         super(TunerConstants.DrivetrainConstants, TunerConstants.FrontLeft, TunerConstants.FrontRight,
@@ -119,6 +124,17 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         this.inputRotationVelocity = () -> -controller.getRightX();
         this.inputRotationX = () -> -controller.getRightY();
         this.inputRotationY = () -> -controller.getRightX();
+    }
+
+    @Override
+    public void periodic() {
+        Pose2d currentPose = getState().Pose;
+        Translation2d displacement = currentPose.getTranslation().minus(lastPose.getTranslation());
+        lastPose = currentPose;
+        estimatedRealChassisSpeeds.vxMetersPerSecond = estimatedRealChassisSpeedXFilter.calculate(displacement.getX() / 0.02);
+        estimatedRealChassisSpeeds.vyMetersPerSecond = estimatedRealChassisSpeedYFilter.calculate(displacement.getY() / 0.02);
+        estimatedRealChassisSpeeds.omegaRadiansPerSecond = pigeon.getAngularVelocityYWorld().getValueAsDouble();
+        isSlipping();
     }
 
     public class Drive extends Command {
@@ -223,7 +239,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
             Pose2d robotPose = getState().Pose;
 
             // trench assist
-            var trenchZone = FieldUtil.getPoseTrenchZone(robotPose);
+            var trenchZone = PoseUtil.getPoseTrenchZone(robotPose);
             if (trenchZone.isPresent()) {
                 Translation2d focus = trenchZone.get().focus;
                 Distance errorX = focus.getMeasureX().minus(robotPose.getMeasureX());
@@ -592,4 +608,15 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         return getDriveFlagValue(DriveFlag.AUTO_BRAKE) && isDriveIdle() && atDesiredRotation;
     }
 
+    public boolean isCrashing() {
+        double xyAccelerationMagnitude = Math.hypot(pigeon.getAccelerationX().getValue().in(MetersPerSecondPerSecond),
+                pigeon.getAccelerationY().getValue().in(MetersPerSecondPerSecond));
+        return xyAccelerationMagnitude >= 20.0;
+    }
+
+    public boolean isSlipping() {
+        double expectedSpeed = Math.hypot(getState().Speeds.vxMetersPerSecond, getState().Speeds.vyMetersPerSecond);
+        double actualSpeed = Math.hypot(estimatedRealChassisSpeeds.vxMetersPerSecond, estimatedRealChassisSpeeds.vyMetersPerSecond);
+        return slippingBucketFilter.calculate(expectedSpeed - actualSpeed) > 2.0;
+    }
 }
