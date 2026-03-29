@@ -96,6 +96,7 @@ public class ConfigurableAuto {
 
         // shoot chooser 1
         shootChooser1.addOption("Shoot", "Shoot");
+        shootChooser1.addOption("Shoot Bump", "ShootBump");
         shootChooser1.addOption("Shoot and Climb", "Climb");
         shootChooser1.setDefaultOption("None", "None");
 
@@ -108,6 +109,7 @@ public class ConfigurableAuto {
 
         // shoot chooser 2
         shootChooser2.addOption("Shoot", "Shoot");
+        shootChooser2.addOption("Shoot Bump", "ShootBump");
         shootChooser2.addOption("Shoot and Climb", "Climb");
         shootChooser2.setDefaultOption("None", "None");
 
@@ -204,9 +206,9 @@ public class ConfigurableAuto {
         }
 
         final String startToIntake1Name = direction + "StartTo" + direction + intake1;
-        final String intake1ToShoot1Name = direction + intake1 + "To" + direction + "Shoot";
-        final String shoot1ToIntake2Name = direction + "Shoot" + "To" + direction + intake2;
-        final String intake2ToShoot2Name = direction + intake2 + "To" + direction + "Shoot";
+        final String intake1ToShoot1Name = direction + intake1 + "To" + direction + shoot1;
+        final String shoot1ToIntake2Name = direction + shoot1 + "To" + direction + intake2;
+        final String intake2ToShoot2Name = direction + intake2 + "To" + direction + shoot2;
 
         final AutoTrajectory startToIntake1Traj = routine.trajectory(startToIntake1Name);
         final AutoTrajectory intake1ToShoot1Traj = routine.trajectory(intake1ToShoot1Name);
@@ -278,17 +280,17 @@ public class ConfigurableAuto {
         UnbeachTrip unbeachTrip = new UnbeachTrip(routine);
 
         shoot1ToIntake2Traj.atTime("intake").onTrue(Commands.parallel(
-                Commands.runOnce(() -> CommandScheduler.getInstance().schedule(unbeachTrip)),
+                //Commands.runOnce(() -> CommandScheduler.getInstance().schedule(unbeachTrip)),
                 intake.new ChangeStates(IntakeState.DOWN_ON)));
         shoot1ToIntake2Traj.atTime("stopIntake").onTrue(Commands.parallel(
-                Commands.runOnce(() -> CommandScheduler.getInstance().schedule(unbeachTrip)),
+                //Commands.runOnce(() -> CommandScheduler.getInstance().schedule(unbeachTrip)),
                 intake.new ChangeStates(IntakeState.DOWN_OFF)));
 
         startToIntake1Traj.atTime("intake").onTrue(Commands.parallel(
-                Commands.runOnce(() -> CommandScheduler.getInstance().schedule(unbeachTrip)),
+                //Commands.runOnce(() -> CommandScheduler.getInstance().schedule(unbeachTrip)),
                 intake.new ChangeStates(IntakeState.DOWN_ON)));
         startToIntake1Traj.atTime("stopIntake").onTrue(Commands.parallel(
-                Commands.runOnce(() -> CommandScheduler.getInstance().schedule(unbeachTrip)),
+                //Commands.runOnce(() -> CommandScheduler.getInstance().schedule(unbeachTrip)),
                 intake.new ChangeStates(IntakeState.DOWN_OFF)));
 
         // store the routine so don't need to generate at the start of auto

@@ -125,7 +125,7 @@ public class RobotContainer {
         // test mode
         primaryController.a().and(DriverStation::isTest).whileTrue(drivetrain.new Drive(DriveMode.BRAKE));
         primaryController.b().and(DriverStation::isTest).whileTrue(drivetrain.new Drive(DriveMode.POINT));
-        // primaryController.a().and(DriverStation::isTest).whileTrue(new AutoBeachRecovery(drivetrain, intake, BeachRecoveryMode.ZIG_ZAG, BeachRecoverySide.LEFT, new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())));
+        primaryController.a().and(DriverStation::isTest).whileTrue(new AutoBeachRecovery(drivetrain, intake, BeachRecoveryMode.ZIG_ZAG, BeachRecoverySide.LEFT, new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())));
 
         // teleop mode
         primarySlowModeTrigger.and(DriverStation::isTeleop)

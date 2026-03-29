@@ -64,6 +64,8 @@ public class Shooter extends SubsystemBase{
         CurrentLimitsConfigs currentLimits = new CurrentLimitsConfigs().withSupplyCurrentLimit(Amps.of(20)).withSupplyCurrentLimitEnable(true);
         feederMotor.getConfigurator().apply(currentLimits);
 
+        adjustHood(Degrees.of(5));
+
         // leftTopShooterMotor.setControl(new StrictFollower(leaderShooterMotor.getDeviceID()));
         // rightTopShooterMotor.setControl(new StrictFollower(leaderShooterMotor.getDeviceID()));
         // rightBottomShooterMotor.setControl(new StrictFollower(leaderShooterMotor.getDeviceID()));

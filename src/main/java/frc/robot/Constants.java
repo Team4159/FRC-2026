@@ -191,9 +191,9 @@ public final class Constants {
                 new TrapezoidProfile.Constraints(kCompressRate, 1));
 
         public static enum IntakeState {
-            DOWN_ON(Degrees.of(-12), 0.5),
+            DOWN_ON(Degrees.of(-12), 0.75),
             DOWN_OFF(Degrees.of(-12), 0),
-            DOWN_REV(Degrees.of(-12), -0.5),
+            DOWN_REV(Degrees.of(-12), -0.75),
             UP_OFF(Degrees.of(130), 0),
             BOUNCE_UP(Degrees.of(55), 0),
             STOP(Degrees.of(130), 0);
@@ -292,7 +292,7 @@ public final class Constants {
         // abs encoder
         public static final int HoodId = 8;
         public static final int kHoodEncoderID = 2;
-        public static final Angle kEncoderOffset = Degrees.of(-255);
+        public static final Angle kEncoderOffset = Degrees.of(-230);
         public static final double kSensorToMechanismRatio = 34 / 16;
         public static final double kMotorToSensorRatio = 125;
 
@@ -354,7 +354,7 @@ public final class Constants {
         public static final double kV = 0.25;
         public static final double kA = 2.14;
 
-        public static final double kCurrentLimit = 20;
+        public static final double kCurrentLimit = 30;
         public static final double kRampRate = 0.2;
 
         public static final int ShooterIDLeftBottom = 9;
@@ -420,7 +420,7 @@ public final class Constants {
         /** TODO: find the correct distance */
         public static final Distance kShooterRollerRadius = Inches.of(0.75);
 
-        public static final double kShooterEfficiency = 0.85;
+        public static final double kShooterEfficiency = 0.80;
 
         // robot relative shooter offset
         // TODO implement in the calculation

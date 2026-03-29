@@ -89,6 +89,7 @@ public class AutoBeachRecovery extends Command {
 
     @Override
     public void execute() {
+        System.out.println("BEACH");
         if (beachRecoveryState == BeachRecoveryState.UNBEACH && !drivetrain.isSlipping()) {
             beachRecoveryState = BeachRecoveryState.RECOVER;
         }

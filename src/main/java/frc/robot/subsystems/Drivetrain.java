@@ -617,6 +617,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     public boolean isSlipping() {
         double expectedSpeed = Math.hypot(getState().Speeds.vxMetersPerSecond, getState().Speeds.vyMetersPerSecond);
         double actualSpeed = Math.hypot(estimatedRealChassisSpeeds.vxMetersPerSecond, estimatedRealChassisSpeeds.vyMetersPerSecond);
+        System.out.println("slip value: " + slippingBucketFilter.lastValue());
         return slippingBucketFilter.calculate(expectedSpeed - actualSpeed) > 2.0;
     }
 }

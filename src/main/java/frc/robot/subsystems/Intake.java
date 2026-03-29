@@ -41,7 +41,7 @@ public class Intake extends SubsystemBase {
         setLocation(IntakeState.UP_OFF.rotationLocation);
         //intakeVelocityVoltage = new VelocityVoltage(0);
 
-        CurrentLimitsConfigs currentLimits = new CurrentLimitsConfigs().withSupplyCurrentLimit(Amps.of(20)).withSupplyCurrentLimitEnable(true);
+        CurrentLimitsConfigs currentLimits = new CurrentLimitsConfigs().withSupplyCurrentLimit(Amps.of(30)).withSupplyCurrentLimitEnable(true);
         spinMotor.getConfigurator().apply(currentLimits);
     }
 
