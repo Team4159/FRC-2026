@@ -80,7 +80,7 @@ public class AutoRecovery extends Command {
 
     @Override
     public void initialize() {
-        beachRecoveryState = BeachRecoveryState.UNBEACH;
+        beachRecoveryState = BeachRecoveryState.RECOVER;
         pathTargets = getPathTargets(beachRecoveryMode, beachRecoverySide);
         pathProgress = 0;
         pathController = pathTargets[pathProgress].controller;
