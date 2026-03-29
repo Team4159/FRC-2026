@@ -28,7 +28,7 @@ import frc.robot.Constants.IntakeConstants.IntakeState;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Intake;
 
-public class AutoBeachRecovery extends Command {
+public class AutoRecovery extends Command {
     
     public static enum BeachRecoveryMode {
         ZIG_ZAG,
@@ -70,7 +70,7 @@ public class AutoBeachRecovery extends Command {
     private Autopilot pathController;
     private int pathProgress = 0;
 
-    public AutoBeachRecovery(Drivetrain drivetrain, Intake intake, BeachRecoveryMode beachRecoveryMode, BeachRecoverySide beachRecoverySide, Command shootCommand) {
+    public AutoRecovery(Drivetrain drivetrain, Intake intake, BeachRecoveryMode beachRecoveryMode, BeachRecoverySide beachRecoverySide, Command shootCommand) {
         this.drivetrain = drivetrain;
         this.intake = intake;
         this.beachRecoveryMode = beachRecoveryMode;
@@ -146,22 +146,21 @@ public class AutoBeachRecovery extends Command {
     }
 
     private PathTarget[] getPathTargets(BeachRecoveryMode beachRecoveryMode, BeachRecoverySide beachRecoverySide) {
-        // TODO: finish paths
         ArrayList<PathTarget> newPathTargets = new ArrayList<>();
 
         // targets are filtered to have no entry angle
         switch (beachRecoveryMode) {
             case ZIG_ZAG: {
-                addIntakePointToPathTargets(newPathTargets, new Translation2d(Inches.of(300.0), Inches.of(79.0)));
-                addIntakePointToPathTargets(newPathTargets, new Translation2d(Inches.of(280.0), Inches.of(40.0)));
+                addIntakePointToPathTargets(newPathTargets, new Translation2d(Inches.of(280.0), Inches.of(79.0)));
+                addIntakePointToPathTargets(newPathTargets, new Translation2d(Inches.of(270.0), Inches.of(40.0)));
                 addIntakePointToPathTargets(newPathTargets, new Translation2d(Inches.of(260.0), Inches.of(130.0)));
-                addIntakePointToPathTargets(newPathTargets, new Translation2d(Inches.of(230.0), Inches.of(130.0)));
+                addIntakePointToPathTargets(newPathTargets, new Translation2d(Inches.of(240.0), Inches.of(130.0)));
                 break;
             }
             case HOOK: {
-                addIntakePointToPathTargets(newPathTargets, new Translation2d(Inches.of(300.0), Inches.of(79.0)));
-                addIntakePointToPathTargets(newPathTargets, new Translation2d(Inches.of(270.0), Inches.of(130.0)));
-                addIntakePointToPathTargets(newPathTargets, new Translation2d(Inches.of(230.0), Inches.of(130.0)));
+                addIntakePointToPathTargets(newPathTargets, new Translation2d(Inches.of(260.0), Inches.of(79.0)));
+                addIntakePointToPathTargets(newPathTargets, new Translation2d(Inches.of(260.0), Inches.of(130.0)));
+                addIntakePointToPathTargets(newPathTargets, new Translation2d(Inches.of(240.0), Inches.of(130.0)));
                 break;
             }
             case BLINE: {

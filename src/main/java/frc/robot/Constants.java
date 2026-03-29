@@ -240,7 +240,8 @@ public final class Constants {
         public static final double kTrenchAssistApproachInputTolerance = 0.2;
         public static final Distance kTrenchAssistAlignPositionTolerance = Meters.of(0.15);
         public static final double kTrenchAssistAlignStrength = 0.85;
-        public static final double kTrenchAssistAlignInfluence = 0.15;
+        public static final double kTrenchAssistAlignInfluence = 0.2;
+        public static final Distance kTrenchAssistFrontProtrusionExtent = Inches.of(10.0);
 
         // drive mode constants
         public static final Angle kPrimaryAutoBrakeReachedDesiredAngleTolerance = Degrees.of(5);

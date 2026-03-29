@@ -29,13 +29,12 @@ import frc.robot.Constants.HopperConstants.HopperState;
 import frc.robot.Constants.IntakeConstants.IntakeState;
 import frc.robot.commands.AutoAim;
 import frc.robot.commands.AutoAlign;
-import frc.robot.commands.AutoBeachRecovery;
 import frc.robot.commands.AutoLob;
+import frc.robot.commands.AutoRecovery;
+import frc.robot.commands.AutoRecovery.BeachRecoveryMode;
+import frc.robot.commands.AutoRecovery.BeachRecoverySide;
 import frc.robot.commands.HubShoot;
 import frc.robot.commands.TowerShoot;
-import frc.robot.commands.AutoBeachRecovery.BeachRecoveryMode;
-import frc.robot.commands.AutoBeachRecovery.BeachRecoverySide;
-import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.LEDs;
 import frc.robot.subsystems.PhotonVision;
@@ -123,9 +122,9 @@ public class RobotContainer {
                 drivetrain.new Drive(DriveMode.IDLE).ignoringDisable(true));
 
         // test mode
-        primaryController.a().and(DriverStation::isTest).whileTrue(drivetrain.new Drive(DriveMode.BRAKE));
+        // primaryController.a().and(DriverStation::isTest).whileTrue(drivetrain.new Drive(DriveMode.BRAKE));
         primaryController.b().and(DriverStation::isTest).whileTrue(drivetrain.new Drive(DriveMode.POINT));
-        // primaryController.a().and(DriverStation::isTest).whileTrue(new AutoBeachRecovery(drivetrain, intake, BeachRecoveryMode.ZIG_ZAG, BeachRecoverySide.LEFT, new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())));
+        primaryController.a().and(DriverStation::isTest).whileTrue(new AutoRecovery(drivetrain, intake, BeachRecoveryMode.ZIG_ZAG, BeachRecoverySide.LEFT, new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())));
 
         // teleop mode
         primarySlowModeTrigger.and(DriverStation::isTeleop)

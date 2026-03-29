@@ -242,6 +242,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
             var trenchZone = PoseUtil.getPoseTrenchZone(robotPose);
             if (trenchZone.isPresent()) {
                 Translation2d focus = trenchZone.get().focus;
+                focus = focus.minus(new Translation2d(Meters.of(0.0), kTrenchAssistFrontProtrusionExtent.div(2).times(robotPose.getRotation().getSin())));
                 Distance errorX = focus.getMeasureX().minus(robotPose.getMeasureX());
                 Distance errorY = focus.getMeasureY().minus(robotPose.getMeasureY());
 
