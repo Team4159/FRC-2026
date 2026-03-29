@@ -301,6 +301,11 @@ public final class Constants {
         public static final double kAcceleration = 80;
         public static final double kJerk = 1600;
 
+        /** the angle between the center of the shooter and the very edge */
+        public static final Angle kHoodAngleOffset = Degrees.of(7.6743605);
+
+        public static final Angle kRestingAngle = Degrees.of(-5.8019605);
+
         // hood cancoder
         public static final CANcoderConfiguration canCoderConfig = new CANcoderConfiguration() {
             {
@@ -659,6 +664,8 @@ public final class Constants {
 
     public static final class JoeLookupTableConstants {
 
+      public static record LookupTablePoint(AngularVelocity angularVelocity, double efficiency) {};
+
         /**
          * adjust the angle of the hood down by this much (in radians for each
          * meter/second slow the calculated tangential speed is
@@ -670,41 +677,15 @@ public final class Constants {
         public static final Distance kMaxDistance = Meters.of(4.5);
 
         // stores desired velocity based on position
-        public static final Map<Distance, AngularVelocity> joeLookupTable = Map.ofEntries(
-                //+0.5 s to old simulated
-                // Map.entry(Meters.of(1),   new ShotData(Degrees.of(85), RPM.of(2000), Seconds.of(1.758))),
-                // Map.entry(Meters.of(1.5), new ShotData(Degrees.of(83), RPM.of(2000), Seconds.of(1.740))),
-                // //3/14 tested
-                // Map.entry(Meters.of(2),   new ShotData(Degrees.of(77), RPM.of(2000), Seconds.of(1.714))),
-                // Map.entry(Meters.of(2.5), new ShotData(Degrees.of(72), RPM.of(2050), Seconds.of(1.729))),
-                // Map.entry(Meters.of(3),   new ShotData(Degrees.of(69), RPM.of(2100), Seconds.of(1.738))),
-                // Map.entry(Meters.of(3.5), new ShotData(Degrees.of(68), RPM.of(2200), Seconds.of(1.801))),
-                // Map.entry(Meters.of(4),   new ShotData(Degrees.of(67), RPM.of(2300), Seconds.of(1.863))),
-                // Map.entry(Meters.of(4.5), new ShotData(Degrees.of(66), RPM.of(2400), Seconds.of(1.921)))
-
-                //new simulated
-                Map.entry(Meters.of(1),   RPM.of(2600)),
-                Map.entry(Meters.of(1.5), RPM.of(2600)),
-                //3/14 tested
-                Map.entry(Meters.of(2),   RPM.of(2600)),
-                Map.entry(Meters.of(2.5), RPM.of(270)),
-                Map.entry(Meters.of(3),   RPM.of(2800)),
-                Map.entry(Meters.of(3.5), RPM.of(2900)),
-                Map.entry(Meters.of(4),   RPM.of(3100)),
-                Map.entry(Meters.of(4.5), RPM.of(3300))
-
-        // Map.entry(Meters.of(4.5), new ShotData(Degrees.of(66.726),
-        // Seconds.of(1.642))),
-        // Map.entry(Meters.of(5.5), new ShotData(Degrees.of(47), Seconds.of(1.556))),
-        // Map.entry(Meters.of(6), new ShotData(Degrees.of(45), Seconds.of(1.512)))
-        // Map.entry(Meters.of(6.5), new ShotData(Degrees.of(53.808),
-        // Seconds.of(1.451))),
-        // Map.entry(Meters.of(7), new ShotData(Degrees.of(50.122), Seconds.of(1.349))),
-        // Map.entry(Meters.of(7.5), new ShotData(Degrees.of(45), Seconds.of(1.176))),
-        // Map.entry(Meters.of(8), new ShotData(Degrees.of(45), Seconds.of(1.176))),
-        // Map.entry(Meters.of(8.5), new ShotData(Degrees.of(45), Seconds.of(1.176))),
-        // Map.entry(Meters.of(9), new ShotData(Degrees.of(45), Seconds.of(1.176))),
-        // Map.entry(Meters.of(9.5), new ShotData(Degrees.of(45), Seconds.of(1.176)))
+        public static final Map<Distance, LookupTablePoint> joeLookupTable = Map.ofEntries(
+                Map.entry(Meters.of(1),   new LookupTablePoint(RPM.of(2600), 0.82)),
+                Map.entry(Meters.of(1.5), new LookupTablePoint(RPM.of(2600), 0.81)),
+                Map.entry(Meters.of(2),   new LookupTablePoint(RPM.of(2600), 0.80)),
+                Map.entry(Meters.of(2.5), new LookupTablePoint(RPM.of(2700), 0.79)),
+                Map.entry(Meters.of(3),   new LookupTablePoint(RPM.of(2800), 0.78)),
+                Map.entry(Meters.of(3.5), new LookupTablePoint(RPM.of(2900), 0.77)),
+                Map.entry(Meters.of(4),   new LookupTablePoint(RPM.of(3100), 0.76)),
+                Map.entry(Meters.of(4.5), new LookupTablePoint(RPM.of(3300), 0.75))
         );
     }
 }

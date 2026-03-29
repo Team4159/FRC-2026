@@ -39,6 +39,7 @@ import frc.robot.Constants.FeederConstants.FeederState;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.HopperConstants.HopperState;
 import frc.robot.Constants.IntakeConstants.IntakeState;
+import frc.robot.Constants.JoeLookupTableConstants.LookupTablePoint;
 import frc.robot.Constants.ShooterConstants.AutoAimStatus;
 import frc.robot.lib.JoeLookupTable;
 import frc.robot.subsystems.Drivetrain;
@@ -106,6 +107,8 @@ public class AutoAim extends Command {
 
     private Optional<CommandXboxController> feedbackController;
 
+    private double efficiency = 1;
+
     /**
      * @param drivetrain     the CommandSwerveDrivetrain
      * @param autonomousMode if set to true the actual robot swerve control will be
@@ -162,9 +165,12 @@ public class AutoAim extends Command {
         AngularVelocity desiredShooterAngularVelocity;
 
         for(int i = 0; i < 2; i++){
-            desiredShooterAngularVelocity = JoeLookupTable.getDesiredAngularVelocity(Meters.of(getDistanceFromHub()));
+            //get desired angular velocity and efficiency from lookup table
+            LookupTablePoint lookupTablePoint = JoeLookupTable.getLookupTablePoint(Meters.of(getDistanceFromHub()));
+            desiredShooterAngularVelocity = lookupTablePoint.angularVelocity();
+            efficiency = lookupTablePoint.efficiency();
             //calculate TOF(used for calculating adjusted robot pose)
-            double timeOfFlight = getTimeOfFlight(desiredHoodAngle, shooter.getFuelSpeed());
+            double timeOfFlight = getTimeOfFlight(desiredHoodAngle, shooter.getFuelSpeedWithCustomEfficiency(efficiency));
             if(RobotBase.isSimulation()){
                 timeOfFlight = getTimeOfFlight(desiredHoodAngle, getLaunchVelocity(desiredShooterAngularVelocity));
             }
@@ -184,8 +190,10 @@ public class AutoAim extends Command {
             adjustedRobotPosePublisher.set(adjustedRobotPose);
         }
 
-        //get desired angular velocity from lookup table
-        desiredShooterAngularVelocity = JoeLookupTable.getDesiredAngularVelocity(Meters.of(getDistanceFromHub()));
+        //get desired angular velocity and efficiency from lookup table
+        LookupTablePoint lookupTablePoint = JoeLookupTable.getLookupTablePoint(Meters.of(getDistanceFromHub()));
+        desiredShooterAngularVelocity = lookupTablePoint.angularVelocity();
+        efficiency = lookupTablePoint.efficiency();
 
         // check if in range, return if out of range
         if (getDistanceFromHub() > JoeLookupTableConstants.kMaxDistance.in(Meters)) {
@@ -373,9 +381,9 @@ public class AutoAim extends Command {
         // distance from robot to target
         Translation2d robotTranslation = adjustedRobotPose.getTranslation();
         double distance = robotTranslation.getDistance(target.getTranslation());
-        double launchVelocity = shooter.getFuelSpeed();
+        double launchVelocity = shooter.getFuelSpeedWithCustomEfficiency(efficiency);
         if(RobotBase.isSimulation()){
-            launchVelocity = getLaunchVelocity(JoeLookupTable.getDesiredAngularVelocity(Meters.of(getDistanceFromHub())));
+            launchVelocity = getLaunchVelocity(JoeLookupTable.getLookupTablePoint(Meters.of(getDistanceFromHub())).angularVelocity());
         }
         double desiredPitch = 
             Math.atan((Math.pow(launchVelocity, 2)
@@ -403,7 +411,7 @@ public class AutoAim extends Command {
         if (feedbackController.isPresent()) {
             HIDRumble.rumble(feedbackController.get().getHID(), new RumbleRequest(RumbleType.kLeftRumble, 0.5, 0.25));
         }
-        shooter.adjustHood(Degrees.of(2));
+        shooter.adjustHood(ShooterConstants.kRestingAngle);
         shooter.stopShooter();
         //shooter.setFeederSpeed(FeederState.STOP.percentage);
         hopper.setHopperSpeed(HopperState.STOP.percentage);

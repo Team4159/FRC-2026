@@ -64,6 +64,8 @@ public class Shooter extends SubsystemBase{
         CurrentLimitsConfigs currentLimits = new CurrentLimitsConfigs().withSupplyCurrentLimit(Amps.of(20)).withSupplyCurrentLimitEnable(true);
         feederMotor.getConfigurator().apply(currentLimits);
 
+        adjustHood(ShooterConstants.kRestingAngle);
+
         // leftTopShooterMotor.setControl(new StrictFollower(leaderShooterMotor.getDeviceID()));
         // rightTopShooterMotor.setControl(new StrictFollower(leaderShooterMotor.getDeviceID()));
         // rightBottomShooterMotor.setControl(new StrictFollower(leaderShooterMotor.getDeviceID()));
@@ -88,6 +90,18 @@ public class Shooter extends SubsystemBase{
         double rollerTangentialSpeed = shooterOmega * ShooterConstants.kShooterRollerRadius.in(Meters);
 
         return ShooterConstants.kShooterEfficiency * (wheelTangentialSpeed + rollerTangentialSpeed)/2;
+    }
+
+    /** @return the estimated initial speed of the ball after being shot from the shooter in m/s*/
+    public double getFuelSpeedWithCustomEfficiency(double efficiency){
+        double motorOmega = getShooterVelocity().in(RadiansPerSecond);
+
+        double shooterOmega = motorOmega * ShooterConstants.ratio;
+
+        double wheelTangentialSpeed = shooterOmega * ShooterConstants.kShooterWheelRadius.in(Meters);
+        double rollerTangentialSpeed = shooterOmega * ShooterConstants.kShooterRollerRadius.in(Meters);
+
+        return efficiency * (wheelTangentialSpeed + rollerTangentialSpeed)/2;
     }
 
     public AngularVelocity getShooterVelocity(){
@@ -132,7 +146,7 @@ public class Shooter extends SubsystemBase{
     }
 
     public void adjustTrajectoryAngle(Angle trajectoryAngle) {
-        adjustHood(Degrees.of(90).minus(trajectoryAngle));
+        adjustHood(Degrees.of(90).minus(trajectoryAngle).minus(ShooterConstants.kHoodAngleOffset));
     }
 
     public void manualHood(double adjustment){

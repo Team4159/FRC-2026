@@ -11,12 +11,13 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.JoeLookupTableConstants;
+import frc.robot.Constants.JoeLookupTableConstants.LookupTablePoint;
 
 public class JoeLookupTable {
     /** @param distance distance away from hub 
      * @return the corresponding ShotData object (time and angle) from linearly interpolating the best 2 joeLookupTable points
     */
-    public static AngularVelocity getDesiredAngularVelocity(Distance distance){
+    public static LookupTablePoint getLookupTablePoint(Distance distance){
         Distance bestFitDistance = Inches.of(Double.MAX_VALUE);
         Distance secondBestFitDistance = Inches.of(Double.MAX_VALUE);
 
@@ -35,8 +36,12 @@ public class JoeLookupTable {
             }
         }
         //get avs as doubles from 2 closest points
-        double bestFitAV = JoeLookupTableConstants.joeLookupTable.get(bestFitDistance).in(RPM);
-        double secondBestFitAV = JoeLookupTableConstants.joeLookupTable.get(secondBestFitDistance).in(RPM);
+        LookupTablePoint bestFitPoint = JoeLookupTableConstants.joeLookupTable.get(bestFitDistance);
+        LookupTablePoint secondBestFitPoint = JoeLookupTableConstants.joeLookupTable.get(secondBestFitDistance);
+        double bestFitAV = bestFitPoint.angularVelocity().in(RPM);
+        double secondBestFitAV = secondBestFitPoint.angularVelocity().in(RPM);
+        double bestFitEfficiency = bestFitPoint.efficiency();
+        double secondBestFitEfficiency = secondBestFitPoint.efficiency();
 
         //get the interpolation point
         double linearInterpolation = 
@@ -47,6 +52,8 @@ public class JoeLookupTable {
         SmartDashboard.putNumber("bestFitDistance", bestFitDistance.in(Meters));
 
         //return a new ShotData object with the interpolated time and angle.
-        return RPM.of(MathUtil.interpolate(bestFitAV, secondBestFitAV, linearInterpolation));
+        return new LookupTablePoint(
+            RPM.of(MathUtil.interpolate(bestFitAV, secondBestFitAV, linearInterpolation)),
+            MathUtil.interpolate(bestFitEfficiency, secondBestFitEfficiency, linearInterpolation));
     }
 }
