@@ -28,6 +28,7 @@ import frc.robot.Constants.FieldConstants.TrenchZone;
 import frc.robot.Constants.IntakeConstants.IntakeState;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.Shooter;
 
 public class AutoRecovery extends Command {
     
@@ -61,6 +62,7 @@ public class AutoRecovery extends Command {
     private static final double kIntakeTranslationSpeed = DrivetrainConstants.kMaxTranslationSpeed * 0.33;
 
     private final Drivetrain drivetrain;
+    private final Shooter shooter;
     private final Intake intake;
 
     private final Translation2d finalTranslation;
@@ -76,8 +78,9 @@ public class AutoRecovery extends Command {
     private boolean started;
     private boolean finished;
 
-    public AutoRecovery(Drivetrain drivetrain, Intake intake, AutoRecoveryMode autoRecoveryMode, AutoRecoverySide autoRecoverySide, Translation2d finalTranslation) {
+    public AutoRecovery(Drivetrain drivetrain, Shooter shooter, Intake intake, AutoRecoveryMode autoRecoveryMode, AutoRecoverySide autoRecoverySide, Translation2d finalTranslation) {
         this.drivetrain = drivetrain;
+        this.shooter = shooter;
         this.intake = intake;
         this.autoRecoveryMode = autoRecoveryMode;
         this.autoRecoverySide = autoRecoverySide;
@@ -98,6 +101,7 @@ public class AutoRecovery extends Command {
         pathTargets = getPathTargets(autoRecoveryMode, autoRecoverySide);
         pathProgress = 0;
         pathController = pathTargets[pathProgress].controller;
+        shooter.restHood();
         CommandScheduler.getInstance().schedule(intake.new ChangeStates(IntakeState.DOWN_ON));
     }
 

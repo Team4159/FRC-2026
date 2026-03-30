@@ -64,7 +64,7 @@ public class Shooter extends SubsystemBase{
         CurrentLimitsConfigs currentLimits = new CurrentLimitsConfigs().withSupplyCurrentLimit(Amps.of(20)).withSupplyCurrentLimitEnable(true);
         feederMotor.getConfigurator().apply(currentLimits);
 
-        adjustHood(ShooterConstants.kRestingAngle);
+        restHood();
 
         // leftTopShooterMotor.setControl(new StrictFollower(leaderShooterMotor.getDeviceID()));
         // rightTopShooterMotor.setControl(new StrictFollower(leaderShooterMotor.getDeviceID()));
@@ -124,6 +124,7 @@ public class Shooter extends SubsystemBase{
     @Override
     public void periodic(){
         SmartDashboard.putNumber("hood position", Units.rotationsToDegrees(hoodMotor.getPosition().getValueAsDouble()));
+        SmartDashboard.putNumber("hood target position", hoodMotionMagic.Position);
         SmartDashboard.putNumber("manual hood target", manualAngle);
         SmartDashboard.putNumber("shooter velocity", leftBottomShooterMotor.getVelocity().getValue().in(RPM));
 
@@ -143,6 +144,10 @@ public class Shooter extends SubsystemBase{
     public void adjustHood(Angle angle) {
         //double angle = Math.atan((15 + Math.sqrt(Math.pow(distance, 2)-4*(gravity * Math.pow(distance, 2)) / (2 * Math.pow(fps, 2))*((gravity * Math.pow(distance, 2)) / (2 * Math.pow(fps, 2)) + height))) / (2*(gravity * Math.pow(distance, 2)) / (2 * Math.pow(fps, 2)))) * 180/Math.PI;
         hoodMotor.setControl(hoodMotionMagic.withPosition(angle));    
+    }
+    
+    public void restHood() {
+        adjustHood(ShooterConstants.kRestingAngle);
     }
 
     public void adjustTrajectoryAngle(Angle trajectoryAngle) {

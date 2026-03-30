@@ -80,7 +80,6 @@ public class Intake extends SubsystemBase {
 
         @Override
         public void initialize() {
-            System.out.println(state);
             Intake.this.setSpinSpeed(state.spinSpeed);
             setLocation(state.rotationLocation);
         }
