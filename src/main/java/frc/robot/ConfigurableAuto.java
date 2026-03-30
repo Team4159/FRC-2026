@@ -9,25 +9,21 @@ import choreo.auto.AutoTrajectory;
 import choreo.trajectory.SwerveSample;
 import choreo.trajectory.Trajectory;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.lib.Elastic;
 import frc.lib.InstantCommandRunWhenDisabled;
 import frc.lib.PoseTrajectory;
-import frc.lib.PoseUtil;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.IntakeConstants.IntakeState;
 import frc.robot.commands.AutoAim;
 import frc.robot.commands.AutoRecovery;
-import frc.robot.commands.AutoRecovery.BeachRecoveryMode;
-import frc.robot.commands.AutoRecovery.BeachRecoverySide;
+import frc.robot.commands.AutoRecovery.AutoRecoveryMode;
+import frc.robot.commands.AutoRecovery.AutoRecoverySide;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Hopper;
 import frc.robot.subsystems.Intake;
@@ -143,6 +139,15 @@ public class ConfigurableAuto {
         final String shoot2 = shootChooser2.getSelected();
         final String climbSide = climbSideChooser.getSelected();
 
+        final AutoRecoverySide autoRecoverySide;
+        if (direction.equals("L")) {
+            autoRecoverySide = AutoRecoverySide.LEFT;
+        } else if (direction.equals("R")) {
+            autoRecoverySide = AutoRecoverySide.RIGHT;
+        } else {
+            autoRecoverySide = AutoRecoverySide.MIDDLE;
+        }
+
         if (direction.contains("M")) {
             // outpost auto
             if (intake1.contains("Outpost")) {
@@ -156,7 +161,6 @@ public class ConfigurableAuto {
                         startToIntakeTraj.resetOdometry()
                                 .andThen(startToIntakeTraj.cmd())
                                 .andThen(intakeToShootTraj.cmd())
-                                .andThen(Commands.runOnce(() -> recovoryTrip(routine)))
                                 .andThen(new ParallelDeadlineGroup(
                                         // new WaitCommand(AutoConstants.ShootTime),
                                         new AutoAim(drivetrain, shooter, hopper, intake, leds, false,
@@ -218,9 +222,9 @@ public class ConfigurableAuto {
         if (shoot1.contains("Climb")) {
             final AutoTrajectory shoot1ToClimbTraj = routine.trajectory(direction + "ShootTo" + climbSide + "Climb");
             routine.active().onTrue(
-                    startToIntake1Traj.resetOdometry().andThen(startToIntake1Traj.cmd())
+                    startToIntake1Traj.resetOdometry()
+                            .andThen(startToIntake1Traj.cmd())
                             .andThen(intake1ToShoot1Traj.cmd())
-                            .andThen(Commands.runOnce(() -> recovoryTrip(routine)))
                             .andThen(new ParallelDeadlineGroup(
                                     new WaitCommand(AutoConstants.ShootTime),
                                     new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())))
@@ -236,15 +240,18 @@ public class ConfigurableAuto {
         else if (shoot2.contains("Climb")) {
             final AutoTrajectory shoot2ToClimbTraj = routine.trajectory(direction + "ShootTo" + climbSide + "Climb");
             routine.active().onTrue(
-                    startToIntake1Traj.resetOdometry().andThen(startToIntake1Traj.cmd())
+                    startToIntake1Traj.resetOdometry()
+                            .andThen(startToIntake1Traj.cmd())
                             .andThen(intake1ToShoot1Traj.cmd())
-                            .andThen(Commands.runOnce(() -> recovoryTrip(routine)))
+                            .andThen(new AutoRecovery(drivetrain, shooter, intake, AutoRecoveryMode.SWEEP, autoRecoverySide,
+                                    intake1ToShoot1Traj.getFinalPose().get().getTranslation()))
                             .andThen(new ParallelDeadlineGroup(
                                     new WaitCommand(AutoConstants.ShootTime),
                                     new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())))
                             .andThen(shoot1ToIntake2Traj.cmd())
                             .andThen(intake2ToShoot2Traj.cmd())
-                            .andThen(Commands.runOnce(() -> recovoryTrip(routine)))
+                            .andThen(new AutoRecovery(drivetrain, shooter, intake, AutoRecoveryMode.SWEEP, autoRecoverySide,
+                                    intake2ToShoot2Traj.getFinalPose().get().getTranslation()))
                             .andThen(new ParallelDeadlineGroup(
                                     new WaitCommand(AutoConstants.ShootTime),
                                     new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())))
@@ -257,19 +264,20 @@ public class ConfigurableAuto {
                 updateField(startToIntake1Traj, intake1ToShoot1Traj, shoot1ToIntake2Traj, intake2ToShoot2Traj,
                         shoot2ToClimbTraj);
             }
-        }
-
-        else {
+        } else {
             routine.active().onTrue(
-                    startToIntake1Traj.resetOdometry().andThen(startToIntake1Traj.cmd())
+                    startToIntake1Traj.resetOdometry()
+                            .andThen(startToIntake1Traj.cmd())
                             .andThen(intake1ToShoot1Traj.cmd())
-                            .andThen(Commands.runOnce(() -> recovoryTrip(routine)))
+                            .andThen(new AutoRecovery(drivetrain, shooter, intake, AutoRecoveryMode.SWEEP, autoRecoverySide,
+                                    intake1ToShoot1Traj.getFinalPose().get().getTranslation()))
                             .andThen(new ParallelDeadlineGroup(
                                     new WaitCommand(AutoConstants.ShootTime),
                                     new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())))
                             .andThen(shoot1ToIntake2Traj.cmd())
                             .andThen(intake2ToShoot2Traj.cmd())
-                            .andThen(Commands.runOnce(() -> recovoryTrip(routine)))
+                            .andThen(new AutoRecovery(drivetrain, shooter, intake, AutoRecoveryMode.SWEEP, autoRecoverySide,
+                                    intake2ToShoot2Traj.getFinalPose().get().getTranslation()))
                             .andThen(new ParallelDeadlineGroup(
                                     new WaitCommand(AutoConstants.ShootTime),
                                     new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty()))));
@@ -364,38 +372,6 @@ public class ConfigurableAuto {
         }
         generatedRoutineDisplay.getObject("traj").setTrajectory(trajectory);
         SmartDashboard.putData("Generated Routine Display", generatedRoutineDisplay);
-    }
-
-    private void recovoryTrip(AutoRoutine routine) {
-        if (PoseUtil.isPoseInAllianceZone(DriverStation.getAlliance().orElse(Alliance.Blue),
-                drivetrain.getState().Pose)) {
-            return;
-        }
-        routine.kill();
-        CommandScheduler.getInstance().schedule(Commands.run(() -> {}, drivetrain)); // prevent default command from running
-
-        double timeLeftInAuto = DriverStation.getMatchTime();
-        BeachRecoveryMode beachRecoveryMode;
-        if (timeLeftInAuto < 5) {
-            beachRecoveryMode = BeachRecoveryMode.BLINE;
-        } else if (timeLeftInAuto < 10) {
-            beachRecoveryMode = BeachRecoveryMode.HOOK;
-        } else {
-            beachRecoveryMode = BeachRecoveryMode.ZIG_ZAG;
-        }
-        BeachRecoverySide beachRecoverySide = PoseUtil.isPoseOnRight(drivetrain.getState().Pose)
-                ? BeachRecoverySide.RIGHT
-                : BeachRecoverySide.LEFT;
-        if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red) {
-            beachRecoverySide = (beachRecoverySide == BeachRecoverySide.RIGHT) ? BeachRecoverySide.LEFT
-                    : BeachRecoverySide.RIGHT;
-        }
-        CommandScheduler.getInstance().schedule(new AutoRecovery(
-                drivetrain,
-                intake,
-                beachRecoveryMode,
-                beachRecoverySide,
-                new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())));
     }
 
 }

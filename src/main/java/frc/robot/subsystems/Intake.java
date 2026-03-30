@@ -10,6 +10,7 @@ import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 
+import edu.wpi.first.math.MathSharedStore;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -24,7 +25,7 @@ public class Intake extends SubsystemBase {
     private final CANcoder canCoder;
 
     private final MotionMagicVoltage intakeMotionMagicVoltage;
-    // private final VelocityVoltage intakeVelocityVoltage; 
+    // private final VelocityVoltage intakeVelocityVoltage;
 
     public Intake() {
         locationMotor = new TalonFX(IntakeConstants.kAngleId);
@@ -39,13 +40,14 @@ public class Intake extends SubsystemBase {
 
         intakeMotionMagicVoltage = new MotionMagicVoltage(0);
         setLocation(IntakeState.UP_OFF.rotationLocation);
-        //intakeVelocityVoltage = new VelocityVoltage(0);
+        // intakeVelocityVoltage = new VelocityVoltage(0);
 
-        CurrentLimitsConfigs currentLimits = new CurrentLimitsConfigs().withSupplyCurrentLimit(Amps.of(30)).withSupplyCurrentLimitEnable(true);
+        CurrentLimitsConfigs currentLimits = new CurrentLimitsConfigs().withSupplyCurrentLimit(Amps.of(20))
+                .withSupplyCurrentLimitEnable(true);
         spinMotor.getConfigurator().apply(currentLimits);
     }
 
-    public void setMotionMagic(MotionMagicConfigs motionMagicConfigs){
+    public void setMotionMagic(MotionMagicConfigs motionMagicConfigs) {
         locationMotor.getConfigurator().apply(IntakeConstants.angleConfig.withMotionMagic(motionMagicConfigs));
     }
 
@@ -57,14 +59,15 @@ public class Intake extends SubsystemBase {
         locationMotor.setControl(intakeMotionMagicVoltage.withPosition(angle));
     }
 
-    private Angle getPivotAngle(){
+    private Angle getPivotAngle() {
         return Rotations.of(locationMotor.getPosition().getValueAsDouble());
     }
 
     @Override
-    public void periodic(){
+    public void periodic() {
         SmartDashboard.putNumber("intake angle", getPivotAngle().in(Degrees));
-        SmartDashboard.putNumber("intake pid error", Units.rotationsToDegrees(locationMotor.getClosedLoopError().getValueAsDouble()));
+        SmartDashboard.putNumber("intake pid error",
+                Units.rotationsToDegrees(locationMotor.getClosedLoopError().getValueAsDouble()));
     }
 
     public class ChangeStates extends Command {
@@ -86,48 +89,67 @@ public class Intake extends SubsystemBase {
             Intake.this.setSpinSpeed(IntakeState.STOP.spinSpeed);
         }
     }
-    
-    public class CompressIntake extends Command{
-        public CompressIntake(){
+
+    public class CompressIntake extends Command {
+        public CompressIntake() {
             addRequirements(Intake.this);
         }
 
         @Override
-        public void initialize(){
+        public void initialize() {
             setMotionMagic(IntakeConstants.kSlowMotionMagicConfig);
             setLocation(IntakeState.UP_OFF.rotationLocation);
         }
 
         @Override
-        public void end(boolean interrupted){
+        public void end(boolean interrupted) {
             setMotionMagic(IntakeConstants.kFastMotionMagicConfig);
         }
     }
 
-    public class BounceIntake extends Command{
+    public class BounceIntake extends Command {
+        private double lastStateChange;
+        private IntakeState state;
 
-        public BounceIntake(){
+        public BounceIntake() {
             addRequirements(Intake.this);
         }
 
         @Override
-        public void initialize(){
-            setLocation(IntakeState.BOUNCE_UP.rotationLocation);
+        public void initialize() {
+            state = IntakeState.BOUNCE_UP;
+            lastStateChange = getTime();
+            applyState();
         }
 
         @Override
-        public void execute(){
-            if(getPivotAngle().isNear( IntakeState.DOWN_OFF.rotationLocation, Degrees.of(5))){
-                setLocation(IntakeState.BOUNCE_UP.rotationLocation);
+        public void execute() {
+            if (state == IntakeState.DOWN_OFF && (isNear(state) || getTime() - lastStateChange > 2)) {
+                state = IntakeState.BOUNCE_UP;
+                lastStateChange = getTime();
             }
-            if(getPivotAngle().isNear( IntakeState.BOUNCE_UP.rotationLocation, Degrees.of(5))){
-                setLocation(IntakeState.DOWN_OFF.rotationLocation);
+            if (state == IntakeState.BOUNCE_UP && (isNear(state) || getTime() - lastStateChange > 2)) {
+                state = IntakeState.DOWN_OFF;
+                lastStateChange = getTime();
             }
+            applyState();
         }
 
-        @Override 
-        public void end(boolean interrupted){
+        @Override
+        public void end(boolean interrupted) {
             setLocation(IntakeState.BOUNCE_UP.rotationLocation);
+        }
+
+        private double getTime() {
+            return MathSharedStore.getTimestamp();
+        }
+
+        private void applyState() {
+            setLocation(state.rotationLocation);
+        }
+
+        private boolean isNear(IntakeState state) {
+            return getPivotAngle().isNear(state.rotationLocation, Degrees.of(5));
         }
     }
 }

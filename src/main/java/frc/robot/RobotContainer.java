@@ -30,9 +30,6 @@ import frc.robot.Constants.IntakeConstants.IntakeState;
 import frc.robot.commands.AutoAim;
 import frc.robot.commands.AutoAlign;
 import frc.robot.commands.AutoLob;
-import frc.robot.commands.AutoRecovery;
-import frc.robot.commands.AutoRecovery.BeachRecoveryMode;
-import frc.robot.commands.AutoRecovery.BeachRecoverySide;
 import frc.robot.commands.HubShoot;
 import frc.robot.commands.TowerShoot;
 import frc.robot.subsystems.Drivetrain;
@@ -121,15 +118,9 @@ public class RobotContainer {
                 RobotModeTriggers.disabled().whileTrue(
                                 drivetrain.new Drive(DriveMode.IDLE).ignoringDisable(true));
 
-                // test mode
-                // primaryController.a().and(DriverStation::isTest).whileTrue(drivetrain.new Drive(DriveMode.BRAKE));
-                primaryController.b().and(DriverStation::isTest).whileTrue(drivetrain.new Drive(DriveMode.POINT));
-                primaryController.a().and(DriverStation::isTest).whileTrue(Commands.parallel(
-                                Commands.run(() -> {
-                                }, drivetrain),
-                                new AutoRecovery(drivetrain, intake, BeachRecoveryMode.HOOK, BeachRecoverySide.LEFT,
-                                                new AutoAim(drivetrain, shooter, hopper, intake, leds, false,
-                                                                Optional.empty()))));
+        // test mode
+        primaryController.a().and(DriverStation::isTest).whileTrue(drivetrain.new Drive(DriveMode.BRAKE));
+        primaryController.b().and(DriverStation::isTest).whileTrue(drivetrain.new Drive(DriveMode.POINT));
 
                 // teleop mode
                 primarySlowModeTrigger.and(DriverStation::isTeleop)

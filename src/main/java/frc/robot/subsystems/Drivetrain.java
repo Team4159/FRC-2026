@@ -58,18 +58,18 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     public final SwerveRequest.FieldCentricFacingAngle fieldCentricFacingAngleDrive = new SwerveRequest.FieldCentricFacingAngle()
             .withForwardPerspective(ForwardPerspectiveValue.BlueAlliance)
             .withDriveRequestType(DriveRequestType.Velocity)
-            .withHeadingPID(kAimKP, kAimKI, kAimKD)
-            .withTargetRateFeedforward(kAimFeedForward);
+            .withHeadingPID(kPointKP, kPointKI, kPointKD)
+            .withTargetRateFeedforward(kPointFeedForward);
     public final SwerveRequest.RobotCentricFacingAngle robotCentricFacingAngleDrive = new SwerveRequest.RobotCentricFacingAngle()
             .withForwardPerspective(ForwardPerspectiveValue.BlueAlliance)
             .withDriveRequestType(DriveRequestType.Velocity)
-            .withHeadingPID(kAimKP, kAimKI, kAimKD)
-            .withTargetRateFeedforward(kAimFeedForward);
+            .withHeadingPID(kPointKP, kPointKI, kPointKD)
+            .withTargetRateFeedforward(kPointFeedForward);
     public final SwerveRequest.FieldCentricFacingAngle trajectoryFacingAngleDrive = new SwerveRequest.FieldCentricFacingAngle()
             .withForwardPerspective(ForwardPerspectiveValue.BlueAlliance)
             .withDriveRequestType(DriveRequestType.Velocity)
-            .withHeadingPID(kAimKP / 2.0, kAimKI, kAimKD)
-            .withTargetRateFeedforward(kAimFeedForward);
+            .withHeadingPID(kPointKP, kPointKI, kPointKD)
+            .withTargetRateFeedforward(kPointFeedForward);
     public final SwerveRequest.SwerveDriveBrake brakeDrive = new SwerveRequest.SwerveDriveBrake();
     public final SwerveRequest.PointWheelsAt pointDrive = new SwerveRequest.PointWheelsAt();
     public final SwerveRequest.Idle idleDrive = new SwerveRequest.Idle();
