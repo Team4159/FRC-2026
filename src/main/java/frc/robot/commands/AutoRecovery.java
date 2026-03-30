@@ -58,7 +58,7 @@ public class AutoRecovery extends Command {
     private static final double kUnbeachTurnSpeed = 45.0;
     private static final double kUnbeachTranslationSpeed = DrivetrainConstants.kMaxTranslationSpeed / 2.0;
     private static final Distance kTrenchEntryDistance = Inches.of(60.0);
-    private static final double kIntakeTranslationSpeed = DrivetrainConstants.kMaxTranslationSpeed / 2.0;
+    private static final double kIntakeTranslationSpeed = DrivetrainConstants.kMaxTranslationSpeed * 0.33;
 
     private final Drivetrain drivetrain;
     private final Intake intake;
@@ -195,8 +195,8 @@ public class AutoRecovery extends Command {
             }
         }
         // return
-        newPathTargets.add(new PathTarget(new APTarget(new Pose2d(TrenchZone.BLUE_RIGHT.x.plus(kTrenchEntryDistance), DrivetrainConstants.kDrivetrainSizeX.div(2).plus(OperatorConstants.kTrenchAssistFrontProtrusionExtent), Rotation2d.kZero)), AutoConstants.kAutopilotCruiseController));
-        newPathTargets.add(new PathTarget(new APTarget(new Pose2d(TrenchZone.BLUE_RIGHT.x.plus(kTrenchEntryDistance), TrenchZone.BLUE_RIGHT.y.plus(OperatorConstants.kTrenchAssistFrontProtrusionExtent.div(2)), Rotation2d.k180deg)), AutoConstants.kAutopilotAlignController));
+        newPathTargets.add(new PathTarget(new APTarget(new Pose2d(TrenchZone.BLUE_RIGHT.x.plus(kTrenchEntryDistance), Inches.of(40.0), Rotation2d.kZero)), AutoConstants.kAutopilotCruiseController));
+        newPathTargets.add(new PathTarget(new APTarget(new Pose2d(TrenchZone.BLUE_RIGHT.x.plus(kTrenchEntryDistance), TrenchZone.BLUE_RIGHT.y, Rotation2d.k180deg)), AutoConstants.kAutopilotAlignController));
         newPathTargets.add(new PathTarget(new APTarget(new Pose2d(TrenchZone.BLUE_RIGHT.x.minus(kTrenchEntryDistance), TrenchZone.BLUE_RIGHT.y, Rotation2d.k180deg)), AutoConstants.kAutopilotAlignController));
         
         Alliance alliance = DriverStation.getAlliance().orElse(Alliance.Blue);

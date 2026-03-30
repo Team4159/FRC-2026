@@ -265,14 +265,14 @@ public class ConfigurableAuto {
             routine.active().onTrue(
                     startToIntake1Traj.resetOdometry()
                             .andThen(startToIntake1Traj.cmd())
-                            .andThen(intake1ToShoot1Traj.cmd())
+                            // .andThen(intake1ToShoot1Traj.cmd())
                             .andThen(new AutoRecovery(drivetrain, intake, AutoRecoveryMode.SWEEP, autoRecoverySide,
                                     intake1ToShoot1Traj.getFinalPose().get().getTranslation()))
                             .andThen(new ParallelDeadlineGroup(
                                     new WaitCommand(AutoConstants.ShootTime),
                                     new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())))
                             .andThen(shoot1ToIntake2Traj.cmd())
-                            .andThen(intake2ToShoot2Traj.cmd())
+                            // .andThen(intake2ToShoot2Traj.cmd())
                             .andThen(new AutoRecovery(drivetrain, intake, AutoRecoveryMode.SWEEP, autoRecoverySide,
                                     intake2ToShoot2Traj.getFinalPose().get().getTranslation()))
                             .andThen(new ParallelDeadlineGroup(
