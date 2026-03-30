@@ -191,12 +191,12 @@ public final class Constants {
                 new TrapezoidProfile.Constraints(kCompressRate, 1));
 
         public static enum IntakeState {
-            DOWN_ON(Degrees.of(-12), 0.5),
+            DOWN_ON(Degrees.of(-12), 0.75),
             DOWN_OFF(Degrees.of(-12), 0),
-            DOWN_REV(Degrees.of(-12), -0.5),
-            UP_OFF(Degrees.of(130), 0),
+            DOWN_REV(Degrees.of(-12), -0.75),
+            UP_OFF(Degrees.of(70), 0),
             BOUNCE_UP(Degrees.of(55), 0),
-            STOP(Degrees.of(130), 0);
+            STOP(Degrees.of(70), 0);
 
             public final Angle rotationLocation;
             public final double spinSpeed;
@@ -299,7 +299,7 @@ public final class Constants {
         // abs encoder
         public static final int HoodId = 8;
         public static final int kHoodEncoderID = 2;
-        public static final Angle kEncoderOffset = Degrees.of(-255);
+        public static final Angle kEncoderOffset = Degrees.of(-248);
         public static final double kSensorToMechanismRatio = 34 / 16;
         public static final double kMotorToSensorRatio = 125;
 
@@ -366,7 +366,7 @@ public final class Constants {
         public static final double kV = 0.25;
         public static final double kA = 2.14;
 
-        public static final double kCurrentLimit = 20;
+        public static final double kCurrentLimit = 30;
         public static final double kRampRate = 0.2;
 
         public static final int ShooterIDLeftBottom = 90;
@@ -425,14 +425,14 @@ public final class Constants {
         public static final double ratio = 1;
         public static final double shootHeight = Units.inchesToMeters(40);
 
-        public static AngularVelocity kShooterVelocityTolerance = RPM.of(500);
+        public static AngularVelocity kShooterVelocityTolerance = RPM.of(300);
         public static Angle maxPitch = Degrees.of(85);
 
         public static final Distance kShooterWheelRadius = Inches.of(2);
         /** TODO: find the correct distance */
         public static final Distance kShooterRollerRadius = Inches.of(0.75);
 
-        public static final double kShooterEfficiency = 0.85;
+        public static final double kShooterEfficiency = 0.80;
 
         // robot relative shooter offset
         // TODO implement in the calculation
@@ -684,14 +684,14 @@ public final class Constants {
 
         // stores desired velocity based on position
         public static final Map<Distance, LookupTablePoint> joeLookupTable = Map.ofEntries(
-                Map.entry(Meters.of(1),   new LookupTablePoint(RPM.of(2600), 0.82)),
-                Map.entry(Meters.of(1.5), new LookupTablePoint(RPM.of(2600), 0.81)),
-                Map.entry(Meters.of(2),   new LookupTablePoint(RPM.of(2600), 0.80)),
-                Map.entry(Meters.of(2.5), new LookupTablePoint(RPM.of(2700), 0.79)),
-                Map.entry(Meters.of(3),   new LookupTablePoint(RPM.of(2800), 0.78)),
-                Map.entry(Meters.of(3.5), new LookupTablePoint(RPM.of(2900), 0.77)),
-                Map.entry(Meters.of(4),   new LookupTablePoint(RPM.of(3100), 0.76)),
-                Map.entry(Meters.of(4.5), new LookupTablePoint(RPM.of(3300), 0.75))
+                Map.entry(Meters.of(1),   new LookupTablePoint(RPM.of(2000), 0.850)),
+                Map.entry(Meters.of(1.5), new LookupTablePoint(RPM.of(2000), 0.845)),
+                Map.entry(Meters.of(2),   new LookupTablePoint(RPM.of(2000), 0.840)),
+                Map.entry(Meters.of(2.5), new LookupTablePoint(RPM.of(2100), 0.835)),
+                Map.entry(Meters.of(3),   new LookupTablePoint(RPM.of(2200), 0.830)),
+                Map.entry(Meters.of(3.5), new LookupTablePoint(RPM.of(2300), 0.820)),
+                Map.entry(Meters.of(4),   new LookupTablePoint(RPM.of(2500), 0.760)),
+                Map.entry(Meters.of(4.5), new LookupTablePoint(RPM.of(2700), 0.700))
         );
     }
 }
