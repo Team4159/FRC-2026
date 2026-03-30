@@ -149,7 +149,7 @@ public final class Constants {
                 Slot0.withGravityType(GravityTypeValue.Arm_Cosine);
                 // abs encoder
                 Feedback.FeedbackRemoteSensorID = IntakeConstants.kAngleEncoderId;
-                Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
+                Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
                 Feedback.SensorToMechanismRatio = IntakeConstants.kSensorToMechanismRatio;
                 Feedback.RotorToSensorRatio = IntakeConstants.kMotorToSensorRatio;
 
@@ -348,7 +348,7 @@ public final class Constants {
                 CurrentLimits.SupplyCurrentLimit = 20;
                 // abs encoder
                 Feedback.FeedbackRemoteSensorID = ShooterConstants.kHoodEncoderID;
-                Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
+                Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
                 Feedback.SensorToMechanismRatio = ShooterConstants.kSensorToMechanismRatio;
                 Feedback.RotorToSensorRatio = ShooterConstants.kMotorToSensorRatio;
                 MotionMagic = kHoodMotionMagicConfig;
