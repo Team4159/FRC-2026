@@ -584,12 +584,12 @@ public final class Constants {
                 .withJerk(3.5);
         public static final APProfile kAutopilotAlignProfile = new APProfile(kAutopilotConstraints)
                 .withErrorXY(Centimeters.of(2.0))
-                .withErrorTheta(Degrees.of(3600.0))
+                .withErrorTheta(Degrees.of(1))
                 .withBeelineRadius(Centimeters.of(5.0));
         public static final Autopilot kAutopilotAlignController = new Autopilot(kAutopilotAlignProfile);
         public static final APProfile kAutopilotCruiseProfile = new APProfile(kAutopilotConstraints)
                 .withErrorXY(Centimeters.of(20.0))
-                .withErrorTheta(Degrees.of(3600.0))
+                .withErrorTheta(Degrees.of(15.0))
                 .withBeelineRadius(Centimeters.of(25.0));
         public static final Autopilot kAutopilotCruiseController = new Autopilot(kAutopilotCruiseProfile);
     }
