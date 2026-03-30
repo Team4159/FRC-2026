@@ -7,7 +7,6 @@ import static edu.wpi.first.units.Units.RPM;
 import java.util.Set;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.JoeLookupTableConstants;

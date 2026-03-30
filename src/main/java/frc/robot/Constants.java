@@ -123,8 +123,8 @@ public final class Constants {
         public static final double kSlowJerk = 1600;
 
         public static final int kAngleEncoderId = 1;
-        public static final int kAngleId = 6; // youre welcome Faye
-        public static final int kIntakeSpinId = 7;
+        public static final int kAngleId = 60; // youre welcome Faye
+        public static final int kIntakeSpinId = 70;
 
         public static final Angle kEncoderOffset = Degrees.of(0);
         //now 25 and 2 because encoder is on the jackshaft now.
@@ -265,7 +265,7 @@ public final class Constants {
         public static final double kMaxTranslationSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
         public static final double kMaxRotationSpeed = RotationsPerSecond.of(0.75).in(RadiansPerSecond);
         
-        public static final double kPointKP = 2.5;
+        public static final double kPointKP = 5;
         public static final double kPointKI = 0.0;
         public static final double kPointKD = 0.0;
         public static final double kPointFeedForward = 0.0;
@@ -369,10 +369,10 @@ public final class Constants {
         public static final double kCurrentLimit = 20;
         public static final double kRampRate = 0.2;
 
-        public static final int ShooterIDLeftBottom = 9;
-        public static final int ShooterIDLeftTop = 10;
-        public static final int ShooterIDRightTop = 12;
-        public static final int ShooterIDRightBottom = 11;
+        public static final int ShooterIDLeftBottom = 90;
+        public static final int ShooterIDLeftTop = 100;
+        public static final int ShooterIDRightTop = 120;
+        public static final int ShooterIDRightBottom = 110;
 
         // shooter motors config
         public static final TalonFXConfiguration rightShooterMotorsConfig = new TalonFXConfiguration() {
@@ -580,17 +580,17 @@ public final class Constants {
         public static final double ShootTime = 3;
 
         public static final APConstraints kAutopilotConstraints = new APConstraints()
-                .withAcceleration(6.0)
-                .withJerk(3.0);
+                .withAcceleration(7.0)
+                .withJerk(3.5);
         public static final APProfile kAutopilotAlignProfile = new APProfile(kAutopilotConstraints)
                 .withErrorXY(Centimeters.of(2.0))
-                .withErrorTheta(Degrees.of(1.0))
+                .withErrorTheta(Degrees.of(3600.0))
                 .withBeelineRadius(Centimeters.of(5.0));
         public static final Autopilot kAutopilotAlignController = new Autopilot(kAutopilotAlignProfile);
         public static final APProfile kAutopilotCruiseProfile = new APProfile(kAutopilotConstraints)
-                .withErrorXY(Centimeters.of(15.0))
+                .withErrorXY(Centimeters.of(20.0))
                 .withErrorTheta(Degrees.of(3600.0))
-                .withBeelineRadius(Centimeters.of(20.0));
+                .withBeelineRadius(Centimeters.of(25.0));
         public static final Autopilot kAutopilotCruiseController = new Autopilot(kAutopilotCruiseProfile);
     }
 
