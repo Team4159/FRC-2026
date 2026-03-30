@@ -65,7 +65,7 @@ public class HubShoot extends Command{
     public void end(boolean interrupted){
         //shooter.setSpeed(ShooterConstants.restingAngularVelocity);
         shooter.stopShooter();
-        shooter.adjustHood(Degrees.of(2));
+        shooter.adjustHood(ShooterConstants.kRestingAngle);
         //shooter.setFeederSpeed(FeederState.STOP.percentage);
         //hopper.setHopperSpeed(HopperState.STOP.percentage);
         CommandScheduler.getInstance().schedule(intake.new ChangeStates(IntakeState.BOUNCE_UP));

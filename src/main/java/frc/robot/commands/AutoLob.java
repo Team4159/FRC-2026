@@ -317,7 +317,7 @@ public class AutoLob extends Command {
 
     @Override
     public void end(boolean interrupted){
-        shooter.adjustHood(Degrees.of(5));
+        shooter.adjustHood(ShooterConstants.kRestingAngle);
         //shooter.setSpeed(ShooterConstants.restingAngularVelocity);
         shooter.stopShooter();
         shooter.setFeederSpeed(FeederState.STOP.percentage);

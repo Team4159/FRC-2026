@@ -57,18 +57,18 @@ public class Drivetrain extends CommandSwerveDrivetrain {
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
     public final SwerveRequest.FieldCentricFacingAngle fieldCentricFacingAngleDrive = new SwerveRequest.FieldCentricFacingAngle()
             .withForwardPerspective(ForwardPerspectiveValue.BlueAlliance)
-            .withDriveRequestType(DriveRequestType.OpenLoopVoltage)
+            .withDriveRequestType(DriveRequestType.Velocity)
             .withHeadingPID(kAimKP, kAimKI, kAimKD)
             .withTargetRateFeedforward(kAimFeedForward);
     public final SwerveRequest.RobotCentricFacingAngle robotCentricFacingAngleDrive = new SwerveRequest.RobotCentricFacingAngle()
             .withForwardPerspective(ForwardPerspectiveValue.BlueAlliance)
-            .withDriveRequestType(DriveRequestType.OpenLoopVoltage)
+            .withDriveRequestType(DriveRequestType.Velocity)
             .withHeadingPID(kAimKP, kAimKI, kAimKD)
             .withTargetRateFeedforward(kAimFeedForward);
     public final SwerveRequest.FieldCentricFacingAngle trajectoryFacingAngleDrive = new SwerveRequest.FieldCentricFacingAngle()
             .withForwardPerspective(ForwardPerspectiveValue.BlueAlliance)
             .withDriveRequestType(DriveRequestType.Velocity)
-            .withHeadingPID(kAimKP, kAimKI, kAimKD)
+            .withHeadingPID(kAimKP / 2.0, kAimKI, kAimKD)
             .withTargetRateFeedforward(kAimFeedForward);
     public final SwerveRequest.SwerveDriveBrake brakeDrive = new SwerveRequest.SwerveDriveBrake();
     public final SwerveRequest.PointWheelsAt pointDrive = new SwerveRequest.PointWheelsAt();
@@ -242,6 +242,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
             var trenchZone = PoseUtil.getPoseTrenchZone(robotPose);
             if (trenchZone.isPresent()) {
                 Translation2d focus = trenchZone.get().focus;
+                focus = focus.minus(new Translation2d(Meters.of(0.0), kTrenchAssistFrontProtrusionExtent.div(2).times(robotPose.getRotation().getSin())));
                 Distance errorX = focus.getMeasureX().minus(robotPose.getMeasureX());
                 Distance errorY = focus.getMeasureY().minus(robotPose.getMeasureY());
 
@@ -617,7 +618,6 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     public boolean isSlipping() {
         double expectedSpeed = Math.hypot(getState().Speeds.vxMetersPerSecond, getState().Speeds.vyMetersPerSecond);
         double actualSpeed = Math.hypot(estimatedRealChassisSpeeds.vxMetersPerSecond, estimatedRealChassisSpeeds.vyMetersPerSecond);
-        System.out.println("slip value: " + slippingBucketFilter.lastValue());
         return slippingBucketFilter.calculate(expectedSpeed - actualSpeed) > 2.0;
     }
 }
