@@ -188,7 +188,7 @@ public class AutoRecovery extends Command {
                 break;
             }
             case SWEEP: {
-                addIntakePointToPathTargets(newPathTargets, new Translation2d(Inches.of(270.0), Inches.of(50.0)));
+                addIntakePointToPathTargets(newPathTargets, new Translation2d(Inches.of(270.0), Inches.of(40.0)));
                 addIntakePointToPathTargets(newPathTargets, new Translation2d(Inches.of(270.0), Inches.of(150.0)));
                 addIntakePointToPathTargets(newPathTargets, new Translation2d(Inches.of(240.0), Inches.of(150.0)));
                 break;
