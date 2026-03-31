@@ -291,21 +291,7 @@ public class ConfigurableAuto {
 
         shoot1ToIntake2Traj.atTime("intake").onTrue(intake.new ChangeStates(IntakeState.DOWN_ON));
         shoot1ToIntake2Traj.atTime("stopIntake").onTrue(intake.new ChangeStates(IntakeState.DOWN_OFF));
-
-        shoot1ToIntake2Traj.atTime("intake").onTrue(Commands.parallel(
-                //Commands.runOnce(() -> CommandScheduler.getInstance().schedule(unbeachTrip)),
-                intake.new ChangeStates(IntakeState.DOWN_ON)));
-        shoot1ToIntake2Traj.atTime("stopIntake").onTrue(Commands.parallel(
-                //Commands.runOnce(() -> CommandScheduler.getInstance().schedule(unbeachTrip)),
-                intake.new ChangeStates(IntakeState.DOWN_OFF)));
-
-        startToIntake1Traj.atTime("intake").onTrue(Commands.parallel(
-                //Commands.runOnce(() -> CommandScheduler.getInstance().schedule(unbeachTrip)),
-                intake.new ChangeStates(IntakeState.DOWN_ON)));
-        startToIntake1Traj.atTime("stopIntake").onTrue(Commands.parallel(
-                //Commands.runOnce(() -> CommandScheduler.getInstance().schedule(unbeachTrip)),
-                intake.new ChangeStates(IntakeState.DOWN_OFF)));
-
+        
         // store the routine so don't need to generate at the start of auto
         generatedRoutine = routine;
 
