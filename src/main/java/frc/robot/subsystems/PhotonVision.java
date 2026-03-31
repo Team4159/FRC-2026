@@ -80,6 +80,8 @@ public class PhotonVision extends SubsystemBase{
             }
         }
 
+        System.out.println("leftshooterestimate" + leftShooterEstimate);
+
         //right camera
         Optional<EstimatedRobotPose> rightShooterEstimate = Optional.empty();
         //loops through all unread camera results

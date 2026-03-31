@@ -123,8 +123,8 @@ public final class Constants {
         public static final double kSlowJerk = 1600;
 
         public static final int kAngleEncoderId = 1;
-        public static final int kAngleId = 60; // youre welcome Faye
-        public static final int kIntakeSpinId = 70;
+        public static final int kAngleId = 6; // youre welcome Faye
+        public static final int kIntakeSpinId = 7;
 
         public static final Angle kEncoderOffset = Degrees.of(0);
         //now 25 and 2 because encoder is on the jackshaft now.
@@ -149,7 +149,7 @@ public final class Constants {
                 Slot0.withGravityType(GravityTypeValue.Arm_Cosine);
                 // abs encoder
                 Feedback.FeedbackRemoteSensorID = IntakeConstants.kAngleEncoderId;
-                Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
+                Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
                 Feedback.SensorToMechanismRatio = IntakeConstants.kSensorToMechanismRatio;
                 Feedback.RotorToSensorRatio = IntakeConstants.kMotorToSensorRatio;
 
@@ -191,12 +191,12 @@ public final class Constants {
                 new TrapezoidProfile.Constraints(kCompressRate, 1));
 
         public static enum IntakeState {
-            DOWN_ON(Degrees.of(-12), 0.75),
-            DOWN_OFF(Degrees.of(-12), 0),
-            DOWN_REV(Degrees.of(-12), -0.75),
-            UP_OFF(Degrees.of(70), 0),
-            BOUNCE_UP(Degrees.of(55), 0),
-            STOP(Degrees.of(70), 0);
+            DOWN_ON(Degrees.of(-9), 0.75),
+            DOWN_OFF(Degrees.of(-9), 0),
+            DOWN_REV(Degrees.of(-9), -0.75),
+            UP_OFF(Degrees.of(120), 0),
+            BOUNCE_UP(Degrees.of(60), 0),
+            STOP(Degrees.of(120), 0);
 
             public final Angle rotationLocation;
             public final double spinSpeed;
@@ -348,7 +348,7 @@ public final class Constants {
                 CurrentLimits.SupplyCurrentLimit = 20;
                 // abs encoder
                 Feedback.FeedbackRemoteSensorID = ShooterConstants.kHoodEncoderID;
-                Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
+                Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
                 Feedback.SensorToMechanismRatio = ShooterConstants.kSensorToMechanismRatio;
                 Feedback.RotorToSensorRatio = ShooterConstants.kMotorToSensorRatio;
                 MotionMagic = kHoodMotionMagicConfig;
@@ -369,10 +369,10 @@ public final class Constants {
         public static final double kCurrentLimit = 30;
         public static final double kRampRate = 0.2;
 
-        public static final int ShooterIDLeftBottom = 90;
-        public static final int ShooterIDLeftTop = 100;
-        public static final int ShooterIDRightTop = 120;
-        public static final int ShooterIDRightBottom = 110;
+        public static final int ShooterIDLeftBottom = 9;
+        public static final int ShooterIDLeftTop = 10;
+        public static final int ShooterIDRightTop = 12;
+        public static final int ShooterIDRightBottom = 11;
 
         // shooter motors config
         public static final TalonFXConfiguration rightShooterMotorsConfig = new TalonFXConfiguration() {
@@ -684,14 +684,14 @@ public final class Constants {
 
         // stores desired velocity based on position
         public static final Map<Distance, LookupTablePoint> joeLookupTable = Map.ofEntries(
-                Map.entry(Meters.of(1),   new LookupTablePoint(RPM.of(2000), 0.850)),
-                Map.entry(Meters.of(1.5), new LookupTablePoint(RPM.of(2000), 0.845)),
-                Map.entry(Meters.of(2),   new LookupTablePoint(RPM.of(2000), 0.840)),
-                Map.entry(Meters.of(2.5), new LookupTablePoint(RPM.of(2100), 0.835)),
-                Map.entry(Meters.of(3),   new LookupTablePoint(RPM.of(2200), 0.830)),
-                Map.entry(Meters.of(3.5), new LookupTablePoint(RPM.of(2300), 0.820)),
-                Map.entry(Meters.of(4),   new LookupTablePoint(RPM.of(2500), 0.760)),
-                Map.entry(Meters.of(4.5), new LookupTablePoint(RPM.of(2700), 0.700))
+                Map.entry(Meters.of(1),   new LookupTablePoint(RPM.of(1800), 0.95)),
+                Map.entry(Meters.of(1.5), new LookupTablePoint(RPM.of(1900), 0.94)),
+                Map.entry(Meters.of(2),   new LookupTablePoint(RPM.of(2000), 0.93)),
+                Map.entry(Meters.of(2.5), new LookupTablePoint(RPM.of(2100), 0.92)),
+                Map.entry(Meters.of(3),   new LookupTablePoint(RPM.of(2200), 0.91)),
+                Map.entry(Meters.of(3.5), new LookupTablePoint(RPM.of(2300), 0.9)),
+                Map.entry(Meters.of(4),   new LookupTablePoint(RPM.of(2500), 0.9)),
+                Map.entry(Meters.of(4.5), new LookupTablePoint(RPM.of(2700), 0.9))
         );
     }
 }
