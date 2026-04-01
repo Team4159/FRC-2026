@@ -163,9 +163,9 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         }
 
         private SwerveRequest getTeleopDrive(boolean robotRelative) {
-            // if (canAutoBrake()) {
-            // return brakeDrive;
-            // }
+            if (canAutoBrake()) {
+                return brakeDrive;
+            }
 
             double maxTranslationSpeed = getMaxTranslationSpeed();
             double maxRotationSpeed = getMaxRotationSpeed();
@@ -251,7 +251,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
 
                 var leftExtentDiagonal = Pair.of(
                         new Translation2d(kChassisSizeX.div(2).plus(HopperConstants.kHopperExtent),
-                                kChassisSizeY.div(2)),
+                                kBumperSizeY.div(2)),
                         new Translation2d(kBumperSizeX.div(-2), kBumperSizeY.div(-2)));
                 var rotatedLeftExtentDiagonal = Pair.of(
                         leftExtentDiagonal.getFirst().rotateAround(Translation2d.kZero, robotPose.getRotation()),
@@ -286,13 +286,11 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                 }
 
                 double vy = kTrenchAssistAlignStrength * Math.signum(errorY.magnitude())
-                        * Math.abs(getInputSpeedX(true));
+                        * Math.abs(1);
                 double influence = OperatorConstants.kTrenchAssistAlignInfluence * getInputSpeedY(true);
                 boolean aligned = localErrorY
-                        .baseUnitMagnitude() >= -OperatorConstants.kTrenchAssistAlignPositionInnerTolerance
-                                .baseUnitMagnitude()
-                        && localErrorY.baseUnitMagnitude() <= OperatorConstants.kTrenchAssistAlignPositionOuterTolerance
-                                .baseUnitMagnitude();
+                        .baseUnitMagnitude() >= -0.01
+                        && localErrorY.baseUnitMagnitude() <= 0.01;
                 boolean againstAlignment = (influence >= Math.abs(vy));
                 if (aligned || againstAlignment) {
                     vy = 0.0;
