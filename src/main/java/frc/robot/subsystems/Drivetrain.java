@@ -23,6 +23,7 @@ import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -39,6 +40,8 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.PoseUtil;
+import frc.robot.Constants.FieldConstants;
+import frc.robot.Constants.HopperConstants;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.OperatorConstants.DriveFlag;
 import frc.robot.Constants.OperatorConstants.DriveMode;
@@ -84,7 +87,8 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     private final Supplier<Double> inputRotationX;
     private final Supplier<Double> inputRotationY;
 
-    private final ChassisSpeeds estimatedRealChassisSpeeds = new ChassisSpeeds(0, 0, pigeon.getAngularVelocityYWorld().getValueAsDouble());
+    private final ChassisSpeeds estimatedRealChassisSpeeds = new ChassisSpeeds(0, 0,
+            pigeon.getAngularVelocityYWorld().getValueAsDouble());
     private final LinearFilter estimatedRealChassisSpeedXFilter = LinearFilter.movingAverage(5);
     private final LinearFilter estimatedRealChassisSpeedYFilter = LinearFilter.movingAverage(5);
     private Pose2d lastPose = getState().Pose;
@@ -131,8 +135,10 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         Pose2d currentPose = getState().Pose;
         Translation2d displacement = currentPose.getTranslation().minus(lastPose.getTranslation());
         lastPose = currentPose;
-        estimatedRealChassisSpeeds.vxMetersPerSecond = estimatedRealChassisSpeedXFilter.calculate(displacement.getX() / 0.02);
-        estimatedRealChassisSpeeds.vyMetersPerSecond = estimatedRealChassisSpeedYFilter.calculate(displacement.getY() / 0.02);
+        estimatedRealChassisSpeeds.vxMetersPerSecond = estimatedRealChassisSpeedXFilter
+                .calculate(displacement.getX() / 0.02);
+        estimatedRealChassisSpeeds.vyMetersPerSecond = estimatedRealChassisSpeedYFilter
+                .calculate(displacement.getY() / 0.02);
         estimatedRealChassisSpeeds.omegaRadiansPerSecond = pigeon.getAngularVelocityYWorld().getValueAsDouble();
         isSlipping();
     }
@@ -157,9 +163,9 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         }
 
         private SwerveRequest getTeleopDrive(boolean robotRelative) {
-            if (canAutoBrake()) {
-                return brakeDrive;
-            }
+            // if (canAutoBrake()) {
+            // return brakeDrive;
+            // }
 
             double maxTranslationSpeed = getMaxTranslationSpeed();
             double maxRotationSpeed = getMaxRotationSpeed();
@@ -241,10 +247,36 @@ public class Drivetrain extends CommandSwerveDrivetrain {
             // trench assist
             var trenchZone = PoseUtil.getPoseTrenchZone(robotPose);
             if (trenchZone.isPresent()) {
-                Translation2d focus = trenchZone.get().focus;
-                focus = focus.minus(new Translation2d(Meters.of(0.0), kTrenchAssistFrontProtrusionExtent.div(2).times(robotPose.getRotation().getSin())));
-                Distance errorX = focus.getMeasureX().minus(robotPose.getMeasureX());
-                Distance errorY = focus.getMeasureY().minus(robotPose.getMeasureY());
+                Translation2d trenchFocus = trenchZone.get().focus;
+
+                var leftExtentDiagonal = Pair.of(
+                        new Translation2d(kChassisSizeX.div(2).plus(HopperConstants.kHopperExtent),
+                                kChassisSizeY.div(2)),
+                        new Translation2d(kBumperSizeX.div(-2), kBumperSizeY.div(-2)));
+                var rotatedLeftExtentDiagonal = Pair.of(
+                        leftExtentDiagonal.getFirst().rotateAround(Translation2d.kZero, robotPose.getRotation()),
+                        leftExtentDiagonal.getSecond().rotateAround(Translation2d.kZero, robotPose.getRotation()));
+                var rotatedRightExtentDiagonal = Pair.of(
+                        new Translation2d(leftExtentDiagonal.getFirst().getX(), -leftExtentDiagonal.getFirst().getY())
+                                .rotateAround(Translation2d.kZero, robotPose.getRotation()),
+                        new Translation2d(leftExtentDiagonal.getSecond().getX(), -leftExtentDiagonal.getSecond().getY())
+                                .rotateAround(Translation2d.kZero, robotPose.getRotation()));
+                double leftDiagonalVertical = Math.abs(
+                        rotatedLeftExtentDiagonal.getFirst().getY() - rotatedLeftExtentDiagonal.getSecond().getY());
+                double rightDiagonalVertical = Math.abs(
+                        rotatedRightExtentDiagonal.getFirst().getY() - rotatedRightExtentDiagonal.getSecond().getY());
+                var mostVerticalDiagonal = (leftDiagonalVertical > rightDiagonalVertical) ? rotatedLeftExtentDiagonal
+                        : rotatedRightExtentDiagonal;
+                Distance focusOffset = (mostVerticalDiagonal.getFirst().getMeasureY()
+                        .plus(mostVerticalDiagonal.getSecond().getMeasureY())).div(-2);
+                Translation2d alignFocus = trenchFocus.plus(new Translation2d(Meters.of(0.0),
+                        focusOffset));
+
+                Distance errorX = alignFocus.getMeasureX().minus(robotPose.getMeasureX());
+                Distance errorY = alignFocus.getMeasureY().minus(robotPose.getMeasureY());
+                Distance localErrorY = (trenchFocus.getY() < FieldConstants.kAllianceHeight.baseUnitMagnitude() / 2)
+                        ? errorY.copy()
+                        : errorY.times(-1);
 
                 boolean hasPassed = !errorX.isNear(Meters.zero(), OperatorConstants.kTrenchAssistPassPositionTolerance);
                 boolean isNotApproaching = (Math.signum(getInputX(true)) == -Math.signum(errorX.magnitude()))
@@ -256,10 +288,13 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                 double vy = kTrenchAssistAlignStrength * Math.signum(errorY.magnitude())
                         * Math.abs(getInputSpeedX(true));
                 double influence = OperatorConstants.kTrenchAssistAlignInfluence * getInputSpeedY(true);
-                boolean insideTolerance = errorY.isNear(Meters.zero(),
-                        OperatorConstants.kTrenchAssistAlignPositionTolerance);
+                boolean aligned = localErrorY
+                        .baseUnitMagnitude() >= -OperatorConstants.kTrenchAssistAlignPositionInnerTolerance
+                                .baseUnitMagnitude()
+                        && localErrorY.baseUnitMagnitude() <= OperatorConstants.kTrenchAssistAlignPositionOuterTolerance
+                                .baseUnitMagnitude();
                 boolean againstAlignment = (influence >= Math.abs(vy));
-                if (insideTolerance || againstAlignment) {
+                if (aligned || againstAlignment) {
                     vy = 0.0;
                 }
                 vy += influence;
@@ -617,7 +652,8 @@ public class Drivetrain extends CommandSwerveDrivetrain {
 
     public boolean isSlipping() {
         double expectedSpeed = Math.hypot(getState().Speeds.vxMetersPerSecond, getState().Speeds.vyMetersPerSecond);
-        double actualSpeed = Math.hypot(estimatedRealChassisSpeeds.vxMetersPerSecond, estimatedRealChassisSpeeds.vyMetersPerSecond);
+        double actualSpeed = Math.hypot(estimatedRealChassisSpeeds.vxMetersPerSecond,
+                estimatedRealChassisSpeeds.vyMetersPerSecond);
         return slippingBucketFilter.calculate(expectedSpeed - actualSpeed) > 2.0;
     }
 }

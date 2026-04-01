@@ -5,7 +5,6 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
-import static frc.robot.Constants.DrivetrainConstants.kMaxTranslationSpeed;
 
 import java.util.Map;
 import java.util.Set;
@@ -79,8 +78,8 @@ public final class Constants {
     }
 
     public static class HopperConstants {
-        // TODO: set later
         public static final int HopperId = 30;
+        public static final Distance kHopperExtent = Inches.of(12.0);
 
         public static enum HopperState {
             FEED(1), REVERSE(-1), STOP(0);
@@ -238,8 +237,9 @@ public final class Constants {
         // drive assist constants
         public static final Distance kTrenchAssistPassPositionTolerance = Meters.of(0.45);
         public static final double kTrenchAssistApproachInputTolerance = 0.2;
-        public static final Distance kTrenchAssistAlignPositionTolerance = Meters.of(0.15);
-        public static final double kTrenchAssistAlignStrength = 0.85;
+        public static final Distance kTrenchAssistAlignPositionInnerTolerance = Meters.of(0.05);
+        public static final Distance kTrenchAssistAlignPositionOuterTolerance = Meters.of(0.15);
+        public static final double kTrenchAssistAlignStrength = 0.8;
         public static final double kTrenchAssistAlignInfluence = 0.2;
         public static final Distance kTrenchAssistFrontProtrusionExtent = Inches.of(10.0);
 
@@ -259,8 +259,11 @@ public final class Constants {
     }
 
     public static class DrivetrainConstants {
-        public static final Distance kDrivetrainSizeX = Inches.of(34.0);
-        public static final Distance kDrivetrainSizeY = Inches.of(34.0);
+        public static final Distance kChassisSizeX = Inches.of(27.0);
+        public static final Distance kChassisSizeY = Inches.of(27.0);
+
+        public static final Distance kBumperSizeX = Inches.of(35.0);
+        public static final Distance kBumperSizeY = Inches.of(35.0);
 
         public static final double kMaxTranslationSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
         public static final double kMaxRotationSpeed = RotationsPerSecond.of(0.75).in(RadiansPerSecond);
@@ -274,7 +277,6 @@ public final class Constants {
         public static final double kAimKI = 0.0;
         public static final double kAimKD = 0.0;
         public static final double kAimFeedForward = 0.0;
-
 
         public static final Angle AutoAimTolerance = Degrees.of(5);
         public static final double kAutoAimInputMultiplier = 1;
@@ -419,7 +421,6 @@ public final class Constants {
         public static final double backwardsTime = 0.05;
 
         // Old equation stuff
-        // TODO: find ball launch velocity
         /** units: m/s */
         public static final double launchVelocity = Units.feetToMeters(29);// convert from ft/s to m/s
         public static final double ratio = 1;
@@ -429,7 +430,6 @@ public final class Constants {
         public static Angle maxPitch = Degrees.of(85);
 
         public static final Distance kShooterWheelRadius = Inches.of(2);
-        /** TODO: find the correct distance */
         public static final Distance kShooterRollerRadius = Inches.of(0.75);
 
         public static final double kShooterEfficiency = 0.80;
@@ -523,7 +523,7 @@ public final class Constants {
         public static Distance kTowerY = Inches.of(147.47);
         public static Distance kTowerWidth = Inches.of(35.2);
 
-        public static Distance kTrenchZoneYBuffer = DrivetrainConstants.kDrivetrainSizeY.div(4);
+        public static Distance kTrenchZoneYBuffer = DrivetrainConstants.kBumperSizeY.div(4);
 
         public static enum FieldZone {
             FIELD(
@@ -595,37 +595,26 @@ public final class Constants {
     }
 
     public static class AlignConstants {
-        // TODO: tune acceleration and jerk for aligning
-        public static final APConstraints kAlignConstraints = new APConstraints()
-                .withVelocity(kMaxTranslationSpeed)
-                .withAcceleration(6.0)
-                .withJerk(3.0);
-        public static final APProfile kAlignProfile = new APProfile(kAlignConstraints)
-                .withErrorXY(Centimeters.of(2.0))
-                .withErrorTheta(Degrees.of(1.0))
-                .withBeelineRadius(Centimeters.of(5.0));
-        public static final Autopilot kAlignController = new Autopilot(kAlignProfile);
-
         public static enum TowerAlignGoal {
             LEFT(
                     new APTarget(new Pose2d(FieldConstants.kTowerX,
                             FieldConstants.kTowerY.plus(FieldConstants.kTowerWidth.div(2))
-                                    .plus(DrivetrainConstants.kDrivetrainSizeX.div(2)),
+                                    .plus(DrivetrainConstants.kBumperSizeX.div(2)),
                             Rotation2d.kZero)).withVelocity(0).withoutEntryAngle()),
             RIGHT(
                     new APTarget(new Pose2d(FieldConstants.kTowerX,
                             FieldConstants.kTowerY.minus(FieldConstants.kTowerWidth.div(2))
-                                    .minus(DrivetrainConstants.kDrivetrainSizeX.div(2)),
+                                    .minus(DrivetrainConstants.kBumperSizeX.div(2)),
                             Rotation2d.k180deg)).withVelocity(0).withEntryAngle(Rotation2d.k180deg)),
             MIDDLE_FRONT(
                     new APTarget(new Pose2d(
-                            FieldConstants.kTowerX.plus(DrivetrainConstants.kDrivetrainSizeX.div(2)).plus(Inches.of(6)),
+                            FieldConstants.kTowerX.plus(DrivetrainConstants.kBumperSizeX.div(2)).plus(Inches.of(6)),
                             FieldConstants.kTowerY, Rotation2d.k180deg)).withVelocity(0).withoutEntryAngle(),
                     new APTarget(new Pose2d(FieldConstants.kTowerX, FieldConstants.kTowerY, Rotation2d.k180deg))
                             .withVelocity(0).withoutEntryAngle()),
             MIDDLE_BACK(
                     new APTarget(new Pose2d(
-                            FieldConstants.kTowerX.minus(DrivetrainConstants.kDrivetrainSizeX.div(2))
+                            FieldConstants.kTowerX.minus(DrivetrainConstants.kBumperSizeX.div(2))
                                     .minus(Inches.of(6)),
                             FieldConstants.kTowerY, Rotation2d.kZero)).withVelocity(0).withoutEntryAngle(),
                     new APTarget(new Pose2d(FieldConstants.kTowerX, FieldConstants.kTowerY, Rotation2d.kZero))
