@@ -126,10 +126,11 @@ public class Intake extends SubsystemBase {
 
         @Override
         public void execute() {
-            if (state == IntakeState.DOWN_OFF && (isNear(state) || getTime() - lastStateChange > 2)) {
+            boolean alternate = isNear(state) || getTime() - lastStateChange > 1;
+            if (state == IntakeState.DOWN_OFF && alternate) {
                 changeState(IntakeState.BOUNCE_UP);
             }
-            if (state == IntakeState.BOUNCE_UP && (isNear(state) || getTime() - lastStateChange > 2)) {
+            if (state == IntakeState.BOUNCE_UP && alternate) {
                 changeState(IntakeState.DOWN_OFF);
             }
         }
