@@ -286,11 +286,13 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                 }
 
                 double vy = kTrenchAssistAlignStrength * Math.signum(errorY.magnitude())
-                        * Math.abs(1);
+                        * Math.abs(getInputSpeedX(true));
                 double influence = OperatorConstants.kTrenchAssistAlignInfluence * getInputSpeedY(true);
                 boolean aligned = localErrorY
-                        .baseUnitMagnitude() >= -0.01
-                        && localErrorY.baseUnitMagnitude() <= 0.01;
+                        .baseUnitMagnitude() >= -OperatorConstants.kTrenchAssistAlignPositionInnerTolerance
+                                .baseUnitMagnitude()
+                        && localErrorY.baseUnitMagnitude() <= OperatorConstants.kTrenchAssistAlignPositionOuterTolerance
+                                .baseUnitMagnitude();
                 boolean againstAlignment = (influence >= Math.abs(vy));
                 if (aligned || againstAlignment) {
                     vy = 0.0;
