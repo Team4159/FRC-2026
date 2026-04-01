@@ -60,14 +60,18 @@ public class Intake extends SubsystemBase {
     }
 
     private Angle getPivotAngle() {
+        System.out.println(locationMotor.getPosition().getValue().in(Degrees));
         return Rotations.of(locationMotor.getPosition().getValueAsDouble());
+        
     }
 
     @Override
     public void periodic() {
         SmartDashboard.putNumber("intake angle", getPivotAngle().in(Degrees));
+        System.out.println("intake cancoder"+ canCoder.getAbsolutePosition().getValue().in(Degrees));
         SmartDashboard.putNumber("intake pid error",
                 Units.rotationsToDegrees(locationMotor.getClosedLoopError().getValueAsDouble()));
+        System.out.println(locationMotor.getFault_RemoteSensorDataInvalid().getValue());
     }
 
     public class ChangeStates extends Command {

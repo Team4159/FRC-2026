@@ -190,12 +190,12 @@ public final class Constants {
                 new TrapezoidProfile.Constraints(kCompressRate, 1));
 
         public static enum IntakeState {
-            DOWN_ON(Degrees.of(-12), 0.75),
-            DOWN_OFF(Degrees.of(-12), 0),
-            DOWN_REV(Degrees.of(-12), -0.75),
-            UP_OFF(Degrees.of(70), 0),
-            BOUNCE_UP(Degrees.of(55), 0),
-            STOP(Degrees.of(70), 0);
+            DOWN_ON(Degrees.of(-9), 0.75),
+            DOWN_OFF(Degrees.of(-9), 0),
+            DOWN_REV(Degrees.of(-9), -0.75),
+            UP_OFF(Degrees.of(120), 0),
+            BOUNCE_UP(Degrees.of(60), 0),
+            STOP(Degrees.of(120), 0);
 
             public final Angle rotationLocation;
             public final double spinSpeed;
@@ -673,14 +673,14 @@ public final class Constants {
 
         // stores desired velocity based on position
         public static final Map<Distance, LookupTablePoint> joeLookupTable = Map.ofEntries(
-                Map.entry(Meters.of(1),   new LookupTablePoint(RPM.of(2000), 0.850)),
-                Map.entry(Meters.of(1.5), new LookupTablePoint(RPM.of(2000), 0.845)),
-                Map.entry(Meters.of(2),   new LookupTablePoint(RPM.of(2000), 0.840)),
-                Map.entry(Meters.of(2.5), new LookupTablePoint(RPM.of(2100), 0.835)),
-                Map.entry(Meters.of(3),   new LookupTablePoint(RPM.of(2200), 0.830)),
-                Map.entry(Meters.of(3.5), new LookupTablePoint(RPM.of(2300), 0.820)),
-                Map.entry(Meters.of(4),   new LookupTablePoint(RPM.of(2500), 0.760)),
-                Map.entry(Meters.of(4.5), new LookupTablePoint(RPM.of(2700), 0.700))
+                Map.entry(Meters.of(1),   new LookupTablePoint(RPM.of(1800), 0.95)),
+                Map.entry(Meters.of(1.5), new LookupTablePoint(RPM.of(1900), 0.94)),
+                Map.entry(Meters.of(2),   new LookupTablePoint(RPM.of(2000), 0.93)),
+                Map.entry(Meters.of(2.5), new LookupTablePoint(RPM.of(2100), 0.92)),
+                Map.entry(Meters.of(3),   new LookupTablePoint(RPM.of(2200), 0.91)),
+                Map.entry(Meters.of(3.5), new LookupTablePoint(RPM.of(2300), 0.9)),
+                Map.entry(Meters.of(4),   new LookupTablePoint(RPM.of(2500), 0.9)),
+                Map.entry(Meters.of(4.5), new LookupTablePoint(RPM.of(2700), 0.9))
         );
     }
 }
