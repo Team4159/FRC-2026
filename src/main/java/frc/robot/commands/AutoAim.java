@@ -83,7 +83,8 @@ public class AutoAim extends Command {
     private boolean autonomousMode;
 
     /**
-     * tells the robot to stop running swerve PID if already within tolerance to prevent jitter
+     * tells the robot to stop running swerve PID if already within tolerance to
+     * prevent jitter
      */
     private boolean aimFinished;
 
@@ -148,7 +149,7 @@ public class AutoAim extends Command {
         this.target = Constants.FieldConstants.hubLocations.get(DriverStation.getAlliance().orElse(Alliance.Blue));
         adjustedRobotPose = drivetrain.getState().Pose;
         // used to simulate loss of shooter velocity over time for sim
-        //timeOffset = MathSharedStore.getTimestamp();
+        // timeOffset = MathSharedStore.getTimestamp();
 
         CommandScheduler.getInstance().schedule(leds.new ChangeLEDStatusSupplier(ledStatusSupplier));
         CommandScheduler.getInstance().schedule(intake.new BounceIntake());
@@ -160,37 +161,39 @@ public class AutoAim extends Command {
 
     @Override
     public void execute() {
-         //calculate desired pitch for hood angle
+        // calculate desired pitch for hood angle
         Angle desiredHoodAngle = getDesiredHoodPitch();
         AngularVelocity desiredShooterAngularVelocity;
 
-        for(int i = 0; i < 2; i++){
-            //get desired angular velocity and efficiency from lookup table
+        for (int i = 0; i < 2; i++) {
+            // get desired angular velocity and efficiency from lookup table
             LookupTablePoint lookupTablePoint = JoeLookupTable.getLookupTablePoint(Meters.of(getDistanceFromHub()));
             desiredShooterAngularVelocity = lookupTablePoint.angularVelocity();
             efficiency = lookupTablePoint.efficiency();
-            //calculate TOF(used for calculating adjusted robot pose)
-            double timeOfFlight = getTimeOfFlight(desiredHoodAngle, shooter.getFuelSpeedWithCustomEfficiency(efficiency));
-            if(RobotBase.isSimulation()){
+            // calculate TOF(used for calculating adjusted robot pose)
+            double timeOfFlight = getTimeOfFlight(desiredHoodAngle,
+                    shooter.getFuelSpeedWithCustomEfficiency(efficiency));
+            if (RobotBase.isSimulation()) {
                 timeOfFlight = getTimeOfFlight(desiredHoodAngle, getLaunchVelocity(desiredShooterAngularVelocity));
             }
-            //calculate the distance traveled by the robot during the time of flight
+            // calculate the distance traveled by the robot during the time of flight
             Transform2d adjustedRobotPoseTransform = new Transform2d(
-                drivetrain.getState().Speeds.vxMetersPerSecond * timeOfFlight,
-                drivetrain.getState().Speeds.vyMetersPerSecond * timeOfFlight,
-                new Rotation2d());
-            //add the distance traveled during TOF to current robot pose to get the adjusted robot pose
-            //this will be used for shooting while moving adjustment
+                    drivetrain.getState().Speeds.vxMetersPerSecond * timeOfFlight,
+                    drivetrain.getState().Speeds.vyMetersPerSecond * timeOfFlight,
+                    new Rotation2d());
+            // add the distance traveled during TOF to current robot pose to get the
+            // adjusted robot pose
+            // this will be used for shooting while moving adjustment
             adjustedRobotPose = drivetrain.getState().Pose.plus(adjustedRobotPoseTransform);
 
-            //recalculate desired hood angle with new adjustedPose (converges)
+            // recalculate desired hood angle with new adjustedPose (converges)
             desiredHoodAngle = getDesiredHoodPitch();
 
-            //send adjusted robot pose to advantageScope(for sim testing)
+            // send adjusted robot pose to advantageScope(for sim testing)
             adjustedRobotPosePublisher.set(adjustedRobotPose);
         }
 
-        //get desired angular velocity and efficiency from lookup table
+        // get desired angular velocity and efficiency from lookup table
         LookupTablePoint lookupTablePoint = JoeLookupTable.getLookupTablePoint(Meters.of(getDistanceFromHub()));
         desiredShooterAngularVelocity = lookupTablePoint.angularVelocity();
         efficiency = lookupTablePoint.efficiency();
@@ -198,13 +201,18 @@ public class AutoAim extends Command {
         // check if in range, return if out of range
         if (getDistanceFromHub() > JoeLookupTableConstants.kMaxDistance.in(Meters)) {
             autoAimStatus = AutoAimStatus.OUTOFRANGE;
+            if (feedbackController.isPresent()) {
+                HIDRumble.rumble(feedbackController.get().getHID(),
+                        new RumbleRequest(RumbleType.kLeftRumble, 0.5, 0.25));
+            }
             CommandScheduler.getInstance().cancel(this);
             return;
         }
 
         // calculate robot theta based on adjusted robot pose
         // this allows for shooting while moving
-        double desiredRobotAngle = target.getTranslation().minus(adjustedRobotPose.getTranslation()).getAngle().getRadians();
+        double desiredRobotAngle = target.getTranslation().minus(adjustedRobotPose.getTranslation()).getAngle()
+                .getRadians();
 
         // rotate the swerve to the desired angle
         rotateSwerve(desiredRobotAngle);
@@ -213,19 +221,19 @@ public class AutoAim extends Command {
         shooter.adjustTrajectoryAngle(desiredHoodAngle);
         shooter.setSpeed(desiredShooterAngularVelocity);
 
-        //send tolerances to smart dashboard
+        // send tolerances to smart dashboard
         SmartDashboard.putBoolean("isAtPitch", shooter.isAtPitch());
         SmartDashboard.putBoolean("isatspeed", shooter.isAtSpeed());
         SmartDashboard.putBoolean("swerve isatangle", isAtDesiredRotation(Radians.of(desiredRobotAngle)));
 
         // if (!timer.hasElapsed(ShooterConstants.backwardsTime)){
-        //     //run neck backwards if at the beginning
-        //     autoAimStatus = AutoAimStatus.WAITING;
-        //     shooter.setFeederSpeed(FeederState.UNSTUCKFEEDER.percentage);
-        //     hopper.setHopperSpeed(HopperState.STOP.percentage);
+        // //run neck backwards if at the beginning
+        // autoAimStatus = AutoAimStatus.WAITING;
+        // shooter.setFeederSpeed(FeederState.UNSTUCKFEEDER.percentage);
+        // hopper.setHopperSpeed(HopperState.STOP.percentage);
         // }
         if (shooter.isAtPitch() && shooter.isAtSpeed() && isAtDesiredRotation(Radians.of(desiredRobotAngle))) {
-            //shoot the fuel if at the right pitch
+            // shoot the fuel if at the right pitch
             autoAimStatus = AutoAimStatus.SHOOT;
             shooter.setFeederSpeed(FeederState.FEED.percentage);
             hopper.setHopperSpeed(HopperState.FEED.percentage);
@@ -236,9 +244,11 @@ public class AutoAim extends Command {
             // hopper.setHopperSpeed(HopperState.STOP.percentage);
         }
 
-        if(RobotBase.isSimulation()){
-            double robotRelativeBallVelocityHorizontal = getLaunchVelocity(desiredShooterAngularVelocity) * Math.cos(desiredHoodAngle.in(Radians));
-            double robotRelativeBallVelocityVertical = getLaunchVelocity(desiredShooterAngularVelocity) * Math.sin(desiredHoodAngle.in(Radians));
+        if (RobotBase.isSimulation()) {
+            double robotRelativeBallVelocityHorizontal = getLaunchVelocity(desiredShooterAngularVelocity)
+                    * Math.cos(desiredHoodAngle.in(Radians));
+            double robotRelativeBallVelocityVertical = getLaunchVelocity(desiredShooterAngularVelocity)
+                    * Math.sin(desiredHoodAngle.in(Radians));
 
             // AdvantageScope fuel simulation
             // get the current robot yaw angle
@@ -270,13 +280,14 @@ public class AutoAim extends Command {
      */
     private void rotateSwerve(double desiredAngle) {
         // if (drivetrain.getInputTranslation(true).getNorm() == 0.0) {
-        //     boolean aimingAtHub = isAtDesiredRotation(Radians.of(desiredAngle));
-        //     boolean robotIsStill = Math.toDegrees(drivetrain.getState().Speeds.omegaRadiansPerSecond) <= 1;
-        //     if (aimingAtHub && robotIsStill) {
-        //         aimFinished = true;
-        //     }
+        // boolean aimingAtHub = isAtDesiredRotation(Radians.of(desiredAngle));
+        // boolean robotIsStill =
+        // Math.toDegrees(drivetrain.getState().Speeds.omegaRadiansPerSecond) <= 1;
+        // if (aimingAtHub && robotIsStill) {
+        // aimFinished = true;
+        // }
         // } else {
-        //     aimFinished = false;
+        // aimFinished = false;
         // }
 
         double omega = Constants.DrivetrainConstants.AutoAimRotationController.calculate(
@@ -317,7 +328,7 @@ public class AutoAim extends Command {
         double wheelTangentialSpeed = shooterOmega * ShooterConstants.kShooterWheelRadius.in(Meters);
         double rollerTangentialSpeed = shooterOmega * ShooterConstants.kShooterRollerRadius.in(Meters);
 
-        return ShooterConstants.kShooterEfficiency * (wheelTangentialSpeed + rollerTangentialSpeed)/2;
+        return ShooterConstants.kShooterEfficiency * (wheelTangentialSpeed + rollerTangentialSpeed) / 2;
     }
 
     /**
@@ -333,33 +344,36 @@ public class AutoAim extends Command {
             return;
         }
         FuelSimulation.getInstance().shootFuel(
-        new Translation3d(drivetrain.getState().Pose.getTranslation().getX(),
-        drivetrain.getState().Pose.getTranslation().getY(), 0),
-        new Translation3d(vx,
-        vy, vz),
-        new Translation3d(0, 0, 0));
+                new Translation3d(drivetrain.getState().Pose.getTranslation().getX(),
+                        drivetrain.getState().Pose.getTranslation().getY(), 0),
+                new Translation3d(vx,
+                        vy, vz),
+                new Translation3d(0, 0, 0));
         lastShoot = MathSharedStore.getTimestamp();
     }
 
     /**
      * 
-     * @param hoodPitch what angle the ball is shot at from the horizontal
+     * @param hoodPitch      what angle the ball is shot at from the horizontal
      * @param launchVelocity the velocity the ball will be shot at in m/s
      * @return the time of flight to the hub in seconds
      */
-    private double getTimeOfFlight(Angle hoodPitch, double launchVelocity){
-        //initial y component of launch velocity
+    private double getTimeOfFlight(Angle hoodPitch, double launchVelocity) {
+        // initial y component of launch velocity
         double vy = launchVelocity * Math.sin(hoodPitch.in(Radians));
-        //the calculation is based on delta y = vy * TOF - (1/2)g * TOF^2 (where g is a positive constant)
-        //the delta y for TOF would be the height
-        //the equation then becomes 0 = -(1/2)g * TOF^2 + vy * TOF - height -> 0 = (1/2)g * TOF^2 - vy * TOF + height
-        //then use quadratic formula and always add the radical to get the 2nd time the fuel is at the target height (so that it is on the way down)
+        // the calculation is based on delta y = vy * TOF - (1/2)g * TOF^2 (where g is a
+        // positive constant)
+        // the delta y for TOF would be the height
+        // the equation then becomes 0 = -(1/2)g * TOF^2 + vy * TOF - height -> 0 =
+        // (1/2)g * TOF^2 - vy * TOF + height
+        // then use quadratic formula and always add the radical to get the 2nd time the
+        // fuel is at the target height (so that it is on the way down)
         double radical = Math.sqrt(Math.pow(vy, 2) - 2 * Constants.FieldConstants.g * height);
-        if(Double.isNaN(radical)){
+        if (Double.isNaN(radical)) {
             return 0;
         }
         double numerator = vy + radical;
-        double time = numerator/Constants.FieldConstants.g;
+        double time = numerator / Constants.FieldConstants.g;
         SmartDashboard.putNumber("time of flight", time);
         return time;
     }
@@ -373,35 +387,40 @@ public class AutoAim extends Command {
         return drivetrain.getState().Pose.getTranslation().getDistance(target.getTranslation());
     }
 
-    // used for auto to feed the desired omega of the swerve into the choreo path follower
+    // used for auto to feed the desired omega of the swerve into the choreo path
+    // follower
     public double getDesiredOmega() {
         return desiredOmega;
     }
 
-    /** @return the desired pitch for the hood based on the adjusted robot position */
-    private Angle getDesiredHoodPitch(){
+    /**
+     * @return the desired pitch for the hood based on the adjusted robot position
+     */
+    private Angle getDesiredHoodPitch() {
         // distance from robot to target
         Translation2d robotTranslation = adjustedRobotPose.getTranslation();
         double distance = robotTranslation.getDistance(target.getTranslation());
         double launchVelocity = shooter.getFuelSpeedWithCustomEfficiency(efficiency);
-        if(RobotBase.isSimulation()){
-            launchVelocity = getLaunchVelocity(JoeLookupTable.getLookupTablePoint(Meters.of(getDistanceFromHub())).angularVelocity());
+        if (RobotBase.isSimulation()) {
+            launchVelocity = getLaunchVelocity(
+                    JoeLookupTable.getLookupTablePoint(Meters.of(getDistanceFromHub())).angularVelocity());
         }
-        double desiredPitch = 
-            Math.atan((Math.pow(launchVelocity, 2)
+        double desiredPitch = Math.atan((Math.pow(launchVelocity, 2)
                 + Math.sqrt(Math.pow(launchVelocity, 4)
                         - Math.pow(FieldConstants.g * distance, 2)
                         - 2 * FieldConstants.g * height
                                 * Math.pow(launchVelocity, 2)))
                 / (FieldConstants.g * distance));
 
-        if(Double.isNaN(desiredPitch)){
-            //equation can only return angles from 45-90 deg (in radians of course), anything lower than that will be NaN
-            //the minimum possible hood angle on the physical shooter is 45, so no additional calculation is needed, just set to 45
+        if (Double.isNaN(desiredPitch)) {
+            // equation can only return angles from 45-90 deg (in radians of course),
+            // anything lower than that will be NaN
+            // the minimum possible hood angle on the physical shooter is 45, so no
+            // additional calculation is needed, just set to 45
             desiredPitch = Units.degreesToRadians(45);
             autoAimStatus = AutoAimStatus.OUTOFRANGE;
         }
-        if(desiredPitch > Constants.ShooterConstants.maxPitch.in(Radians)){
+        if (desiredPitch > Constants.ShooterConstants.maxPitch.in(Radians)) {
             desiredPitch = Constants.ShooterConstants.maxPitch.in(Radians);
         }
         SmartDashboard.putNumber("autoaim desired pitch", Units.radiansToDegrees(desiredPitch));
@@ -410,9 +429,6 @@ public class AutoAim extends Command {
 
     @Override
     public void end(boolean interrupted) {
-        if (feedbackController.isPresent()) {
-            HIDRumble.rumble(feedbackController.get().getHID(), new RumbleRequest(RumbleType.kLeftRumble, 0.5, 0.25));
-        }
         shooter.adjustHood(ShooterConstants.kRestingAngle);
         shooter.setSpeed(Constants.ShooterConstants.restingAngularVelocity);
         shooter.setFeederSpeed(FeederState.STOP.percentage);

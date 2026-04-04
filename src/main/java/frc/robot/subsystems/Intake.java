@@ -127,22 +127,18 @@ public class Intake extends SubsystemBase {
 
         @Override
         public void initialize() {
-            state = IntakeState.BOUNCE_UP;
-            lastStateChange = getTime();
-            applyState();
+            changeState(IntakeState.BOUNCE_UP);
         }
 
         @Override
         public void execute() {
-            if (state == IntakeState.DOWN_OFF && (isNear(state) || getTime() - lastStateChange > 2)) {
-                state = IntakeState.BOUNCE_UP;
-                lastStateChange = getTime();
+            boolean alternate = isNear(state) || getTime() - lastStateChange > 1;
+            if (state == IntakeState.DOWN_OFF && alternate) {
+                changeState(IntakeState.BOUNCE_UP);
             }
-            if (state == IntakeState.BOUNCE_UP && (isNear(state) || getTime() - lastStateChange > 2)) {
-                state = IntakeState.DOWN_OFF;
-                lastStateChange = getTime();
+            if (state == IntakeState.BOUNCE_UP && alternate) {
+                changeState(IntakeState.DOWN_OFF);
             }
-            applyState();
         }
 
         @Override
@@ -152,6 +148,12 @@ public class Intake extends SubsystemBase {
 
         private double getTime() {
             return MathSharedStore.getTimestamp();
+        }
+
+        private void changeState(IntakeState state) {
+            this.state = state;
+            lastStateChange = getTime();
+            applyState();
         }
 
         private void applyState() {

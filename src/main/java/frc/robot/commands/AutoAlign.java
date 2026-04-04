@@ -10,7 +10,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.lib.PoseUtil;
-import frc.robot.Constants.AlignConstants;
+import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.AlignConstants.TowerAlignGoal;
 import frc.robot.subsystems.Drivetrain;
 
@@ -35,7 +35,7 @@ public class AutoAlign extends Command {
 
     @Override
     public void execute() {
-        boolean atTarget = AlignConstants.kAlignController.atTarget(drivetrain.getState().Pose, currentTarget);
+        boolean atTarget = AutoConstants.kAutopilotAlignController.atTarget(drivetrain.getState().Pose, currentTarget);
         boolean targetIsIntermediate = (progress < goal.targets.length - 1);
         if (atTarget && targetIsIntermediate) {
             progress++;
@@ -60,7 +60,7 @@ public class AutoAlign extends Command {
 
     private void alignToTarget() {
         SwerveDriveState drivetrainState = drivetrain.getState();
-        APResult result = AlignConstants.kAlignController.calculate(drivetrainState.Pose, drivetrainState.Speeds,
+        APResult result = AutoConstants.kAutopilotAlignController.calculate(drivetrainState.Pose, drivetrainState.Speeds,
                 currentTarget);
 
         LinearVelocity velocityX = result.vx();
