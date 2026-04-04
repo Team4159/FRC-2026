@@ -24,6 +24,8 @@ public class Intake extends SubsystemBase {
     private final TalonFX spinMotor;
     private final CANcoder canCoder;
 
+    private double rollerPercentage;
+
     private final MotionMagicVoltage intakeMotionMagicVoltage;
     // private final VelocityVoltage intakeVelocityVoltage;
 
@@ -31,8 +33,6 @@ public class Intake extends SubsystemBase {
         locationMotor = new TalonFX(IntakeConstants.kAngleId);
         spinMotor = new TalonFX(IntakeConstants.kIntakeSpinId);
         canCoder = new CANcoder(IntakeConstants.kAngleEncoderId);
-
-        System.out.println("cancoderconfig: " + IntakeConstants.canCoderConfig);
 
         canCoder.getConfigurator().apply(IntakeConstants.canCoderConfig);
         locationMotor.getConfigurator().apply(IntakeConstants.angleConfig);
@@ -45,6 +45,8 @@ public class Intake extends SubsystemBase {
         CurrentLimitsConfigs currentLimits = new CurrentLimitsConfigs().withSupplyCurrentLimit(Amps.of(20))
                 .withSupplyCurrentLimitEnable(true);
         spinMotor.getConfigurator().apply(currentLimits);
+
+        rollerPercentage = 0;
     }
 
     public void setMotionMagic(MotionMagicConfigs motionMagicConfigs) {
@@ -60,18 +62,21 @@ public class Intake extends SubsystemBase {
     }
 
     private Angle getPivotAngle() {
-        System.out.println(locationMotor.getPosition().getValue().in(Degrees));
         return Rotations.of(locationMotor.getPosition().getValueAsDouble());
-        
     }
 
     @Override
     public void periodic() {
         SmartDashboard.putNumber("intake angle", getPivotAngle().in(Degrees));
-        System.out.println("intake cancoder"+ canCoder.getAbsolutePosition().getValue().in(Degrees));
         SmartDashboard.putNumber("intake pid error",
                 Units.rotationsToDegrees(locationMotor.getClosedLoopError().getValueAsDouble()));
-        System.out.println(locationMotor.getFault_RemoteSensorDataInvalid().getValue());
+
+        if(getPivotAngle().in(Degrees) < 30){
+            setSpinSpeed(rollerPercentage);
+        }
+        else{
+            setSpinSpeed(0);
+        }
     }
 
     public class ChangeStates extends Command {
@@ -84,13 +89,14 @@ public class Intake extends SubsystemBase {
 
         @Override
         public void initialize() {
-            Intake.this.setSpinSpeed(state.spinSpeed);
+            rollerPercentage = state.spinSpeed;
             setLocation(state.rotationLocation);
         }
 
         @Override
         public void end(boolean interrupt) {
             Intake.this.setSpinSpeed(IntakeState.STOP.spinSpeed);
+            rollerPercentage = 0;
         }
     }
 

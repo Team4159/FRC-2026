@@ -191,9 +191,9 @@ public final class Constants {
                 new TrapezoidProfile.Constraints(kCompressRate, 1));
 
         public static enum IntakeState {
-            DOWN_ON(Degrees.of(-9), 0.75),
+            DOWN_ON(Degrees.of(-9), 1),
             DOWN_OFF(Degrees.of(-9), 0),
-            DOWN_REV(Degrees.of(-9), -0.75),
+            DOWN_REV(Degrees.of(-9), -1),
             UP_OFF(Degrees.of(120), 0),
             BOUNCE_UP(Degrees.of(60), 0),
             STOP(Degrees.of(120), 0);
@@ -270,13 +270,13 @@ public final class Constants {
         public static final double kPointKD = 0.0;
         public static final double kPointFeedForward = 0.0;
 
-        public static final double kAimKP = 10;
+        public static final double kAimKP = 6;
         public static final double kAimKI = 0.0;
         public static final double kAimKD = 0.0;
         public static final double kAimFeedForward = 0.0;
 
 
-        public static final Angle AutoAimTolerance = Degrees.of(5);
+        public static final Angle AutoAimTolerance = Degrees.of(10);
         public static final double kAutoAimInputMultiplier = 1;
 
         public static final PhoenixPIDController AutoAimRotationController = new PhoenixPIDController(kAimKP, kAimKI,
@@ -366,7 +366,7 @@ public final class Constants {
         public static final double kV = 0.25;
         public static final double kA = 2.14;
 
-        public static final double kCurrentLimit = 30;
+        public static final double kCurrentLimit = 25;
         public static final double kRampRate = 0.2;
 
         public static final int ShooterIDLeftBottom = 9;
@@ -408,8 +408,8 @@ public final class Constants {
         };
 
         public static final AngularVelocity shooterAngularVelocity = RPM.of(2000);
-        public static final AngularVelocity lobAngularVelocity = RPM.of(3200);
-        public static final AngularVelocity restingAngularVelocity = RPM.of(0);
+        public static final AngularVelocity lobAngularVelocity = RPM.of(2000);
+        public static final AngularVelocity restingAngularVelocity = RPM.of(1000);
         public static final AngularVelocity hubAngularVelocity = RPM.of(2500);
         public static final AngularVelocity towerAngularVelocity = RPM.of(3000);
 
@@ -425,7 +425,7 @@ public final class Constants {
         public static final double ratio = 1;
         public static final double shootHeight = Units.inchesToMeters(40);
 
-        public static AngularVelocity kShooterVelocityTolerance = RPM.of(300);
+        public static AngularVelocity kShooterVelocityTolerance = RPM.of(10);
         public static Angle maxPitch = Degrees.of(85);
 
         public static final Distance kShooterWheelRadius = Inches.of(2);
@@ -454,8 +454,8 @@ public final class Constants {
     public static class PhotonVisionConstants {
 
         // TODO: tune stddev values
-        public static final Matrix<N3, N1> kSingleTagStdDevs = VecBuilder.fill(2, 2, 4);
-        public static final Matrix<N3, N1> kMultiTagStdDevs = VecBuilder.fill(0.5, 0.5, 1);
+        public static final Matrix<N3, N1> kSingleTagStdDevs = VecBuilder.fill(1, 1, 4);
+        public static final Matrix<N3, N1> kMultiTagStdDevs = VecBuilder.fill(0.25, 0.25, 1);
 
         public final static Transform3d leftShooterCamTransform = new Transform3d(
                 Units.inchesToMeters(-1.2887),
@@ -577,7 +577,7 @@ public final class Constants {
 
     public static class AutoConstants {
         /** units: seconds */
-        public static final double ShootTime = 3;
+        public static final double ShootTime = 4;
 
         public static final APConstraints kAutopilotConstraints = new APConstraints()
                 .withAcceleration(7.0)
@@ -684,14 +684,23 @@ public final class Constants {
 
         // stores desired velocity based on position
         public static final Map<Distance, LookupTablePoint> joeLookupTable = Map.ofEntries(
-                Map.entry(Meters.of(1),   new LookupTablePoint(RPM.of(1800), 0.95)),
-                Map.entry(Meters.of(1.5), new LookupTablePoint(RPM.of(1900), 0.94)),
-                Map.entry(Meters.of(2),   new LookupTablePoint(RPM.of(2000), 0.93)),
-                Map.entry(Meters.of(2.5), new LookupTablePoint(RPM.of(2100), 0.92)),
-                Map.entry(Meters.of(3),   new LookupTablePoint(RPM.of(2200), 0.91)),
-                Map.entry(Meters.of(3.5), new LookupTablePoint(RPM.of(2300), 0.9)),
-                Map.entry(Meters.of(4),   new LookupTablePoint(RPM.of(2500), 0.9)),
-                Map.entry(Meters.of(4.5), new LookupTablePoint(RPM.of(2700), 0.9))
+                // Map.entry(Meters.of(1),   new LookupTablePoint(RPM.of(2000), 0.93)),
+                // Map.entry(Meters.of(1.5), new LookupTablePoint(RPM.of(2100), 0.92)),
+                // Map.entry(Meters.of(2),   new LookupTablePoint(RPM.of(2200), 0.91)),
+                // Map.entry(Meters.of(2.5), new LookupTablePoint(RPM.of(2300), 0.90)),
+                // Map.entry(Meters.of(3),   new LookupTablePoint(RPM.of(2400), 0.88)),
+                // Map.entry(Meters.of(3.5), new LookupTablePoint(RPM.of(2500), 0.84)),
+                // Map.entry(Meters.of(4),   new LookupTablePoint(RPM.of(2700), 0.78)),
+                // Map.entry(Meters.of(4.5), new LookupTablePoint(RPM.of(2900), 0.72))
+
+                Map.entry(Meters.of(1),   new LookupTablePoint(RPM.of(1800), 1.1)),
+                Map.entry(Meters.of(1.5), new LookupTablePoint(RPM.of(1900), 1.05)),
+                Map.entry(Meters.of(2),   new LookupTablePoint(RPM.of(2000), 1)),
+                Map.entry(Meters.of(2.5), new LookupTablePoint(RPM.of(2100), 1)),
+                Map.entry(Meters.of(3),   new LookupTablePoint(RPM.of(2200), 1)),
+                Map.entry(Meters.of(3.5), new LookupTablePoint(RPM.of(2300), 0.97)),
+                Map.entry(Meters.of(4),   new LookupTablePoint(RPM.of(2500), 0.90)),
+                Map.entry(Meters.of(4.5), new LookupTablePoint(RPM.of(2700), 0.85))
         );
     }
 }

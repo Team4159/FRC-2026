@@ -91,7 +91,7 @@ public class ConfigurableAuto {
         // shoot chooser 1
         shootChooser1.addOption("Shoot", "Shoot");
         shootChooser1.addOption("Shoot Bump", "ShootBump");
-        shootChooser1.addOption("Shoot and Climb", "Climb");
+        //shootChooser1.addOption("Shoot and Climb", "Climb");
         shootChooser1.setDefaultOption("None", "None");
 
         // intake chooser 2
@@ -104,7 +104,7 @@ public class ConfigurableAuto {
         // shoot chooser 2
         shootChooser2.addOption("Shoot", "Shoot");
         shootChooser2.addOption("Shoot Bump", "ShootBump");
-        shootChooser2.addOption("Shoot and Climb", "Climb");
+        //shootChooser2.addOption("Shoot and Climb", "Climb");
         shootChooser2.setDefaultOption("None", "None");
 
         climbSideChooser.setDefaultOption("Left", "L");
@@ -181,10 +181,10 @@ public class ConfigurableAuto {
             }
 
             final String startToShootName = direction + "StartToShoot";
-            final String shootToClimbName = direction + "ShootTo" + climbSide + "Climb";
+            //final String shootToClimbName = direction + "ShootTo" + climbSide + "Climb";
 
             final AutoTrajectory startToShootTraj = routine.trajectory(startToShootName);
-            final AutoTrajectory shootToClimbTraj = routine.trajectory(shootToClimbName);
+            //final AutoTrajectory shootToClimbTraj = routine.trajectory(shootToClimbName);
 
             routine.active().onTrue(
                     startToShootTraj.resetOdometry()
@@ -198,12 +198,12 @@ public class ConfigurableAuto {
             );
 
             if (display) {
-                updateField(startToShootTraj, shootToClimbTraj);
+                updateField(startToShootTraj);
             }
 
             generatedRoutine = routine;
 
-            displayGenerationStatus(startToShootTraj, shootToClimbTraj);
+            displayGenerationStatus(startToShootTraj);
 
             return routine;
         }
@@ -243,15 +243,15 @@ public class ConfigurableAuto {
                     startToIntake1Traj.resetOdometry()
                             .andThen(startToIntake1Traj.cmd())
                             .andThen(intake1ToShoot1Traj.cmd())
-                            .andThen(new AutoRecovery(drivetrain, shooter, intake, AutoRecoveryMode.SWEEP, autoRecoverySide,
-                                    intake1ToShoot1Traj.getFinalPose().get().getTranslation()))
+                            //.andThen(new AutoRecovery(drivetrain, shooter, intake, AutoRecoveryMode.SWEEP, autoRecoverySide,
+                                    //intake1ToShoot1Traj.getFinalPose().get().getTranslation()))
                             .andThen(new ParallelDeadlineGroup(
                                     new WaitCommand(AutoConstants.ShootTime),
                                     new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())))
                             .andThen(shoot1ToIntake2Traj.cmd())
                             .andThen(intake2ToShoot2Traj.cmd())
-                            .andThen(new AutoRecovery(drivetrain, shooter, intake, AutoRecoveryMode.SWEEP, autoRecoverySide,
-                                    intake2ToShoot2Traj.getFinalPose().get().getTranslation()))
+                            // .andThen(new AutoRecovery(drivetrain, shooter, intake, AutoRecoveryMode.SWEEP, autoRecoverySide,
+                            //         intake2ToShoot2Traj.getFinalPose().get().getTranslation()))
                             .andThen(new ParallelDeadlineGroup(
                                     new WaitCommand(AutoConstants.ShootTime),
                                     new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())))
@@ -269,18 +269,18 @@ public class ConfigurableAuto {
                     startToIntake1Traj.resetOdometry()
                             .andThen(startToIntake1Traj.cmd())
                             .andThen(intake1ToShoot1Traj.cmd())
-                            .andThen(new AutoRecovery(drivetrain, shooter, intake, AutoRecoveryMode.SWEEP, autoRecoverySide,
-                                    intake1ToShoot1Traj.getFinalPose().get().getTranslation()))
+                            // .andThen(new AutoRecovery(drivetrain, shooter, intake, AutoRecoveryMode.SWEEP, autoRecoverySide,
+                            //         intake1ToShoot1Traj.getFinalPose().get().getTranslation()))
                             .andThen(new ParallelDeadlineGroup(
                                     new WaitCommand(AutoConstants.ShootTime),
                                     new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())))
                             .andThen(shoot1ToIntake2Traj.cmd())
                             .andThen(intake2ToShoot2Traj.cmd())
-                            .andThen(new AutoRecovery(drivetrain, shooter, intake, AutoRecoveryMode.SWEEP, autoRecoverySide,
-                                    intake2ToShoot2Traj.getFinalPose().get().getTranslation()))
-                            .andThen(new ParallelDeadlineGroup(
-                                    new WaitCommand(AutoConstants.ShootTime),
-                                    new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty()))));
+                            // .andThen(new AutoRecovery(drivetrain, shooter, intake, AutoRecoveryMode.SWEEP, autoRecoverySide,
+                            //         intake2ToShoot2Traj.getFinalPose().get().getTranslation()))
+                            .andThen(/*new ParallelDeadlineGroup(*/
+                                    //new WaitCommand(AutoConstants.ShootTime),
+                                    new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())));
 
             displayGenerationStatus(startToIntake1Traj, intake1ToShoot1Traj, shoot1ToIntake2Traj, intake2ToShoot2Traj);
 
@@ -288,6 +288,9 @@ public class ConfigurableAuto {
                 updateField(startToIntake1Traj, intake1ToShoot1Traj, shoot1ToIntake2Traj, intake2ToShoot2Traj);
             }
         }
+
+        startToIntake1Traj.atTime("intake").onTrue(intake.new ChangeStates(IntakeState.DOWN_ON));
+        startToIntake1Traj.atTime("stopIntake").onTrue(intake.new ChangeStates(IntakeState.DOWN_OFF));
 
         shoot1ToIntake2Traj.atTime("intake").onTrue(intake.new ChangeStates(IntakeState.DOWN_ON));
         shoot1ToIntake2Traj.atTime("stopIntake").onTrue(intake.new ChangeStates(IntakeState.DOWN_OFF));

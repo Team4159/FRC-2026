@@ -231,9 +231,9 @@ public class AutoAim extends Command {
             hopper.setHopperSpeed(HopperState.FEED.percentage);
         } else {
             //otherwise just wait
-            autoAimStatus = AutoAimStatus.WAITING;
-            shooter.setFeederSpeed(FeederState.STOP.percentage);
-            hopper.setHopperSpeed(HopperState.STOP.percentage);
+            // autoAimStatus = AutoAimStatus.WAITING;
+            // shooter.setFeederSpeed(FeederState.STOP.percentage);
+            // hopper.setHopperSpeed(HopperState.STOP.percentage);
         }
 
         if(RobotBase.isSimulation()){
@@ -285,6 +285,8 @@ public class AutoAim extends Command {
         if (!aimFinished) {
             // PID controller to calculate omega
             // set ChassisSpeeds
+            System.out.println("drivetrain getInputX: " + drivetrain.getInputX(true));
+            System.out.println("drivetrain getInputY: " + drivetrain.getInputY(true));
             ChassisSpeeds chassisSpeeds = new ChassisSpeeds(
                     drivetrain.getInputX(true) * DrivetrainConstants.kAutoAimInputMultiplier,
                     drivetrain.getInputY(true) * DrivetrainConstants.kAutoAimInputMultiplier,
@@ -412,7 +414,7 @@ public class AutoAim extends Command {
             HIDRumble.rumble(feedbackController.get().getHID(), new RumbleRequest(RumbleType.kLeftRumble, 0.5, 0.25));
         }
         shooter.adjustHood(ShooterConstants.kRestingAngle);
-        shooter.stopShooter();
+        shooter.setSpeed(Constants.ShooterConstants.restingAngularVelocity);
         shooter.setFeederSpeed(FeederState.STOP.percentage);
         hopper.setHopperSpeed(HopperState.STOP.percentage);
         CommandScheduler.getInstance().schedule(intake.new ChangeStates(IntakeState.BOUNCE_UP));

@@ -165,9 +165,9 @@ public class AutoLob extends Command {
             hopper.setHopperSpeed(HopperState.FEED.percentage);
         } else {
             //otherwise just wait
-            autoAimStatus = AutoAimStatus.WAITING;
-            shooter.setFeederSpeed(FeederState.STOP.percentage);
-            hopper.setHopperSpeed(HopperState.STOP.percentage);
+            // autoAimStatus = AutoAimStatus.WAITING;
+            // shooter.setFeederSpeed(FeederState.STOP.percentage);
+            // hopper.setHopperSpeed(HopperState.STOP.percentage);
         }
 
         //rotate the swerve to the desired angle
