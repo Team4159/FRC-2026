@@ -13,6 +13,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.math.MathSharedStore;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -120,24 +121,29 @@ public class Intake extends SubsystemBase {
     public class BounceIntake extends Command {
         private double lastStateChange;
         private IntakeState state;
+        private Timer timer;
 
         public BounceIntake() {
             addRequirements(Intake.this);
+            timer = new Timer();
         }
 
         @Override
         public void initialize() {
             changeState(IntakeState.BOUNCE_UP);
+            timer.reset();
         }
 
         @Override
         public void execute() {
-            boolean alternate = isNear(state) || getTime() - lastStateChange > 1;
+            boolean alternate = isNear(state) || timer.get() > 1;
             if (state == IntakeState.DOWN_OFF && alternate) {
-                changeState(IntakeState.BOUNCE_UP);
+                setLocation(IntakeState.BOUNCE_UP.rotationLocation);
+                timer.reset();
             }
             if (state == IntakeState.BOUNCE_UP && alternate) {
-                changeState(IntakeState.DOWN_OFF);
+                setLocation(IntakeState.DOWN_OFF.rotationLocation);
+                timer.reset();
             }
         }
 
@@ -161,7 +167,7 @@ public class Intake extends SubsystemBase {
         }
 
         private boolean isNear(IntakeState state) {
-            return getPivotAngle().isNear(state.rotationLocation, Degrees.of(5));
+            return getPivotAngle().isNear(state.rotationLocation, Degrees.of(10));
         }
     }
 }

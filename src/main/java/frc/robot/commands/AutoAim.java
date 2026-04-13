@@ -232,7 +232,7 @@ public class AutoAim extends Command {
         // shooter.setFeederSpeed(FeederState.UNSTUCKFEEDER.percentage);
         // hopper.setHopperSpeed(HopperState.STOP.percentage);
         // }
-        if (shooter.isAtPitch() && shooter.isAtSpeed() && isAtDesiredRotation(Radians.of(desiredRobotAngle))) {
+        if (shooter.isAtPitch() && shooter.isAtSpeed()/* && isAtDesiredRotation(Radians.of(desiredRobotAngle))*/) {
             // shoot the fuel if at the right pitch
             autoAimStatus = AutoAimStatus.SHOOT;
             shooter.setFeederSpeed(FeederState.FEED.percentage);

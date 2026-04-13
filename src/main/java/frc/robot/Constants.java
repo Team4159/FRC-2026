@@ -274,7 +274,7 @@ public final class Constants {
         public static final double kPointFeedForward = 0.0;
 
         public static final double kAimKP = 6;
-        public static final double kAimKI = 0.0;
+        public static final double kAimKI = 0.1;
         public static final double kAimKD = 0.0;
         public static final double kAimFeedForward = 0.0;
 
@@ -427,7 +427,7 @@ public final class Constants {
         public static final double ratio = 1;
         public static final double shootHeight = Units.inchesToMeters(40);
 
-        public static AngularVelocity kShooterVelocityTolerance = RPM.of(10);
+        public static AngularVelocity kShooterVelocityTolerance = RPM.of(50);
         public static Angle maxPitch = Degrees.of(85);
 
         public static final Distance kShooterWheelRadius = Inches.of(2);
@@ -685,7 +685,7 @@ public final class Constants {
 
                 Map.entry(Meters.of(1),   new LookupTablePoint(RPM.of(1800), 1.1)),
                 Map.entry(Meters.of(1.5), new LookupTablePoint(RPM.of(1900), 1.05)),
-                Map.entry(Meters.of(2),   new LookupTablePoint(RPM.of(2000), 1)),
+                Map.entry(Meters.of(2),   new LookupTablePoint(RPM.of(2000), 1.025)),
                 Map.entry(Meters.of(2.5), new LookupTablePoint(RPM.of(2100), 1)),
                 Map.entry(Meters.of(3),   new LookupTablePoint(RPM.of(2200), 1)),
                 Map.entry(Meters.of(3.5), new LookupTablePoint(RPM.of(2300), 0.97)),

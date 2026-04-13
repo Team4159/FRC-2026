@@ -119,7 +119,9 @@ public class RobotContainer {
                                 drivetrain.new Drive(DriveMode.IDLE).ignoringDisable(true));
 
         // test mode
-        primaryController.a().and(DriverStation::isTest).whileTrue(drivetrain.new Drive(DriveMode.BRAKE));
+        primaryController.y()
+        .whileTrue(drivetrain.new Drive(DriveMode.BRAKE));
+       
         primaryController.b().and(DriverStation::isTest).whileTrue(drivetrain.new Drive(DriveMode.POINT));
 
                 // teleop mode
