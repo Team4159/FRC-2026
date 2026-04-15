@@ -101,10 +101,12 @@ public class RobotContainer {
 
                 configurableAuto = new ConfigurableAuto(autoFactory, drivetrain, shooter, intake, hopper, leds);
 
+                //rumble on collision
                 drivetrain.crashTrigger.onTrue(Commands
                                 .runOnce(() -> HIDRumble.rumble(primaryController.getHID(),
                                                 new RumbleRequest(RumbleType.kRightRumble, 1, 0.5, 1))));
 
+                //call the function that configures the robot bindings
                 configureBindings();
         }
 
@@ -118,11 +120,11 @@ public class RobotContainer {
                 RobotModeTriggers.disabled().whileTrue(
                                 drivetrain.new Drive(DriveMode.IDLE).ignoringDisable(true));
 
-        // test mode
-        primaryController.y()
-        .whileTrue(drivetrain.new Drive(DriveMode.BRAKE));
-       
-        primaryController.b().and(DriverStation::isTest).whileTrue(drivetrain.new Drive(DriveMode.POINT));
+                // test mode
+                primaryController.y()
+                .whileTrue(drivetrain.new Drive(DriveMode.BRAKE));
+        
+                primaryController.b().and(DriverStation::isTest).whileTrue(drivetrain.new Drive(DriveMode.POINT));
 
                 // teleop mode
                 primarySlowModeTrigger.and(DriverStation::isTeleop)
@@ -187,7 +189,9 @@ public class RobotContainer {
         }
 
         public Command getAutonomousCommand() {
-                /* Run the routine selected from the auto chooser */
+                /* Run the routine selected from the auto chooser 
+                 * cmd() is used to get the Choreo AutoRoutine object as a WPILIB Command object
+                */
                 return configurableAuto.getRoutine().cmd();
         }
 }
