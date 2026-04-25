@@ -400,7 +400,13 @@ public class AutoAim extends Command {
         // distance from robot to target
         Translation2d robotTranslation = adjustedRobotPose.getTranslation();
         double distance = robotTranslation.getDistance(target.getTranslation());
-        double launchVelocity = shooter.getFuelSpeedWithCustomEfficiency(efficiency);
+
+        double currentVelocityPercent = 0.2;
+
+        double currentLaunchVelocity = shooter.getFuelSpeedWithCustomEfficiency(efficiency);
+        double targetLaunchVelocity = getLaunchVelocity(JoeLookupTable.getLookupTablePoint(Meters.of(getDistanceFromHub())).angularVelocity()) * efficiency;
+
+        double launchVelocity = currentLaunchVelocity * currentVelocityPercent + targetLaunchVelocity * (1-currentVelocityPercent);
         if (RobotBase.isSimulation()) {
             launchVelocity = getLaunchVelocity(
                     JoeLookupTable.getLookupTablePoint(Meters.of(getDistanceFromHub())).angularVelocity());

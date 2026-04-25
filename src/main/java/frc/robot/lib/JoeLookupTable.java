@@ -14,27 +14,32 @@ import frc.robot.Constants.JoeLookupTableConstants.LookupTablePoint;
 
 public class JoeLookupTable {
     /** @param distance distance away from hub 
-     * @return the corresponding ShotData object (time and angle) from linearly interpolating the best 2 joeLookupTable points
+     * @return the corresponding ShotData object (desired motor angular velocity and efficiency) from linearly interpolating the best 2 joeLookupTable points
     */
     public static LookupTablePoint getLookupTablePoint(Distance distance){
+        //set the best and second best fit distances to the max double value (because it will never be that close)
+        //cannot use the 1st and second data points because if second best fit distance is accidentally set to the best fit distance the calculation wont work
         Distance bestFitDistance = Inches.of(Double.MAX_VALUE);
         Distance secondBestFitDistance = Inches.of(Double.MAX_VALUE);
 
-        //get keys from table (A Java Map)
+        //get keys from the lookup table (A Java Map)
         Set<Distance> keys = JoeLookupTableConstants.joeLookupTable.keySet();
 
         //loop through each key
         for(Distance currentDistance : keys){
             //find best fit and second best fit distances
             if(currentDistance.minus(distance).abs(Inches) < bestFitDistance.minus(distance).abs(Inches)){
+                //if a new best fit distance is found, set the current best fit to the second best fit and then set the best fit to the new best fit
                 secondBestFitDistance = bestFitDistance;
                 bestFitDistance = currentDistance;
             }
             else if(currentDistance.minus(distance).abs(Inches) < secondBestFitDistance.minus(distance).abs(Inches)){
+                //if a new second best fit is found, set the second best fit to the new second best fit
                 secondBestFitDistance = currentDistance;
             }
         }
-        //get avs as doubles from 2 closest points
+        //get avs and efficiencies as doubles from 2 closest points
+        //AV means angular velocity btw
         LookupTablePoint bestFitPoint = JoeLookupTableConstants.joeLookupTable.get(bestFitDistance);
         LookupTablePoint secondBestFitPoint = JoeLookupTableConstants.joeLookupTable.get(secondBestFitDistance);
         double bestFitAV = bestFitPoint.angularVelocity().in(RPM);
@@ -50,7 +55,7 @@ public class JoeLookupTable {
         SmartDashboard.putNumber("linear interpolation", linearInterpolation);
         SmartDashboard.putNumber("bestFitDistance", bestFitDistance.in(Meters));
 
-        //return a new ShotData object with the interpolated time and angle.
+        //return a new ShotData object with the interpolated angular velocity and efficiency.
         return new LookupTablePoint(
             RPM.of(MathUtil.interpolate(bestFitAV, secondBestFitAV, linearInterpolation)),
             MathUtil.interpolate(bestFitEfficiency, secondBestFitEfficiency, linearInterpolation));

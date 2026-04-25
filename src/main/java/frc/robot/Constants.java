@@ -291,23 +291,38 @@ public final class Constants {
     }
 
     public static class ShooterConstants {
+        //Hood PID Values
 
-        public static final double kHoodI = 25;
-        public static final double kHoodD = 0;
+        //Proportional (this might be too high and contributing to the osclillations)
         public static final double kHoodP = 150;
+        //Integral
+        public static final double kHoodI = 25;
+        //Derivative
+        public static final double kHoodD = 0;
+        //G - multiplied by cosine of the angle, so zero point should be when COM is perfectly horizontal
         public static final double kHoodG = 0.03;
+        //S - static friction (this might be a bit high could also be contributing to some of the oscillations)
         public static final double kHoodS = 5;
-        // public static final double kHoodV = 1.11;
-        // public static final double kHoodA = 0.17;
-        // abs encoder
+
+        /** hood CAN ID */
         public static final int HoodId = 8;
+
+        // hood absolute encoder (WCP throughbore)
+        /** Hood encoder CAN ID */
         public static final int kHoodEncoderID = 2;
+        /** encoder offset (so that 0 is when center of mass is horizontal) */
         public static final Angle kEncoderOffset = Degrees.of(-248);
+        /** ratio from the sensor (WCP throughbore encoder) to the mechanism (the hood) */
         public static final double kSensorToMechanismRatio = 34 / 16;
+        /** ratio from the motor to the sensor (WCP throughbore encoder) */
         public static final double kMotorToSensorRatio = 125;
 
+        //Motion Magic®
+        //think of it as max velocity
         public static final double kCruiseVelocity = 40;
+        //the maximum acceleration used to achieve cruising velocity
         public static final double kAcceleration = 80;
+        //maximum jerk (helps smooth the movement out more)
         public static final double kJerk = 1600;
 
         /** the angle between the center of the shooter and the very edge */
@@ -672,8 +687,9 @@ public final class Constants {
 
         public static final Distance kMaxDistance = Meters.of(4.5);
 
-        // stores desired velocity based on position
+        // stores desired motor angular velocity and shooter efficiency based on position
         public static final Map<Distance, LookupTablePoint> joeLookupTable = Map.ofEntries(
+                //non-continuous feeding
                 // Map.entry(Meters.of(1),   new LookupTablePoint(RPM.of(2000), 0.93)),
                 // Map.entry(Meters.of(1.5), new LookupTablePoint(RPM.of(2100), 0.92)),
                 // Map.entry(Meters.of(2),   new LookupTablePoint(RPM.of(2200), 0.91)),
@@ -682,8 +698,8 @@ public final class Constants {
                 // Map.entry(Meters.of(3.5), new LookupTablePoint(RPM.of(2500), 0.84)),
                 // Map.entry(Meters.of(4),   new LookupTablePoint(RPM.of(2700), 0.78)),
                 // Map.entry(Meters.of(4.5), new LookupTablePoint(RPM.of(2900), 0.72))
-
-                Map.entry(Meters.of(1),   new LookupTablePoint(RPM.of(1800), 1.1)),
+                //continuous feeding
+                Map.entry(Meters.of(1),   new LookupTablePoint(RPM.of(1800), 1.1)), //efficiency > 1 lol probably from incorrect calculation of fuel velocity
                 Map.entry(Meters.of(1.5), new LookupTablePoint(RPM.of(1900), 1.05)),
                 Map.entry(Meters.of(2),   new LookupTablePoint(RPM.of(2000), 1.025)),
                 Map.entry(Meters.of(2.5), new LookupTablePoint(RPM.of(2100), 1)),
