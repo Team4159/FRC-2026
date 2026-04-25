@@ -119,7 +119,6 @@ public class Intake extends SubsystemBase {
     }
 
     public class BounceIntake extends Command {
-        private double lastStateChange;
         private IntakeState state;
         private Timer timer;
 
@@ -130,19 +129,25 @@ public class Intake extends SubsystemBase {
 
         @Override
         public void initialize() {
-            changeState(IntakeState.BOUNCE_UP);
+            setLocation(IntakeState.BOUNCE_UP.rotationLocation);
+            state = IntakeState.BOUNCE_UP;
+            timer.start();
             timer.reset();
         }
 
         @Override
         public void execute() {
             boolean alternate = isNear(state) || timer.get() > 1;
+            System.out.println(alternate);
+            System.out.println(timer.get());
             if (state == IntakeState.DOWN_OFF && alternate) {
                 setLocation(IntakeState.BOUNCE_UP.rotationLocation);
+                state = IntakeState.BOUNCE_UP;
                 timer.reset();
             }
-            if (state == IntakeState.BOUNCE_UP && alternate) {
+            else if (state == IntakeState.BOUNCE_UP && alternate) {
                 setLocation(IntakeState.DOWN_OFF.rotationLocation);
+                state = IntakeState.DOWN_OFF;
                 timer.reset();
             }
         }
@@ -152,22 +157,8 @@ public class Intake extends SubsystemBase {
             setLocation(IntakeState.BOUNCE_UP.rotationLocation);
         }
 
-        private double getTime() {
-            return MathSharedStore.getTimestamp();
-        }
-
-        private void changeState(IntakeState state) {
-            this.state = state;
-            lastStateChange = getTime();
-            applyState();
-        }
-
-        private void applyState() {
-            setLocation(state.rotationLocation);
-        }
-
         private boolean isNear(IntakeState state) {
-            return getPivotAngle().isNear(state.rotationLocation, Degrees.of(10));
+            return getPivotAngle().isNear(state.rotationLocation, Degrees.of(1));
         }
     }
 }
