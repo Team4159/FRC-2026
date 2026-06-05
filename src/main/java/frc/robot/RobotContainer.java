@@ -4,8 +4,6 @@
 
 package frc.robot;
 
-import java.util.Optional;
-
 import choreo.auto.AutoFactory;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
@@ -20,31 +18,35 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.FluentTrigger;
 import frc.lib.HIDRumble;
 import frc.lib.HIDRumble.RumbleRequest;
-import frc.robot.Constants.OperatorConstants;
-import frc.robot.Constants.ShooterConstants;
 import frc.robot.Constants.AlignConstants.TowerAlignGoal;
-import frc.robot.Constants.OperatorConstants.DriveFlag;
-import frc.robot.Constants.OperatorConstants.DriveMode;
 import frc.robot.Constants.FeederConstants.FeederState;
 import frc.robot.Constants.HopperConstants.HopperState;
 import frc.robot.Constants.IntakeConstants.IntakeState;
+import frc.robot.Constants.OperatorConstants;
+import frc.robot.Constants.OperatorConstants.DriveFlag;
+import frc.robot.Constants.OperatorConstants.DriveMode;
+import frc.robot.Constants.ShooterConstants;
 import frc.robot.commands.AutoAim;
 import frc.robot.commands.AutoAlign;
 import frc.robot.commands.AutoLob;
 import frc.robot.commands.HubShoot;
 import frc.robot.commands.TowerShoot;
 import frc.robot.subsystems.Drivetrain;
-import frc.robot.subsystems.LEDs;
-import frc.robot.subsystems.PhotonVision;
 import frc.robot.subsystems.Hopper;
 import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.LEDs;
+import frc.robot.subsystems.PhotonVision;
 import frc.robot.subsystems.Shooter;
+import java.util.Optional;
 
 public class RobotContainer {
+
     private final CommandXboxController primaryController = new CommandXboxController(
-            OperatorConstants.kPrimaryControllerPort);
+        OperatorConstants.kPrimaryControllerPort
+    );
     private final CommandXboxController secondaryController = new CommandXboxController(
-            OperatorConstants.kSecondaryControllerPort);
+        OperatorConstants.kSecondaryControllerPort
+    );
     private final Trigger primaryZeroTrigger = primaryController.back();
     private final Trigger primaryIntakeAssistTrigger = primaryController.rightBumper();
     // private final Trigger primaryRadialModeTrigger = primaryController.y();
@@ -83,6 +85,7 @@ public class RobotContainer {
     private final Hopper hopper = new Hopper();
     private final LEDs leds = new LEDs();
     private final Drivetrain drivetrain = new Drivetrain(primaryController);
+
     @SuppressWarnings("unused")
     // periodic function inside photon vision class used to send vision data
     private final PhotonVision photonVision = new PhotonVision(drivetrain);
@@ -96,81 +99,117 @@ public class RobotContainer {
     public RobotContainer() {
         // set auto command for drivetrain
         drivetrain.setAutonomousAutoAimCommand(
-                new AutoAim(drivetrain, shooter, hopper, intake, leds, true, Optional.empty()));
+            new AutoAim(drivetrain, shooter, hopper, intake, leds, true, Optional.empty())
+        );
         // Choreo Auto
         autoFactory = drivetrain.createAutoFactory();
         CommandScheduler.getInstance().schedule(autoFactory.warmupCmd());
 
         configurableAuto = new ConfigurableAuto(autoFactory, drivetrain, shooter, intake, hopper, leds);
 
-        drivetrain.crashTrigger.onTrue(Commands
-                .runOnce(() -> HIDRumble.rumble(primaryController.getHID(),
-                        new RumbleRequest(RumbleType.kRightRumble, 1, 0.5, 1))));
+        //rumble on collision
+        drivetrain.crashTrigger.onTrue(
+            Commands.runOnce(() ->
+                HIDRumble.rumble(primaryController.getHID(), new RumbleRequest(RumbleType.kRightRumble, 1, 0.5, 1))
+            )
+        );
 
+        //call the function that configures the robot bindings
         configureBindings();
     }
 
     private void configureBindings() {
         // Note that X is defined as forward according to WPILib convention,
         // and Y is defined as to the left according to WPILib convention.
-        drivetrain.setDefaultCommand(drivetrain.new Drive(DriveMode.TELEOP,
-                primaryRobotRelativeTrigger::getAsBoolean));
+        drivetrain.setDefaultCommand(drivetrain.new Drive(DriveMode.TELEOP, primaryRobotRelativeTrigger::getAsBoolean));
         // Idle while the robot is disabled. This ensures the configured
         // neutral mode is applied to the drive motors while disabled.
-        RobotModeTriggers.disabled().whileTrue(
-                drivetrain.new Drive(DriveMode.IDLE).ignoringDisable(true));
+        RobotModeTriggers.disabled().whileTrue(drivetrain.new Drive(DriveMode.IDLE).ignoringDisable(true));
 
         // test mode
-        primaryController.a().and(DriverStation::isTest).whileTrue(drivetrain.new Drive(DriveMode.BRAKE));
+        primaryController.y().whileTrue(drivetrain.new Drive(DriveMode.BRAKE));
+
         primaryController.b().and(DriverStation::isTest).whileTrue(drivetrain.new Drive(DriveMode.POINT));
 
         // teleop mode
-        primarySlowModeTrigger.and(DriverStation::isTeleop)
-                .whileTrue(drivetrain.new DriveFlagToggler(DriveFlag.SLOW_MODE));
+        primarySlowModeTrigger
+            .and(DriverStation::isTeleop)
+            .whileTrue(drivetrain.new DriveFlagToggler(DriveFlag.SLOW_MODE));
         primaryDriveAssistTrigger.and(DriverStation::isTeleop).onTrue(
-                Commands.runOnce(() -> {
-                    HIDRumble.rumble(primaryController.getHID(),
-                            new RumbleRequest(RumbleType.kLeftRumble, 0.5, 0.25));
-                    drivetrain.setDriveFlagValue(DriveFlag.DRIVE_ASSIST,
-                            !drivetrain.getDriveFlagValue(DriveFlag.DRIVE_ASSIST));
-                }));
-        primaryRobotManualAlignModeTrigger.and(DriverStation::isTeleop)
-                .whileTrue(drivetrain.new DriveFlagToggler(DriveFlag.MANUAL_ALIGN));
-        primaryIntakeAssistTrigger.and(DriverStation::isTeleop)
-                .whileTrue(drivetrain.new DriveFlagToggler(DriveFlag.INTAKE_ASSIST));
-        FluentTrigger.build()
-                .bind(1, primaryLeftClimbAlignTrigger.and(DriverStation::isTeleop),
-                        new AutoAlign(drivetrain, TowerAlignGoal.LEFT))
-                .bind(1, primaryRightClimbAlignTrigger.and(DriverStation::isTeleop),
-                        new AutoAlign(drivetrain, TowerAlignGoal.RIGHT))
-                .bind(0, primaryAutoAimTrigger.and(DriverStation::isTeleop),
-                        new AutoAim(drivetrain, shooter, hopper, intake, leds, false,
-                                Optional.of(primaryController)))
-                .bind(0, primaryAutoLobTrigger.and(DriverStation::isTeleop),
-                        new AutoLob(drivetrain, shooter, hopper, intake, leds, false));
+            Commands.runOnce(() -> {
+                HIDRumble.rumble(primaryController.getHID(), new RumbleRequest(RumbleType.kLeftRumble, 0.5, 0.25));
+                drivetrain.setDriveFlagValue(
+                    DriveFlag.DRIVE_ASSIST,
+                    !drivetrain.getDriveFlagValue(DriveFlag.DRIVE_ASSIST)
+                );
+            })
+        );
+        primaryRobotManualAlignModeTrigger
+            .and(DriverStation::isTeleop)
+            .whileTrue(drivetrain.new DriveFlagToggler(DriveFlag.MANUAL_ALIGN));
+        primaryIntakeAssistTrigger
+            .and(DriverStation::isTeleop)
+            .whileTrue(drivetrain.new DriveFlagToggler(DriveFlag.INTAKE_ASSIST));
+        // FluentTrigger.build()
+        //     .bind(
+        //         1,
+        //         primaryLeftClimbAlignTrigger.and(DriverStation::isTeleop),
+        //         new AutoAlign(drivetrain, TowerAlignGoal.LEFT)
+        //     )
+        //     .bind(
+        //         1,
+        //         primaryRightClimbAlignTrigger.and(DriverStation::isTeleop),
+        //         new AutoAlign(drivetrain, TowerAlignGoal.RIGHT)
+        //     )
+        //     .bind(
+        //         0,
+        //         primaryAutoAimTrigger.and(DriverStation::isTeleop),
+        //         new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.of(primaryController))
+        //     )
+        //     .bind(
+        //         0,
+        //         primaryAutoLobTrigger.and(DriverStation::isTeleop),
+        //         new AutoLob(drivetrain, shooter, hopper, intake, leds, false)
+        //     );
 
         // Reset the field-centric heading on left bumper press.
-        primaryZeroTrigger.onTrue(Commands.runOnce(() -> {
-            HIDRumble.rumble(primaryController.getHID(),
-                    new RumbleRequest(RumbleType.kLeftRumble, 0.5, 0.25));
-            drivetrain.seedFieldCentric();
-        }));
+        primaryZeroTrigger.onTrue(
+            Commands.runOnce(() -> {
+                HIDRumble.rumble(primaryController.getHID(), new RumbleRequest(RumbleType.kLeftRumble, 0.5, 0.25));
+                drivetrain.seedFieldCentric();
+            })
+        );
 
         drivetrain.registerTelemetry(logger::telemeterize);
 
-        feedHopperTrigger.whileTrue(new ParallelCommandGroup(shooter.new ChangeState(FeederState.FEED),
-                hopper.new ChangeState(HopperState.FEED)));
-        reverseFeederHopperTrigger.whileTrue(new ParallelCommandGroup(
+        feedHopperTrigger.whileTrue(
+            new ParallelCommandGroup(
+                shooter.new ChangeState(FeederState.FEED),
+                hopper.new ChangeState(HopperState.FEED)
+            )
+        );
+        reverseFeederHopperTrigger.whileTrue(
+            new ParallelCommandGroup(
                 shooter.new ChangeState(FeederState.UNSTUCKFEEDER),
-                hopper.new ChangeState(HopperState.REVERSE)));
+                hopper.new ChangeState(HopperState.REVERSE)
+            )
+        );
 
         // intake
-        intakeTrigger.whileTrue(new ParallelCommandGroup(intake.new ChangeStates(IntakeState.DOWN_ON),
-                hopper.new ChangeState(HopperState.FEED)));// .onFalse(intake.new
-                                                           // ChangeStates(IntakeState.BOUNCE_UP));
-        outtakeTrigger.whileTrue(new ParallelCommandGroup(intake.new ChangeStates(IntakeState.DOWN_REV),
+        intakeTrigger.whileTrue(
+            new ParallelCommandGroup(
+                intake.new ChangeStates(IntakeState.DOWN_ON),
+                hopper.new ChangeState(HopperState.FEED)
+            )
+        ); // .onFalse(intake.new
+        // ChangeStates(IntakeState.BOUNCE_UP));
+        outtakeTrigger.whileTrue(
+            new ParallelCommandGroup(
+                intake.new ChangeStates(IntakeState.DOWN_REV),
                 hopper.new ChangeState((HopperState.REVERSE)),
-                shooter.new ChangeState(FeederState.UNSTUCKFEEDER)));
+                shooter.new ChangeState(FeederState.UNSTUCKFEEDER)
+            )
+        );
         compressIntakeTrigger.whileTrue(intake.new ChangeStates(IntakeState.UP_OFF));
         bounceIntakeTrigger.whileTrue(intake.new BounceIntake());
 
@@ -187,7 +226,9 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-        /* Run the routine selected from the auto chooser */
+        /* Run the routine selected from the auto chooser
+         * cmd() is used to get the Choreo AutoRoutine object as a WPILIB Command object
+         */
         return configurableAuto.getRoutine().cmd();
     }
 }

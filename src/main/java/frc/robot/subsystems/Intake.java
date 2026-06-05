@@ -9,10 +9,9 @@ import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
-
-import edu.wpi.first.math.MathSharedStore;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -20,6 +19,7 @@ import frc.robot.Constants.IntakeConstants;
 import frc.robot.Constants.IntakeConstants.IntakeState;
 
 public class Intake extends SubsystemBase {
+
     private final TalonFX locationMotor;
     private final TalonFX spinMotor;
     private final CANcoder canCoder;
@@ -27,6 +27,7 @@ public class Intake extends SubsystemBase {
     private double rollerPercentage;
 
     private final MotionMagicVoltage intakeMotionMagicVoltage;
+
     // private final VelocityVoltage intakeVelocityVoltage;
 
     public Intake() {
@@ -42,8 +43,9 @@ public class Intake extends SubsystemBase {
         setLocation(IntakeState.UP_OFF.rotationLocation);
         // intakeVelocityVoltage = new VelocityVoltage(0);
 
-        CurrentLimitsConfigs currentLimits = new CurrentLimitsConfigs().withSupplyCurrentLimit(Amps.of(20))
-                .withSupplyCurrentLimitEnable(true);
+        CurrentLimitsConfigs currentLimits = new CurrentLimitsConfigs()
+            .withSupplyCurrentLimit(Amps.of(20))
+            .withSupplyCurrentLimitEnable(true);
         spinMotor.getConfigurator().apply(currentLimits);
 
         rollerPercentage = 0;
@@ -68,18 +70,20 @@ public class Intake extends SubsystemBase {
     @Override
     public void periodic() {
         SmartDashboard.putNumber("intake angle", getPivotAngle().in(Degrees));
-        SmartDashboard.putNumber("intake pid error",
-                Units.rotationsToDegrees(locationMotor.getClosedLoopError().getValueAsDouble()));
+        SmartDashboard.putNumber(
+            "intake pid error",
+            Units.rotationsToDegrees(locationMotor.getClosedLoopError().getValueAsDouble())
+        );
 
-        if(getPivotAngle().in(Degrees) < 30){
+        if (getPivotAngle().in(Degrees) < 30) {
             setSpinSpeed(rollerPercentage);
-        }
-        else{
+        } else {
             setSpinSpeed(0);
         }
     }
 
     public class ChangeStates extends Command {
+
         private IntakeState state;
 
         public ChangeStates(IntakeState state) {
@@ -101,6 +105,7 @@ public class Intake extends SubsystemBase {
     }
 
     public class CompressIntake extends Command {
+
         public CompressIntake() {
             addRequirements(Intake.this);
         }
@@ -118,25 +123,36 @@ public class Intake extends SubsystemBase {
     }
 
     public class BounceIntake extends Command {
-        private double lastStateChange;
+
         private IntakeState state;
+        private Timer timer;
 
         public BounceIntake() {
             addRequirements(Intake.this);
+            timer = new Timer();
         }
 
         @Override
         public void initialize() {
-            changeState(IntakeState.BOUNCE_UP);
+            setLocation(IntakeState.BOUNCE_UP.rotationLocation);
+            state = IntakeState.BOUNCE_UP;
+            timer.start();
+            timer.reset();
         }
 
         @Override
         public void execute() {
-            boolean alternate = isNear(state) || getTime() - lastStateChange > 1;
+            boolean alternate = isNear(state) || timer.get() > 1;
+            System.out.println(alternate);
+            System.out.println(timer.get());
             if (state == IntakeState.DOWN_OFF && alternate) {
-                changeState(IntakeState.BOUNCE_UP);
+                setLocation(IntakeState.BOUNCE_UP.rotationLocation);
+                state = IntakeState.BOUNCE_UP;
+                timer.reset();
             } else if (state == IntakeState.BOUNCE_UP && alternate) {
-                changeState(IntakeState.DOWN_OFF);
+                setLocation(IntakeState.DOWN_OFF.rotationLocation);
+                state = IntakeState.DOWN_OFF;
+                timer.reset();
             }
         }
 
@@ -145,22 +161,8 @@ public class Intake extends SubsystemBase {
             setLocation(IntakeState.BOUNCE_UP.rotationLocation);
         }
 
-        private double getTime() {
-            return MathSharedStore.getTimestamp();
-        }
-
-        private void changeState(IntakeState state) {
-            this.state = state;
-            lastStateChange = getTime();
-            applyState();
-        }
-
-        private void applyState() {
-            setLocation(state.rotationLocation);
-        }
-
         private boolean isNear(IntakeState state) {
-            return getPivotAngle().isNear(state.rotationLocation, Degrees.of(5));
+            return getPivotAngle().isNear(state.rotationLocation, Degrees.of(1));
         }
     }
 }

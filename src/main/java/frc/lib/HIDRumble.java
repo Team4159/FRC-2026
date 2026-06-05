@@ -1,23 +1,23 @@
 package frc.lib;
 
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.GenericHID;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.GenericHID;
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.GenericHID.RumbleType;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
-
 /**
  * rudimentary library for rumble feedback on controllers and HIDs
  */
 public class HIDRumble {
+
     private static final double kDefaultRequestDuration = Units.millisecondsToSeconds(50);
     private static final int kDefaultRequestPriority = 0;
     private static final boolean kRumblePersistWhileDisabled = false;
@@ -57,6 +57,7 @@ public class HIDRumble {
     }
 
     private static class RumbleManager {
+
         private final ArrayList<RumbleRequest> rumbleRequestList = new ArrayList<>();
         private int highestPriorityRequestIndex = 0;
 
@@ -105,7 +106,8 @@ public class HIDRumble {
         }
 
         private void setRumbleFromRequest(RumbleRequest rumbleRequest) {
-            double leftStrength = 0, rightStrength = 0;
+            double leftStrength = 0,
+                rightStrength = 0;
             switch (rumbleRequest.rumbleType) {
                 case kLeftRumble:
                     leftStrength = rumbleRequest.strength;
@@ -143,6 +145,7 @@ public class HIDRumble {
     }
 
     public static class RumbleRequest {
+
         public final double start, duration, strength;
         public final RumbleType rumbleType;
         public final int priority;

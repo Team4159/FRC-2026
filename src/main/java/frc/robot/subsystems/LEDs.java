@@ -8,15 +8,14 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.LEDConstants.LEDStatus;
 
 public class LEDs extends SubsystemBase {
+
     private static final int kPort = 8;
     private static final int kLength = 60;
 
     private static final AddressableLED led = new AddressableLED(kPort); //i would prefer to not make it static and define it in the constructor but ethan thinks this is better.
     private final AddressableLEDBuffer ledBuffer;
 
-
-    public LEDs () {
-        
+    public LEDs() {
         ledBuffer = new AddressableLEDBuffer(kLength);
 
         led.setLength(ledBuffer.getLength());
@@ -31,31 +30,30 @@ public class LEDs extends SubsystemBase {
     }
 
     public class ChangeLED extends Command {
-        
+
         private LEDPattern pattern;
-        
+
         public ChangeLED(LEDStatus ledStatus) {
             this.pattern = ledStatus.getPattern();
 
             addRequirements(LEDs.this);
         }
-        
+
         @Override
         public void execute() {
             LEDs.this.setBuffer(pattern);
         }
-        
     }
 
-    public class ChangeLEDStatusSupplier extends Command{
+    public class ChangeLEDStatusSupplier extends Command {
 
         private LEDStatusSupplier ledStatusSupplier;
 
-        public ChangeLEDStatusSupplier(LEDStatusSupplier ledStatusSupplier){
+        public ChangeLEDStatusSupplier(LEDStatusSupplier ledStatusSupplier) {
             this.ledStatusSupplier = ledStatusSupplier;
             addRequirements(LEDs.this);
         }
-        
+
         @Override
         public void execute() {
             LEDs.this.setBuffer(ledStatusSupplier.getStatus().getPattern());
@@ -63,8 +61,7 @@ public class LEDs extends SubsystemBase {
     }
 
     @FunctionalInterface
-    public interface LEDStatusSupplier{
+    public interface LEDStatusSupplier {
         public LEDStatus getStatus();
     }
-
 }

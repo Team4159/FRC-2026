@@ -1,19 +1,20 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix6.hardware.TalonFX;
-
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Constants.ClimberConstants.ClimberState;
 
-public class Climber extends SubsystemBase{
+public class Climber extends SubsystemBase {
+
     private TalonFX climbMotorOne;
+
     //private TalonFX climbMotorTwo;
-    
+
     //private final VelocityVoltage climberVelocityVoltage;
 
-    public Climber(){
+    public Climber() {
         // Slot0Configs climberConfigOne = new Slot0Configs();
         // climberConfigOne.kP = Constants.ClimberConstants.kP;
         // climberConfigOne.kI = Constants.ClimberConstants.kI;
@@ -32,31 +33,31 @@ public class Climber extends SubsystemBase{
 
         // climberVelocityVoltage = new VelocityVoltage(0);
     }
-    
 
-    public void setClimberSpeed(double climberSpeed){
+    public void setClimberSpeed(double climberSpeed) {
         climbMotorOne.set(climberSpeed);
     }
 
-    public void stopClimber(){
+    public void stopClimber() {
         climbMotorOne.stopMotor();
     }
 
-    public class ChangeState extends Command{
+    public class ChangeState extends Command {
+
         private ClimberState climberState;
-        
-        public ChangeState(ClimberState climberState){
+
+        public ChangeState(ClimberState climberState) {
             this.climberState = climberState;
             addRequirements(Climber.this);
         }
 
         @Override
-        public void initialize(){
+        public void initialize() {
             Climber.this.setClimberSpeed(climberState.percentage);
         }
 
         @Override
-        public void end(boolean interrupt){
+        public void end(boolean interrupt) {
             Climber.this.stopClimber();
         }
     }

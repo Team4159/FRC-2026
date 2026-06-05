@@ -4,12 +4,9 @@ import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Radians;
 
-import java.util.ArrayList;
-
 import com.therekrab.autopilot.APTarget;
 import com.therekrab.autopilot.Autopilot;
 import com.therekrab.autopilot.Autopilot.APResult;
-
 import edu.wpi.first.math.MathSharedStore;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -28,6 +25,7 @@ import frc.robot.Constants.IntakeConstants.IntakeState;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
+import java.util.ArrayList;
 
 public class AutoRecovery extends Command {
 
@@ -77,8 +75,14 @@ public class AutoRecovery extends Command {
     private boolean started;
     private boolean finished;
 
-    public AutoRecovery(Drivetrain drivetrain, Shooter shooter, Intake intake, AutoRecoveryMode autoRecoveryMode,
-            AutoRecoverySide autoRecoverySide, Translation2d finalTranslation) {
+    public AutoRecovery(
+        Drivetrain drivetrain,
+        Shooter shooter,
+        Intake intake,
+        AutoRecoveryMode autoRecoveryMode,
+        AutoRecoverySide autoRecoverySide,
+        Translation2d finalTranslation
+    ) {
         this.drivetrain = drivetrain;
         this.shooter = shooter;
         this.intake = intake;
@@ -113,8 +117,11 @@ public class AutoRecovery extends Command {
         if (autoRecoveryState == AutoRecoveryState.UNBEACH && !drivetrain.isSlipping()) {
             autoRecoveryState = AutoRecoveryState.RECOVER;
         }
-        if (autoRecoveryState == AutoRecoveryState.RECOVER && pathProgress < pathTargets.length
-                && atTarget(pathTargets[pathProgress].target)) {
+        if (
+            autoRecoveryState == AutoRecoveryState.RECOVER &&
+            pathProgress < pathTargets.length &&
+            atTarget(pathTargets[pathProgress].target)
+        ) {
             pathProgress++;
             if (pathProgress < pathTargets.length) {
                 pathController = pathTargets[pathProgress].controller;
@@ -142,35 +149,48 @@ public class AutoRecovery extends Command {
     }
 
     private boolean shouldRecover() {
-        return !PoseUtil.isPoseInAllianceZone(DriverStation.getAlliance().orElse(Alliance.Blue),
-                drivetrain.getState().Pose) && autoRecoverySide != AutoRecoverySide.MIDDLE;
+        return (
+            !PoseUtil.isPoseInAllianceZone(
+                DriverStation.getAlliance().orElse(Alliance.Blue),
+                drivetrain.getState().Pose
+            ) &&
+            autoRecoverySide != AutoRecoverySide.MIDDLE
+        );
     }
 
     private void unbeach() {
-        Angle driveAngle = Degrees.of(Math.abs((MathSharedStore.getTimestamp() * kUnbeachTurnSpeed % 360.0) - 180))
-                .plus(Degrees.of(90.0));
+        Angle driveAngle = Degrees.of(
+            Math.abs(((MathSharedStore.getTimestamp() * kUnbeachTurnSpeed) % 360.0) - 180)
+        ).plus(Degrees.of(90.0));
 
         if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red) {
             driveAngle = driveAngle.plus(Degrees.of(180.0));
         }
 
         drivetrain.setControl(
-                drivetrain.fieldCentricDrive
-                        .withVelocityX(kUnbeachTranslationSpeed * Math.cos(driveAngle.in(Radians)))
-                        .withVelocityY(kUnbeachTranslationSpeed * Math.sin(driveAngle.in(Radians)))
-                        .withRotationalRate(0.0));
+            drivetrain.fieldCentricDrive
+                .withVelocityX(kUnbeachTranslationSpeed * Math.cos(driveAngle.in(Radians)))
+                .withVelocityY(kUnbeachTranslationSpeed * Math.sin(driveAngle.in(Radians)))
+                .withRotationalRate(0.0)
+        );
     }
 
     private void recover() {
-        APResult result = pathController.calculate(drivetrain.getState().Pose, drivetrain.getState().Speeds,
-                pathTargets[pathProgress].target);
-        Rotation2d targetDirection = pathController == AutoConstants.kAutopilotAlignController ? result.targetAngle()
+        APResult result = pathController.calculate(
+            drivetrain.getState().Pose,
+            drivetrain.getState().Speeds,
+            pathTargets[pathProgress].target
+        );
+        Rotation2d targetDirection =
+            pathController == AutoConstants.kAutopilotAlignController
+                ? result.targetAngle()
                 : new Rotation2d(result.vx().baseUnitMagnitude(), result.vy().baseUnitMagnitude());
         drivetrain.setControl(
-                drivetrain.trajectoryFacingAngleDrive
-                        .withVelocityX(result.vx())
-                        .withVelocityY(result.vy())
-                        .withTargetDirection(targetDirection));
+            drivetrain.trajectoryFacingAngleDrive
+                .withVelocityX(result.vx())
+                .withVelocityY(result.vy())
+                .withTargetDirection(targetDirection)
+        );
     }
 
     private PathTarget[] getPathTargets(AutoRecoveryMode beachRecoveryMode, AutoRecoverySide beachRecoverySide) {
@@ -203,19 +223,38 @@ public class AutoRecovery extends Command {
             }
         }
         // return
-        newPathTargets.add(new PathTarget(new APTarget(
-                new Pose2d(TrenchZone.BLUE_RIGHT.x.plus(kTrenchEntryDistance), Inches.of(40.0), Rotation2d.kZero)),
-                AutoConstants.kAutopilotCruiseController));
-        newPathTargets
-                .add(new PathTarget(
-                        new APTarget(new Pose2d(TrenchZone.BLUE_RIGHT.x.plus(kTrenchEntryDistance),
-                                TrenchZone.BLUE_RIGHT.y, Rotation2d.k180deg)),
-                        AutoConstants.kAutopilotAlignController));
-        newPathTargets
-                .add(new PathTarget(
-                        new APTarget(new Pose2d(TrenchZone.BLUE_RIGHT.x.minus(kTrenchEntryDistance),
-                                TrenchZone.BLUE_RIGHT.y, Rotation2d.k180deg)),
-                        AutoConstants.kAutopilotAlignController));
+        newPathTargets.add(
+            new PathTarget(
+                new APTarget(
+                    new Pose2d(TrenchZone.BLUE_RIGHT.x.plus(kTrenchEntryDistance), Inches.of(40.0), Rotation2d.kZero)
+                ),
+                AutoConstants.kAutopilotCruiseController
+            )
+        );
+        newPathTargets.add(
+            new PathTarget(
+                new APTarget(
+                    new Pose2d(
+                        TrenchZone.BLUE_RIGHT.x.plus(kTrenchEntryDistance),
+                        TrenchZone.BLUE_RIGHT.y,
+                        Rotation2d.k180deg
+                    )
+                ),
+                AutoConstants.kAutopilotAlignController
+            )
+        );
+        newPathTargets.add(
+            new PathTarget(
+                new APTarget(
+                    new Pose2d(
+                        TrenchZone.BLUE_RIGHT.x.minus(kTrenchEntryDistance),
+                        TrenchZone.BLUE_RIGHT.y,
+                        Rotation2d.k180deg
+                    )
+                ),
+                AutoConstants.kAutopilotAlignController
+            )
+        );
 
         Alliance alliance = DriverStation.getAlliance().orElse(Alliance.Blue);
         for (int i = 0; i < newPathTargets.size(); i++) {
@@ -226,27 +265,38 @@ public class AutoRecovery extends Command {
             if (beachRecoverySide == AutoRecoverySide.LEFT) {
                 reference = PoseUtil.flipPoseAlongMiddleY(reference);
             }
-            newPathTargets.set(i,
-                    new PathTarget(newPathTargets.get(i).target.withReference(reference).withoutEntryAngle(),
-                            newPathTargets.get(i).controller));
+            newPathTargets.set(
+                i,
+                new PathTarget(
+                    newPathTargets.get(i).target.withReference(reference).withoutEntryAngle(),
+                    newPathTargets.get(i).controller
+                )
+            );
         }
 
-        newPathTargets.add(new PathTarget(new APTarget(new Pose2d(finalTranslation, Rotation2d.k180deg)),
-                AutoConstants.kAutopilotAlignController));
+        newPathTargets.add(
+            new PathTarget(
+                new APTarget(new Pose2d(finalTranslation, Rotation2d.k180deg)),
+                AutoConstants.kAutopilotAlignController
+            )
+        );
 
         return newPathTargets.toArray(PathTarget[]::new);
     }
 
     private void addIntakePointToPathTargets(ArrayList<PathTarget> pathTargets, Translation2d position) {
-        pathTargets.add(new PathTarget(
-                new APTarget(new Pose2d(position, Rotation2d.kZero)).withVelocity(kIntakeTranslationSpeed)));
+        pathTargets.add(
+            new PathTarget(new APTarget(new Pose2d(position, Rotation2d.kZero)).withVelocity(kIntakeTranslationSpeed))
+        );
     }
 
     private boolean atTarget(APTarget target) {
         Pose2d pose = drivetrain.getState().Pose;
         if (pathController == AutoConstants.kAutopilotCruiseController) {
-            double distance = Math.hypot(pose.getX() - target.getReference().getX(),
-                    pose.getY() - target.getReference().getY());
+            double distance = Math.hypot(
+                pose.getX() - target.getReference().getX(),
+                pose.getY() - target.getReference().getY()
+            );
             double allowedError = AutoConstants.kAutopilotCruiseProfile.getErrorXY().baseUnitMagnitude();
             return distance <= allowedError;
         }

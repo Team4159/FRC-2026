@@ -1,14 +1,5 @@
 package frc.robot.subsystems;
 
-import java.util.List;
-import java.util.Optional;
-
-import org.photonvision.EstimatedRobotPose;
-import org.photonvision.PhotonCamera;
-import org.photonvision.PhotonPoseEstimator;
-import org.photonvision.targeting.PhotonPipelineResult;
-import org.photonvision.targeting.PhotonTrackedTarget;
-
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.Matrix;
@@ -20,8 +11,16 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.PhotonVisionConstants;
+import java.util.List;
+import java.util.Optional;
+import org.photonvision.EstimatedRobotPose;
+import org.photonvision.PhotonCamera;
+import org.photonvision.PhotonPoseEstimator;
+import org.photonvision.targeting.PhotonPipelineResult;
+import org.photonvision.targeting.PhotonTrackedTarget;
 
-public class PhotonVision extends SubsystemBase{
+public class PhotonVision extends SubsystemBase {
+
     private Drivetrain drivetrain;
     //IDK what the difference between welded and andymark is
     private AprilTagFieldLayout aprilTagFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded);
@@ -33,69 +32,105 @@ public class PhotonVision extends SubsystemBase{
 
     private final Field2d testField = new Field2d();
 
-    public PhotonVision(Drivetrain drivetrain){
+    public PhotonVision(Drivetrain drivetrain) {
         this.drivetrain = drivetrain;
         //cameras
         leftShooterCam = new PhotonCamera("leftShooter");
         rightShooterCam = new PhotonCamera("rightShooter");
         //estimators
-        leftShooterEstimator = new PhotonPoseEstimator(aprilTagFieldLayout, PhotonVisionConstants.leftShooterCamTransform);
-        rightShooterEstimator = new PhotonPoseEstimator(aprilTagFieldLayout, PhotonVisionConstants.rightShooterCamTransform);
+        leftShooterEstimator = new PhotonPoseEstimator(
+            aprilTagFieldLayout,
+            PhotonVisionConstants.leftShooterCamTransform
+        );
+        rightShooterEstimator = new PhotonPoseEstimator(
+            aprilTagFieldLayout,
+            PhotonVisionConstants.rightShooterCamTransform
+        );
 
         testField.setRobotPose(drivetrain.getState().Pose);
-        testField.getObject("rightCam").setPose(drivetrain.getState().Pose.plus(
-            new Transform2d(PhotonVisionConstants.rightShooterCamTransform.getX(),
-            PhotonVisionConstants.rightShooterCamTransform.getY(),
-            PhotonVisionConstants.rightShooterCamTransform.getRotation().toRotation2d())));
-        testField.getObject("leftCam").setPose(drivetrain.getState().Pose.plus(
-            new Transform2d(PhotonVisionConstants.leftShooterCamTransform.getX(),
-            PhotonVisionConstants.leftShooterCamTransform.getY(),
-            PhotonVisionConstants.leftShooterCamTransform.getRotation().toRotation2d())));
+        testField
+            .getObject("rightCam")
+            .setPose(
+                drivetrain
+                    .getState()
+                    .Pose.plus(
+                        new Transform2d(
+                            PhotonVisionConstants.rightShooterCamTransform.getX(),
+                            PhotonVisionConstants.rightShooterCamTransform.getY(),
+                            PhotonVisionConstants.rightShooterCamTransform.getRotation().toRotation2d()
+                        )
+                    )
+            );
+        testField
+            .getObject("leftCam")
+            .setPose(
+                drivetrain
+                    .getState()
+                    .Pose.plus(
+                        new Transform2d(
+                            PhotonVisionConstants.leftShooterCamTransform.getX(),
+                            PhotonVisionConstants.leftShooterCamTransform.getY(),
+                            PhotonVisionConstants.leftShooterCamTransform.getRotation().toRotation2d()
+                        )
+                    )
+            );
 
         SmartDashboard.putData("vision test", testField);
     }
 
-
     @Override
-    public void periodic(){
+    public void periodic() {
         //System.out.println("running pv");
         //left camera
         Optional<EstimatedRobotPose> leftShooterEstimate = Optional.empty();
         //loops through all unread camera results
-        for(PhotonPipelineResult leftShooterCamResult : leftShooterCam.getAllUnreadResults()){
+        for (PhotonPipelineResult leftShooterCamResult : leftShooterCam.getAllUnreadResults()) {
             //get pose estimate
             leftShooterEstimate = leftShooterEstimator.estimateCoprocMultiTagPose(leftShooterCamResult);
             //multitag no longer defaults to single tag when no others are available so we have this
-            if(!leftShooterEstimate.isPresent()){
+            if (!leftShooterEstimate.isPresent()) {
                 leftShooterEstimate = leftShooterEstimator.estimateLowestAmbiguityPose(leftShooterCamResult);
-            }
-            else{
+            } else {
             }
             //check if estimate exists
-            if(leftShooterEstimate.isPresent() && leftShooterCamResult.getBestTarget().getPoseAmbiguity() < 0.15){
+            if (leftShooterEstimate.isPresent() && leftShooterCamResult.getBestTarget().getPoseAmbiguity() < 0.15) {
                 //set standard deviation
-                drivetrain.setVisionMeasurementStdDevs(calculateEstimationStdDevs(leftShooterEstimate, leftShooterCamResult.targets, leftShooterEstimator));
+                drivetrain.setVisionMeasurementStdDevs(
+                    calculateEstimationStdDevs(leftShooterEstimate, leftShooterCamResult.targets, leftShooterEstimator)
+                );
                 //send the pose estimate to the pose estimator
-                drivetrain.addVisionMeasurement(leftShooterEstimate.get().estimatedPose.toPose2d(), leftShooterEstimate.get().timestampSeconds);
+                drivetrain.addVisionMeasurement(
+                    leftShooterEstimate.get().estimatedPose.toPose2d(),
+                    leftShooterEstimate.get().timestampSeconds
+                );
             }
         }
 
         //right camera
         Optional<EstimatedRobotPose> rightShooterEstimate = Optional.empty();
         //loops through all unread camera results
-        for(PhotonPipelineResult rightShooterCamResult : rightShooterCam.getAllUnreadResults()){
+        for (PhotonPipelineResult rightShooterCamResult : rightShooterCam.getAllUnreadResults()) {
             //get pose estimate
             rightShooterEstimate = rightShooterEstimator.estimateCoprocMultiTagPose(rightShooterCamResult);
             //multitag no longer defaults to single tag when no others are available so we have this
-            if(!rightShooterEstimate.isPresent()){
+            if (!rightShooterEstimate.isPresent()) {
                 rightShooterEstimate = rightShooterEstimator.estimateLowestAmbiguityPose(rightShooterCamResult);
             }
             //check if estimate exists
-            if(rightShooterEstimate.isPresent() && rightShooterCamResult.getBestTarget().getPoseAmbiguity() < 0.15){
+            if (rightShooterEstimate.isPresent() && rightShooterCamResult.getBestTarget().getPoseAmbiguity() < 0.15) {
                 //set standard deviation
-                drivetrain.setVisionMeasurementStdDevs(calculateEstimationStdDevs(rightShooterEstimate, rightShooterCamResult.targets, rightShooterEstimator));
+                drivetrain.setVisionMeasurementStdDevs(
+                    calculateEstimationStdDevs(
+                        rightShooterEstimate,
+                        rightShooterCamResult.targets,
+                        rightShooterEstimator
+                    )
+                );
                 //send the pose estimate to the pose estimator
-                drivetrain.addVisionMeasurement(rightShooterEstimate.get().estimatedPose.toPose2d(), rightShooterEstimate.get().timestampSeconds);
+                drivetrain.addVisionMeasurement(
+                    rightShooterEstimate.get().estimatedPose.toPose2d(),
+                    rightShooterEstimate.get().timestampSeconds
+                );
             }
         }
     }
@@ -109,7 +144,7 @@ public class PhotonVision extends SubsystemBase{
     //     if(estimatedPose.isPresent()){
     //         for(var tag : targets){
     //             //convert the scaling
-    //             area += tag.area/100; 
+    //             area += tag.area/100;
     //         }
     //         System.out.println("stddev position: " + (1 - area * 0.3));
     //         //TODO: tune, currently this is just the limelight one(why are sds on limelight negative lol)
@@ -123,11 +158,13 @@ public class PhotonVision extends SubsystemBase{
     // }
 
     private Matrix<N3, N1> calculateEstimationStdDevs(
-            Optional<EstimatedRobotPose> estimatedPose, List<PhotonTrackedTarget> targets, PhotonPoseEstimator photonEstimator) {
+        Optional<EstimatedRobotPose> estimatedPose,
+        List<PhotonTrackedTarget> targets,
+        PhotonPoseEstimator photonEstimator
+    ) {
         if (estimatedPose.isEmpty()) {
             // No pose input. Default to single-tag std devs
             return kSingleTagStdDevs;
-
         } else {
             // Pose present. Start running Heuristic
             var estStdDevs = kSingleTagStdDevs;
@@ -139,12 +176,11 @@ public class PhotonVision extends SubsystemBase{
                 var tagPose = photonEstimator.getFieldTags().getTagPose(tgt.getFiducialId());
                 if (tagPose.isEmpty()) continue;
                 numTags++;
-                avgDist +=
-                        tagPose
-                                .get()
-                                .toPose2d()
-                                .getTranslation()
-                                .getDistance(estimatedPose.get().estimatedPose.toPose2d().getTranslation());
+                avgDist += tagPose
+                    .get()
+                    .toPose2d()
+                    .getTranslation()
+                    .getDistance(estimatedPose.get().estimatedPose.toPose2d().getTranslation());
             }
 
             if (numTags == 0) {
@@ -156,9 +192,12 @@ public class PhotonVision extends SubsystemBase{
                 // Decrease std devs if multiple targets are visible
                 if (numTags > 1) estStdDevs = kMultiTagStdDevs;
                 // Increase std devs based on (average) distance
-                if (numTags == 1 && avgDist > 4)
-                    estStdDevs = VecBuilder.fill(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
-                else estStdDevs = estStdDevs.times(1 + (avgDist * avgDist / 60));
+                if (numTags == 1 && avgDist > 4) estStdDevs = VecBuilder.fill(
+                    Double.MAX_VALUE,
+                    Double.MAX_VALUE,
+                    Double.MAX_VALUE
+                );
+                else estStdDevs = estStdDevs.times(1 + ((avgDist * avgDist) / 60));
                 return estStdDevs;
             }
         }

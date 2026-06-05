@@ -6,22 +6,23 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.robot.Constants.ShooterConstants;
 import frc.robot.Constants.FeederConstants.FeederState;
 import frc.robot.Constants.HopperConstants.HopperState;
 import frc.robot.Constants.IntakeConstants.IntakeState;
+import frc.robot.Constants.ShooterConstants;
 import frc.robot.subsystems.Hopper;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
 
-public class TowerShoot extends Command{
+public class TowerShoot extends Command {
+
     private final Shooter shooter;
     private final Intake intake;
     private final Hopper hopper;
 
     private Timer timer;
 
-    public TowerShoot(Shooter shooter, Intake intake, Hopper hopper){
+    public TowerShoot(Shooter shooter, Intake intake, Hopper hopper) {
         this.shooter = shooter;
         this.intake = intake;
         this.hopper = hopper;
@@ -32,7 +33,7 @@ public class TowerShoot extends Command{
     }
 
     @Override
-    public void initialize(){
+    public void initialize() {
         shooter.setSpeed(ShooterConstants.towerAngularVelocity);
         shooter.adjustTrajectoryAngle(ShooterConstants.towerHoodPitch);
         CommandScheduler.getInstance().schedule(intake.new BounceIntake());
@@ -41,7 +42,7 @@ public class TowerShoot extends Command{
     }
 
     @Override
-    public void execute(){
+    public void execute() {
         // if (!timer.hasElapsed(ShooterConstants.backwardsTime)){
         //     //run neck backwards if at the beginning
         //     shooter.setFeederSpeed(FeederState.UNSTUCKFEEDER.percentage);
@@ -62,7 +63,7 @@ public class TowerShoot extends Command{
     }
 
     @Override
-    public void end(boolean interrupted){
+    public void end(boolean interrupted) {
         //shooter.setSpeed(ShooterConstants.restingAngularVelocity);
         shooter.stopShooter();
         shooter.adjustHood(ShooterConstants.kRestingAngle);

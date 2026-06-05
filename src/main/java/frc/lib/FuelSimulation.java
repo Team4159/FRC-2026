@@ -1,23 +1,22 @@
 package frc.lib;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.littletonrobotics.junction.Logger;
-
 import edu.wpi.first.math.MathSharedStore;
 import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
 import frc.robot.Constants.FieldConstants;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import org.littletonrobotics.junction.Logger;
 
 /*
 simplified version of FuelSim by Team 5000 that includes nothing
 https://github.com/hammerheads5000/FuelSim
 */
 public class FuelSimulation {
+
     private static final double kSimulationStepPeriod = 0.005;
     private static final int kSimulationMaxStepsPerFrame = 20;
     private static final double kSimulationTimeScale = 1.0;
@@ -43,8 +42,10 @@ public class FuelSimulation {
     private static FuelSimulation instance;
 
     private static class Fuel {
+
         @SuppressWarnings("unused")
         private Translation3d position, linearVelocity, angularVelocity;
+
         private double accumulatedDeltaTime = 0.0;
 
         private Fuel(Translation3d position, Translation3d linearVelocity, Translation3d angularVelocity) {
@@ -60,7 +61,7 @@ public class FuelSimulation {
 
         private void update(double deltaTime) {
             accumulatedDeltaTime += deltaTime;
-            int steps = (int)(accumulatedDeltaTime / kSimulationStepPeriod);
+            int steps = (int) (accumulatedDeltaTime / kSimulationStepPeriod);
             accumulatedDeltaTime %= kSimulationStepPeriod;
             for (int i = 0; i < steps; i++) {
                 stepPhysics(kSimulationStepPeriod * kSimulationTimeScale);
@@ -75,7 +76,12 @@ public class FuelSimulation {
                 // gravity
                 linearVelocity = linearVelocity.plus(kGravity.times(deltaTime));
                 // air resistance
-                double airResistanceMagnitude = 0.5 * kFuelDragCoefficient * kAirDensity * kFuelCrossSectionalArea * Math.pow(linearVelocityMagnitude, 2);
+                double airResistanceMagnitude =
+                    0.5 *
+                    kFuelDragCoefficient *
+                    kAirDensity *
+                    kFuelCrossSectionalArea *
+                    Math.pow(linearVelocityMagnitude, 2);
                 @SuppressWarnings("unused")
                 Translation3d airResistanceForce = new Translation3d(linearUnitVector.times(airResistanceMagnitude));
                 //linearVelocity = linearVelocity.minus(airResistanceForce.div(kFuelMass).times(deltaTime));
@@ -108,22 +114,48 @@ public class FuelSimulation {
     public void setupFieldFuel() {
         for (int x = -6; x < 6; x++) {
             for (int y = -14; y <= 0; y++) {
-                new Fuel(kFieldCenter.plus(new Translation3d(x * kFuelSpacing + kFuelRadius, y * kFuelSpacing - kFieldCenterFuelOffset, kFuelRadius)));
+                new Fuel(
+                    kFieldCenter.plus(
+                        new Translation3d(
+                            x * kFuelSpacing + kFuelRadius,
+                            y * kFuelSpacing - kFieldCenterFuelOffset,
+                            kFuelRadius
+                        )
+                    )
+                );
             }
             for (int y = 0; y <= 14; y++) {
-                new Fuel(kFieldCenter.plus(new Translation3d(x * kFuelSpacing + kFuelRadius, y * kFuelSpacing + kFieldCenterFuelOffset, kFuelRadius)));
+                new Fuel(
+                    kFieldCenter.plus(
+                        new Translation3d(
+                            x * kFuelSpacing + kFuelRadius,
+                            y * kFuelSpacing + kFieldCenterFuelOffset,
+                            kFuelRadius
+                        )
+                    )
+                );
             }
         }
     }
 
     public void shootFuel(Translation3d position, Translation3d linearVelocity, Translation3d angularVelocity) {
-        Translation3d correctedPosition = new Translation3d(position.getX(), position.getY(), Math.max(position.getZ(), kFuelRadius));
+        Translation3d correctedPosition = new Translation3d(
+            position.getX(),
+            position.getY(),
+            Math.max(position.getZ(), kFuelRadius)
+        );
         Fuel fuel = new Fuel(correctedPosition, linearVelocity, angularVelocity);
         shotFuelTimestamps.put(fuel, getTime());
     }
 
     public void output() {
-        Logger.recordOutput("Fuel Simulation/Fuels", fuels.stream().map((fuel) -> fuel.position).toArray(Translation3d[]::new));
+        Logger.recordOutput(
+            "Fuel Simulation/Fuels",
+            fuels
+                .stream()
+                .map(fuel -> fuel.position)
+                .toArray(Translation3d[]::new)
+        );
     }
 
     public void update() {
@@ -134,7 +166,9 @@ public class FuelSimulation {
             var entry = iterator.next();
             var fuel = entry.getKey();
             var spawnTime = entry.getValue();
-            if (time - spawnTime < kShotFuelLifetime) { continue; }
+            if (time - spawnTime < kShotFuelLifetime) {
+                continue;
+            }
             fuel.destroy();
             iterator.remove();
         }

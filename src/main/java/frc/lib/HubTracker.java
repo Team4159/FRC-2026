@@ -1,9 +1,8 @@
 package frc.lib;
 
-import java.util.Optional;
-
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import java.util.Optional;
 
 public class HubTracker {
 
@@ -66,6 +65,5 @@ public class HubTracker {
         };
     }
 
-    private HubTracker() {
-    }
+    private HubTracker() {}
 }
