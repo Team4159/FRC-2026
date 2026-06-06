@@ -150,7 +150,7 @@ public class RobotContainer {
         primaryIntakeAssistTrigger
             .and(DriverStation::isTeleop)
             .whileTrue(drivetrain.new DriveFlagToggler(DriveFlag.INTAKE_ASSIST));
-        // FluentTrigger.build()
+        // new FluentTrigger.Builder()
         //     .bind(
         //         1,
         //         primaryLeftClimbAlignTrigger.and(DriverStation::isTeleop),
@@ -170,7 +170,8 @@ public class RobotContainer {
         //         0,
         //         primaryAutoLobTrigger.and(DriverStation::isTeleop),
         //         new AutoLob(drivetrain, shooter, hopper, intake, leds, false)
-        //     );
+        //     )
+        //     .build();
 
         // Reset the field-centric heading on left bumper press.
         primaryZeroTrigger.onTrue(

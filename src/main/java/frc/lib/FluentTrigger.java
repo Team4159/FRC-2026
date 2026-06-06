@@ -10,48 +10,64 @@ import java.util.Map;
 
 public class FluentTrigger {
 
-    private class TriggerState {
+    public static class Builder {
 
+        private final Map<TriggerState, Command> stateCommandMap = new HashMap<>();
+        private Command defaultCommand;
+
+        public Builder() {}
+
+        public FluentTrigger build() {
+            return new FluentTrigger(stateCommandMap, defaultCommand);
+        }
+
+        public Builder defaultCommand(Command defaultCommand) {
+            if (this.defaultCommand != null) {
+                throw new IllegalStateException("FluentTrigger default command already set");
+            }
+            this.defaultCommand = defaultCommand;
+            return this;
+        }
+
+        public Builder bind(int priority, Trigger trigger, Command command) {
+            TriggerState state = new TriggerState(trigger, priority);
+            stateCommandMap.put(state, command);
+            return this;
+        }
+
+        public Builder bind(Trigger trigger, Command command) {
+            return bind(0, trigger, command);
+        }
+    }
+
+    private static class TriggerState {
+
+        private final Trigger trigger;
         private final int priority;
 
-        public TriggerState(int priority) {
+        public TriggerState(Trigger trigger, int priority) {
+            this.trigger = trigger;
             this.priority = priority;
         }
     }
 
     // the most recently appended state is prioritized first
     private final ArrayList<TriggerState> stateList = new ArrayList<>();
-    private final Map<TriggerState, Command> stateCommandMap = new HashMap<>();
+    private final Map<TriggerState, Command> stateCommandMap;
 
+    private final Command defaultCommand;
     private Command activeCommand;
-    private Command defaultCommand;
 
-    private FluentTrigger() {}
-
-    public static FluentTrigger build() {
-        return new FluentTrigger();
-    }
-
-    public FluentTrigger setDefault(Command defaultCommand) {
-        if (this.defaultCommand != null) {
-            throw new IllegalStateException("FluentTrigger default command already set");
-        }
+    private FluentTrigger(Map<TriggerState, Command> stateCommandMap, Command defaultCommand) {
+        this.stateCommandMap = stateCommandMap;
         this.defaultCommand = defaultCommand;
+
         this.activeCommand = defaultCommand;
         updateState();
-        return this;
-    }
-
-    public FluentTrigger bind(int priority, Trigger trigger, Command command) {
-        TriggerState state = new TriggerState(priority);
-        trigger.onTrue(new InstantCommand(() -> addQueue(state)));
-        trigger.onFalse(new InstantCommand(() -> removeQueue(state)));
-        stateCommandMap.put(state, command);
-        return this;
-    }
-
-    public FluentTrigger bind(Trigger trigger, Command command) {
-        return bind(0, trigger, command);
+        stateCommandMap.forEach((state, command) -> {
+            state.trigger.onTrue(new InstantCommand(() -> addQueue(state)));
+            state.trigger.onFalse(new InstantCommand(() -> removeQueue(state)));
+        });
     }
 
     private void addQueue(TriggerState state) {
