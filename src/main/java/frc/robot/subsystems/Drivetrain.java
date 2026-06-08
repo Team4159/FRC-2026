@@ -110,7 +110,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     private final Map<DriveFlag, DriveFlagValue> driveFlags = new HashMap<DriveFlag, DriveFlagValue>();
     {
         driveFlags.put(DriveFlag.SLOW_MODE, new DriveFlagValue(false));
-        driveFlags.put(DriveFlag.DRIVE_ASSIST, new DriveFlagValue(true));
+        driveFlags.put(DriveFlag.DRIVE_ASSIST, new DriveFlagValue(false));
         driveFlags.put(DriveFlag.AUTO_BRAKE, new DriveFlagValue(true));
         driveFlags.put(DriveFlag.INTAKE_ASSIST, new DriveFlagValue(false));
         driveFlags.put(DriveFlag.MANUAL_ALIGN, new DriveFlagValue(false));
@@ -438,7 +438,8 @@ public class Drivetrain extends CommandSwerveDrivetrain {
      */
     public Translation2d getRawInputTranslation(boolean fieldRelative) {
         Translation2d rawInput = new Translation2d(inputX.get(), inputY.get());
-        if (fieldRelative && DriverStation.getAlliance().orElse(Alliance.Blue).equals(Alliance.Red)) {
+        if (fieldRelative && !DriverStation.getAlliance().orElse(Alliance.Blue).equals(Alliance.Red)) {
+            System.out.println("inverting");
             rawInput = rawInput.times(-1);
         }
         return rawInput;
@@ -518,7 +519,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
             return Optional.empty();
         }
         Rotation2d filteredInput = getRawInputRotation();
-        if (DriverStation.getAlliance().orElse(Alliance.Blue).equals(Alliance.Red)) {
+        if (!DriverStation.getAlliance().orElse(Alliance.Blue).equals(Alliance.Red)) {
             filteredInput = filteredInput.plus(Rotation2d.k180deg);
         }
         return Optional.of(filteredInput);

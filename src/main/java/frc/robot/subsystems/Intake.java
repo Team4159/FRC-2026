@@ -40,7 +40,7 @@ public class Intake extends SubsystemBase {
         setMotionMagic(IntakeConstants.kFastMotionMagicConfig);
 
         intakeMotionMagicVoltage = new MotionMagicVoltage(0);
-        setLocation(IntakeState.UP_OFF.rotationLocation);
+        setLocation(IntakeState.DOWN_OFF.rotationLocation);
         // intakeVelocityVoltage = new VelocityVoltage(0);
 
         CurrentLimitsConfigs currentLimits = new CurrentLimitsConfigs().withSupplyCurrentLimit(Amps.of(20))

@@ -15,6 +15,8 @@ import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 
+import edu.wpi.first.math.filter.Debouncer;
+import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -37,6 +39,8 @@ public class Shooter extends SubsystemBase{
     private final VelocityVoltage shooterVelocityVoltage;
 
     private double manualAngle = 5;
+
+    private final Debouncer speedDebouncer = new Debouncer(0.2, DebounceType.kBoth);
 
     public Shooter() {
         hoodMotor = new TalonFX(ShooterConstants.HoodId);
@@ -88,23 +92,23 @@ public class Shooter extends SubsystemBase{
 
         double shooterOmega = motorOmega * ShooterConstants.ratio;
 
-        double wheelTangentialSpeed = shooterOmega * ShooterConstants.kShooterWheelRadius.in(Meters);
-        double rollerTangentialSpeed = shooterOmega * ShooterConstants.kShooterRollerRadius.in(Meters);
+        double wheelTangentialSpeed = shooterOmega * ShooterConstants.kShooterWheelRadius.in(Meters) * ShooterConstants.kMotorToWheelRatio;
+        double rollerTangentialSpeed = shooterOmega * ShooterConstants.kShooterRollerRadius.in(Meters) * ShooterConstants.kMotorToRollerRatio;
 
         return ShooterConstants.kShooterEfficiency * (wheelTangentialSpeed + rollerTangentialSpeed)/2;
     }
 
-    /** @return the estimated initial speed of the ball after being shot from the shooter in m/s*/
-    public double getFuelSpeedWithCustomEfficiency(double efficiency){
-        double motorOmega = getShooterVelocity().in(RadiansPerSecond);
+    // /** @return the estimated initial speed of the ball after being shot from the shooter in m/s*/
+    // public double getFuelSpeedWithCustomEfficiency(double efficiency){
+    //     double motorOmega = getShooterVelocity().in(RadiansPerSecond);
 
-        double shooterOmega = motorOmega * ShooterConstants.ratio;
+    //     double shooterOmega = motorOmega * ShooterConstants.ratio;
 
-        double wheelTangentialSpeed = shooterOmega * ShooterConstants.kShooterWheelRadius.in(Meters);
-        double rollerTangentialSpeed = shooterOmega * ShooterConstants.kShooterRollerRadius.in(Meters);
+    //     double wheelTangentialSpeed = shooterOmega * ShooterConstants.kShooterWheelRadius.in(Meters);
+    //     double rollerTangentialSpeed = shooterOmega * ShooterConstants.kShooterRollerRadius.in(Meters);
 
-        return efficiency * (wheelTangentialSpeed + rollerTangentialSpeed)/2;
-    }
+    //     return efficiency * (wheelTangentialSpeed + rollerTangentialSpeed)/2;
+    // }
 
     public AngularVelocity getShooterVelocity(){
             return  
@@ -115,12 +119,12 @@ public class Shooter extends SubsystemBase{
     }
 
     public boolean isAtSpeed(){
-        return leftBottomShooterMotor.getClosedLoopReference().isNear(getShooterVelocity().in(RotationsPerSecond), ShooterConstants.kShooterVelocityTolerance.in(RotationsPerSecond));
+        return speedDebouncer.calculate(leftBottomShooterMotor.getClosedLoopReference().isNear(getShooterVelocity().in(RotationsPerSecond), ShooterConstants.kShooterVelocityTolerance.in(RotationsPerSecond)));
     }
 
     
     public boolean isAtPitch() {
-        return hoodMotor.getClosedLoopReference().isNear(hoodMotor.getPosition().getValueAsDouble(), Units.degreesToRotations(5));
+        return hoodMotor.getClosedLoopReference().isNear(hoodMotor.getPosition().getValueAsDouble(), Units.degreesToRotations(2));
     }
 
     @Override

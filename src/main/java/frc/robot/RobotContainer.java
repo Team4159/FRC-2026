@@ -42,39 +42,39 @@ import frc.robot.subsystems.Shooter;
 public class RobotContainer {
         private final CommandXboxController primaryController = new CommandXboxController(
                         OperatorConstants.kPrimaryControllerPort);
-        private final CommandXboxController secondaryController = new CommandXboxController(
-                        OperatorConstants.kSecondaryControllerPort);
+        // private final CommandXboxController secondaryController = new CommandXboxController(
+        //                 OperatorConstants.kSecondaryControllerPort);
         private final Trigger primaryZeroTrigger = primaryController.back();
-        private final Trigger primaryIntakeAssistTrigger = primaryController.rightBumper();
+        //private final Trigger primaryIntakeAssistTrigger = primaryController.rightBumper();
         // private final Trigger primaryRadialModeTrigger = primaryController.y();
-        private final Trigger primaryRobotManualAlignModeTrigger = primaryController.leftBumper();
+        //private final Trigger primaryRobotManualAlignModeTrigger = primaryController.leftBumper();
         private final Trigger primaryRobotRelativeTrigger = primaryController.leftTrigger(0.1);
-        private final Trigger primarySlowModeTrigger = primaryController.rightTrigger();
+        //private final Trigger primarySlowModeTrigger = primaryController.rightTrigger();
         private final Trigger primaryDriveAssistTrigger = primaryController.start();
-        private final Trigger primaryLeftClimbAlignTrigger = primaryController.povLeft();
+        //private final Trigger primaryLeftClimbAlignTrigger = primaryController.povLeft();
         private final Trigger primaryAutoAimTrigger = primaryController.x();
         private final Trigger primaryAutoLobTrigger = primaryController.a();
-        private final Trigger primaryRightClimbAlignTrigger = primaryController.povRight();
+        //private final Trigger primaryRightClimbAlignTrigger = primaryController.povRight();
 
         // Secondary Triggers
-        private final Trigger feedHopperTrigger = secondaryController.rightBumper();
-        private final Trigger reverseFeederHopperTrigger = secondaryController.rightTrigger(0.1);
+        private final Trigger feedHopperTrigger = primaryController.rightBumper();
+        private final Trigger reverseFeederHopperTrigger = primaryController.rightTrigger(0.1);
 
-        private final Trigger manualHoodPitchUpTrigger = secondaryController.povUp();
-        private final Trigger manualHoodPitchDownTrigger = secondaryController.povDown();
+        // private final Trigger manualHoodPitchUpTrigger = secondaryController.povUp();
+        // private final Trigger manualHoodPitchDownTrigger = secondaryController.povDown();
 
-        private final Trigger intakeTrigger = secondaryController.leftBumper();
-        private final Trigger outtakeTrigger = secondaryController.leftTrigger(0.1);
-        private final Trigger compressIntakeTrigger = secondaryController.a();
-        private final Trigger bounceIntakeTrigger = secondaryController.b();
+        private final Trigger intakeTrigger = primaryController.leftBumper();
+        private final Trigger outtakeTrigger = primaryController.leftTrigger(0.1);
+        // private final Trigger compressIntakeTrigger = secondaryController.a();
+        // private final Trigger bounceIntakeTrigger = secondaryController.b();
 
         // private final Trigger raiseClimbTrigger = secondaryController.povLeft();
         // private final Trigger lowerClimbTrigger = secondaryController.povRight();
 
-        private final Trigger shootTrigger = secondaryController.povRight();
+        // private final Trigger shootTrigger = secondaryController.povRight();
 
-        private final Trigger hubShootTrigger = secondaryController.x();
-        private final Trigger towerShootTrigger = secondaryController.y();
+        private final Trigger hubShootTrigger = primaryController.b();
+        private final Trigger towerShootTrigger = primaryController.y();
 
         // Subsystems
         private final Intake intake = new Intake();
@@ -111,8 +111,8 @@ public class RobotContainer {
         private void configureBindings() {
                 // Note that X is defined as forward according to WPILib convention,
                 // and Y is defined as to the left according to WPILib convention.
-                drivetrain.setDefaultCommand(drivetrain.new Drive(DriveMode.TELEOP,
-                                primaryRobotRelativeTrigger::getAsBoolean));
+                drivetrain.setDefaultCommand(drivetrain.new Drive(DriveMode.TELEOP, () -> false));
+                                // (primaryRobotRelativeTrigger::getAsBoolean)));
                 // Idle while the robot is disabled. This ensures the configured
                 // neutral mode is applied to the drive motors while disabled.
                 RobotModeTriggers.disabled().whileTrue(
@@ -125,8 +125,8 @@ public class RobotContainer {
         primaryController.b().and(DriverStation::isTest).whileTrue(drivetrain.new Drive(DriveMode.POINT));
 
                 // teleop mode
-                primarySlowModeTrigger.and(DriverStation::isTeleop)
-                                .whileTrue(drivetrain.new DriveFlagToggler(DriveFlag.SLOW_MODE));
+                // primarySlowModeTrigger.and(DriverStation::isTeleop)
+                //                 .whileTrue(drivetrain.new DriveFlagToggler(DriveFlag.SLOW_MODE));
                 primaryDriveAssistTrigger.and(DriverStation::isTeleop).onTrue(
                                 Commands.runOnce(() -> {
                                         HIDRumble.rumble(primaryController.getHID(),
@@ -134,15 +134,15 @@ public class RobotContainer {
                                         drivetrain.setDriveFlagValue(DriveFlag.DRIVE_ASSIST,
                                                         !drivetrain.getDriveFlagValue(DriveFlag.DRIVE_ASSIST));
                                 }));
-                primaryRobotManualAlignModeTrigger.and(DriverStation::isTeleop)
-                                .whileTrue(drivetrain.new DriveFlagToggler(DriveFlag.MANUAL_ALIGN));
-                primaryIntakeAssistTrigger.and(DriverStation::isTeleop)
-                                .whileTrue(drivetrain.new DriveFlagToggler(DriveFlag.INTAKE_ASSIST));
+                // primaryRobotManualAlignModeTrigger.and(DriverStation::isTeleop)
+                //                 .whileTrue(drivetrain.new DriveFlagToggler(DriveFlag.MANUAL_ALIGN));
+                // primaryIntakeAssistTrigger.and(DriverStation::isTeleop)
+                //                 .whileTrue(drivetrain.new DriveFlagToggler(DriveFlag.INTAKE_ASSIST));
                 FluentTrigger.build()
-                                .bind(1, primaryLeftClimbAlignTrigger.and(DriverStation::isTeleop),
-                                                new AutoAlign(drivetrain, TowerAlignGoal.LEFT))
-                                .bind(1, primaryRightClimbAlignTrigger.and(DriverStation::isTeleop),
-                                                new AutoAlign(drivetrain, TowerAlignGoal.RIGHT))
+                                // .bind(1, primaryLeftClimbAlignTrigger.and(DriverStation::isTeleop),
+                                //                 new AutoAlign(drivetrain, TowerAlignGoal.LEFT))
+                                // .bind(1, primaryRightClimbAlignTrigger.and(DriverStation::isTeleop),
+                                //                 new AutoAlign(drivetrain, TowerAlignGoal.RIGHT))
                                 .bind(0, primaryAutoAimTrigger.and(DriverStation::isTeleop),
                                                 new AutoAim(drivetrain, shooter, hopper, intake, leds, false,
                                                                 Optional.of(primaryController)))
@@ -171,16 +171,16 @@ public class RobotContainer {
                 outtakeTrigger.whileTrue(new ParallelCommandGroup(intake.new ChangeStates(IntakeState.DOWN_REV),
                                 hopper.new ChangeState((HopperState.REVERSE)),
                                 shooter.new ChangeState(FeederState.UNSTUCKFEEDER)));
-                compressIntakeTrigger.whileTrue(intake.new ChangeStates(IntakeState.UP_OFF));
-                bounceIntakeTrigger.whileTrue(intake.new BounceIntake());
+                // compressIntakeTrigger.whileTrue(intake.new ChangeStates(IntakeState.UP_OFF));
+                // bounceIntakeTrigger.whileTrue(intake.new BounceIntake());
 
                 // raiseClimbTrigger.whileTrue(climber.new ChangeState(ClimberState.CLIMB));
                 // lowerClimbTrigger.whileTrue(climber.new ChangeState(ClimberState.DOWN));
 
-                manualHoodPitchDownTrigger.onTrue(new InstantCommand(() -> shooter.manualHood(5)));
-                manualHoodPitchUpTrigger.onTrue(new InstantCommand(() -> shooter.manualHood(-5)));
+                // manualHoodPitchDownTrigger.onTrue(new InstantCommand(() -> shooter.manualHood(5)));
+                // manualHoodPitchUpTrigger.onTrue(new InstantCommand(() -> shooter.manualHood(-5)));
 
-                shootTrigger.whileTrue(shooter.new ChangeVelocity(ShooterConstants.shooterAngularVelocity));
+                // shootTrigger.whileTrue(shooter.new ChangeVelocity(ShooterConstants.shooterAngularVelocity));
 
                 hubShootTrigger.whileTrue(new HubShoot(shooter, intake, hopper));
                 towerShootTrigger.whileTrue(new TowerShoot(shooter, intake, hopper));

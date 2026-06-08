@@ -265,7 +265,7 @@ public final class Constants {
         public static final Distance kBumperSizeX = Inches.of(35.0);
         public static final Distance kBumperSizeY = Inches.of(35.0);
 
-        public static final double kMaxTranslationSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
+        public static final double kMaxTranslationSpeed = 0.5 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
         public static final double kMaxRotationSpeed = RotationsPerSecond.of(0.75).in(RadiansPerSecond);
         
         public static final double kPointKP = 5;
@@ -273,8 +273,8 @@ public final class Constants {
         public static final double kPointKD = 0.0;
         public static final double kPointFeedForward = 0.0;
 
-        public static final double kAimKP = 6;
-        public static final double kAimKI = 0.1;
+        public static final double kAimKP = 12.5;
+        public static final double kAimKI = 0.50;
         public static final double kAimKD = 0.0;
         public static final double kAimFeedForward = 0.0;
 
@@ -302,7 +302,7 @@ public final class Constants {
         // abs encoder
         public static final int HoodId = 8;
         public static final int kHoodEncoderID = 2;
-        public static final Angle kEncoderOffset = Degrees.of(-248);
+        public static final Angle kEncoderOffset = Degrees.of(-214);
         public static final double kSensorToMechanismRatio = 34 / 16;
         public static final double kMotorToSensorRatio = 125;
 
@@ -361,7 +361,7 @@ public final class Constants {
         // Shooter Motor Config and PID
         // public static final double kP = 35;
         // public static final double kI = 10;
-        public static final double kP = 5;
+        public static final double kP = 7.5;
         public static final double kI = 0;
         public static final double kD = 0;
         public static final double kS = 0;
@@ -427,11 +427,14 @@ public final class Constants {
         public static final double ratio = 1;
         public static final double shootHeight = Units.inchesToMeters(40);
 
-        public static AngularVelocity kShooterVelocityTolerance = RPM.of(50);
+        public static AngularVelocity kShooterVelocityTolerance = RPM.of(100);
         public static Angle maxPitch = Degrees.of(85);
 
         public static final Distance kShooterWheelRadius = Inches.of(2);
         public static final Distance kShooterRollerRadius = Inches.of(0.75);
+
+        public static final double kMotorToWheelRatio = 1;
+        public static final double kMotorToRollerRatio = 1.167;
 
         public static final double kShooterEfficiency = 0.80;
 
@@ -683,12 +686,31 @@ public final class Constants {
                 // Map.entry(Meters.of(4),   new LookupTablePoint(RPM.of(2700), 0.78)),
                 // Map.entry(Meters.of(4.5), new LookupTablePoint(RPM.of(2900), 0.72))
 
-                Map.entry(Meters.of(1),   new LookupTablePoint(RPM.of(1800), 1.1)),
-                Map.entry(Meters.of(1.5), new LookupTablePoint(RPM.of(1900), 1.05)),
-                Map.entry(Meters.of(2),   new LookupTablePoint(RPM.of(2000), 1.025)),
-                Map.entry(Meters.of(2.5), new LookupTablePoint(RPM.of(2100), 1)),
-                Map.entry(Meters.of(3),   new LookupTablePoint(RPM.of(2200), 1)),
-                Map.entry(Meters.of(3.5), new LookupTablePoint(RPM.of(2300), 0.97)),
+                //before gear ratio fix
+                // Map.entry(Meters.of(1),   new LookupTablePoint(RPM.of(1800), 1.1)),
+                // Map.entry(Meters.of(1.5), new LookupTablePoint(RPM.of(1900), 1.05)),
+                // Map.entry(Meters.of(2),   new LookupTablePoint(RPM.of(2000), 1.025)),
+                // Map.entry(Meters.of(2.5), new LookupTablePoint(RPM.of(2100), 1)),
+                // Map.entry(Meters.of(3),   new LookupTablePoint(RPM.of(2200), 1)),
+                // Map.entry(Meters.of(3.5), new LookupTablePoint(RPM.of(2300), 0.97)),
+                // Map.entry(Meters.of(4),   new LookupTablePoint(RPM.of(2500), 0.90)),
+                // Map.entry(Meters.of(4.5), new LookupTablePoint(RPM.of(2700), 0.85))
+
+                // Map.entry(Meters.of(1),   new LookupTablePoint(RPM.of(1800), 0.92)),
+                // Map.entry(Meters.of(1.5), new LookupTablePoint(RPM.of(1900), 0.90)),
+                // Map.entry(Meters.of(2),   new LookupTablePoint(RPM.of(2000), 0.88)),
+                // Map.entry(Meters.of(2.5), new LookupTablePoint(RPM.of(2100), 0.85)),
+                // Map.entry(Meters.of(3),   new LookupTablePoint(RPM.of(2200), 0.80)),
+                // Map.entry(Meters.of(3.5), new LookupTablePoint(RPM.of(2300), 0.78)),
+                // Map.entry(Meters.of(4),   new LookupTablePoint(RPM.of(2500), 0.73)),
+                // Map.entry(Meters.of(4.5), new LookupTablePoint(RPM.of(2700), 0.70))
+
+                Map.entry(Meters.of(1),   new LookupTablePoint(RPM.of(1800), 1.20)), //1
+                Map.entry(Meters.of(1.5), new LookupTablePoint(RPM.of(1900), 1.20)),
+                Map.entry(Meters.of(2),   new LookupTablePoint(RPM.of(2000), 1.15)), //2
+                Map.entry(Meters.of(2.5), new LookupTablePoint(RPM.of(2100), 1.05)),
+                Map.entry(Meters.of(3),   new LookupTablePoint(RPM.of(2200), 1.00)), //3
+                Map.entry(Meters.of(3.5), new LookupTablePoint(RPM.of(2300), 0.95)),
                 Map.entry(Meters.of(4),   new LookupTablePoint(RPM.of(2500), 0.90)),
                 Map.entry(Meters.of(4.5), new LookupTablePoint(RPM.of(2700), 0.85))
         );
