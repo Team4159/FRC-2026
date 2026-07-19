@@ -2,6 +2,7 @@ package frc.robot.commands;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 
@@ -109,6 +110,7 @@ public class AutoAim extends Command {
 
     private Optional<CommandXboxController> feedbackController;
 
+    private AngularVelocity desiredShooterAngularVelocity = RPM.of(0);
     private double efficiency = 1;
 
     /**
@@ -170,7 +172,7 @@ public class AutoAim extends Command {
     public void execute() {
         // calculate desired pitch for hood angle
         Angle desiredHoodAngle = getDesiredHoodPitch();
-        AngularVelocity desiredShooterAngularVelocity;
+        //AngularVelocity desiredShooterAngularVelocity;
 
         for (int i = 0; i < 2; i++) {
             // get desired angular velocity and efficiency from lookup table
@@ -178,13 +180,7 @@ public class AutoAim extends Command {
             desiredShooterAngularVelocity = lookupTablePoint.angularVelocity();
             efficiency = lookupTablePoint.efficiency();
             // calculate TOF(used for calculating adjusted robot pose)
-            double timeOfFlight = getTimeOfFlight(
-                desiredHoodAngle,
-                shooter.getFuelSpeedWithCustomEfficiency(efficiency)
-            );
-            if (RobotBase.isSimulation()) {
-                timeOfFlight = getTimeOfFlight(desiredHoodAngle, getLaunchVelocity(desiredShooterAngularVelocity));
-            }
+            double timeOfFlight = getTimeOfFlight(desiredHoodAngle, getLaunchVelocity(desiredShooterAngularVelocity));
             // calculate the distance traveled by the robot during the time of flight
             Transform2d adjustedRobotPoseTransform = new Transform2d(
                 drivetrain.getState().Speeds.vxMetersPerSecond * timeOfFlight,
@@ -247,7 +243,7 @@ public class AutoAim extends Command {
         // shooter.setFeederSpeed(FeederState.UNSTUCKFEEDER.percentage);
         // hopper.setHopperSpeed(HopperState.STOP.percentage);
         // }
-        if (shooter.isAtPitch() && shooter.isAtSpeed() /* && isAtDesiredRotation(Radians.of(desiredRobotAngle))*/) {
+        if (shooter.isAtPitch() && shooter.isAtSpeed() && isAtDesiredRotation(Radians.of(desiredRobotAngle))) {
             // shoot the fuel if at the right pitch
             autoAimStatus = AutoAimStatus.SHOOT;
             shooter.setFeederSpeed(FeederState.FEED.percentage);
@@ -348,10 +344,16 @@ public class AutoAim extends Command {
     private double getLaunchVelocity(AngularVelocity desiredMotorVelocity) {
         double shooterOmega = desiredMotorVelocity.in(RadiansPerSecond) * ShooterConstants.ratio;
 
-        double wheelTangentialSpeed = shooterOmega * ShooterConstants.kShooterWheelRadius.in(Meters);
-        double rollerTangentialSpeed = shooterOmega * ShooterConstants.kShooterRollerRadius.in(Meters);
+        double wheelTangentialSpeed =
+            shooterOmega *
+            ShooterConstants.kShooterWheelRadius.in(Meters) *
+            Constants.ShooterConstants.kMotorToWheelRatio;
+        double rollerTangentialSpeed =
+            shooterOmega *
+            ShooterConstants.kShooterRollerRadius.in(Meters) *
+            Constants.ShooterConstants.kMotorToRollerRatio;
 
-        return (ShooterConstants.kShooterEfficiency * (wheelTangentialSpeed + rollerTangentialSpeed)) / 2;
+        return (efficiency * (wheelTangentialSpeed + rollerTangentialSpeed)) / 2;
     }
 
     /**
@@ -426,28 +428,15 @@ public class AutoAim extends Command {
         // distance from robot to target
         Translation2d robotTranslation = adjustedRobotPose.getTranslation();
         double distance = robotTranslation.getDistance(target.getTranslation());
-
-        double currentVelocityPercent = 0.2;
-
-        double currentLaunchVelocity = shooter.getFuelSpeedWithCustomEfficiency(efficiency);
-        double targetLaunchVelocity =
-            getLaunchVelocity(JoeLookupTable.getLookupTablePoint(Meters.of(getDistanceFromHub())).angularVelocity()) *
-            efficiency;
-
-        double launchVelocity =
-            currentLaunchVelocity * currentVelocityPercent + targetLaunchVelocity * (1 - currentVelocityPercent);
-        if (RobotBase.isSimulation()) {
-            launchVelocity = getLaunchVelocity(
-                JoeLookupTable.getLookupTablePoint(Meters.of(getDistanceFromHub())).angularVelocity()
-            );
-        }
+        double launchVelocity = getLaunchVelocity(desiredShooterAngularVelocity);
         double desiredPitch = Math.atan(
             (Math.pow(launchVelocity, 2) +
                 Math.sqrt(
                     Math.pow(launchVelocity, 4) -
                         Math.pow(FieldConstants.g * distance, 2) -
                         2 * FieldConstants.g * height * Math.pow(launchVelocity, 2)
-                )) / (FieldConstants.g * distance)
+                )) /
+                (FieldConstants.g * distance)
         );
 
         if (Double.isNaN(desiredPitch)) {
@@ -471,6 +460,6 @@ public class AutoAim extends Command {
         shooter.setSpeed(Constants.ShooterConstants.restingAngularVelocity);
         shooter.setFeederSpeed(FeederState.STOP.percentage);
         hopper.setHopperSpeed(HopperState.STOP.percentage);
-        CommandScheduler.getInstance().schedule(intake.new ChangeStates(IntakeState.BOUNCE_UP));
+        CommandScheduler.getInstance().schedule(intake.new ChangeStates(IntakeState.DOWN_OFF));
     }
 }

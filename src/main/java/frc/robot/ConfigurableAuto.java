@@ -17,9 +17,6 @@ import frc.lib.PoseTrajectory;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.IntakeConstants.IntakeState;
 import frc.robot.commands.AutoAim;
-import frc.robot.commands.AutoRecovery;
-import frc.robot.commands.AutoRecovery.AutoRecoveryMode;
-import frc.robot.commands.AutoRecovery.AutoRecoverySide;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Hopper;
 import frc.robot.subsystems.Intake;
@@ -184,14 +181,14 @@ public class ConfigurableAuto {
         //final String climbSide = climbSideChooser.getSelected();
 
         //for auto beach recovery (unused, not enough testing time)
-        final AutoRecoverySide autoRecoverySide;
-        if (direction.equals("L")) {
-            autoRecoverySide = AutoRecoverySide.LEFT;
-        } else if (direction.equals("R")) {
-            autoRecoverySide = AutoRecoverySide.RIGHT;
-        } else {
-            autoRecoverySide = AutoRecoverySide.MIDDLE;
-        }
+        // final AutoRecoverySide autoRecoverySide;
+        // if (direction.equals("L")) {
+        //     autoRecoverySide = AutoRecoverySide.LEFT;
+        // } else if (direction.equals("R")) {
+        //     autoRecoverySide = AutoRecoverySide.RIGHT;
+        // } else {
+        //     autoRecoverySide = AutoRecoverySide.MIDDLE;
+        // }
 
         //if the direction has a capital "M" then it is a mid auto (ML, M, or MR)
         if (direction.contains("M")) {

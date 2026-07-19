@@ -1,13 +1,9 @@
 package frc.robot.commands;
 
-import static edu.wpi.first.units.Units.Degrees;
-
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.robot.Constants.FeederConstants.FeederState;
-import frc.robot.Constants.HopperConstants.HopperState;
 import frc.robot.Constants.IntakeConstants.IntakeState;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.subsystems.Hopper;
@@ -18,6 +14,8 @@ public class HubShoot extends Command {
 
     private final Shooter shooter;
     private final Intake intake;
+
+    @SuppressWarnings("unused")
     private final Hopper hopper;
 
     private Timer timer;

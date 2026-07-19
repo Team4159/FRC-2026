@@ -15,10 +15,8 @@ import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.lib.FluentTrigger;
 import frc.lib.HIDRumble;
 import frc.lib.HIDRumble.RumbleRequest;
-import frc.robot.Constants.AlignConstants.TowerAlignGoal;
 import frc.robot.Constants.FeederConstants.FeederState;
 import frc.robot.Constants.HopperConstants.HopperState;
 import frc.robot.Constants.IntakeConstants.IntakeState;
@@ -27,8 +25,6 @@ import frc.robot.Constants.OperatorConstants.DriveFlag;
 import frc.robot.Constants.OperatorConstants.DriveMode;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.commands.AutoAim;
-import frc.robot.commands.AutoAlign;
-import frc.robot.commands.AutoLob;
 import frc.robot.commands.HubShoot;
 import frc.robot.commands.TowerShoot;
 import frc.robot.subsystems.Drivetrain;
@@ -54,10 +50,10 @@ public class RobotContainer {
     private final Trigger primaryRobotRelativeTrigger = primaryController.leftTrigger(0.1);
     private final Trigger primarySlowModeTrigger = primaryController.rightTrigger();
     private final Trigger primaryDriveAssistTrigger = primaryController.start();
-    private final Trigger primaryLeftClimbAlignTrigger = primaryController.povLeft();
-    private final Trigger primaryAutoAimTrigger = primaryController.x();
-    private final Trigger primaryAutoLobTrigger = primaryController.a();
-    private final Trigger primaryRightClimbAlignTrigger = primaryController.povRight();
+    // private final Trigger primaryLeftClimbAlignTrigger = primaryController.povLeft();
+    // private final Trigger primaryAutoAimTrigger = primaryController.x();
+    // private final Trigger primaryAutoLobTrigger = primaryController.a();
+    // private final Trigger primaryRightClimbAlignTrigger = primaryController.povRight();
 
     // Secondary Triggers
     private final Trigger feedHopperTrigger = secondaryController.rightBumper();
@@ -150,28 +146,6 @@ public class RobotContainer {
         primaryIntakeAssistTrigger
             .and(DriverStation::isTeleop)
             .whileTrue(drivetrain.new DriveFlagToggler(DriveFlag.INTAKE_ASSIST));
-        // new FluentTrigger.Builder()
-        //     .bind(
-        //         1,
-        //         primaryLeftClimbAlignTrigger.and(DriverStation::isTeleop),
-        //         new AutoAlign(drivetrain, TowerAlignGoal.LEFT)
-        //     )
-        //     .bind(
-        //         1,
-        //         primaryRightClimbAlignTrigger.and(DriverStation::isTeleop),
-        //         new AutoAlign(drivetrain, TowerAlignGoal.RIGHT)
-        //     )
-        //     .bind(
-        //         0,
-        //         primaryAutoAimTrigger.and(DriverStation::isTeleop),
-        //         new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.of(primaryController))
-        //     )
-        //     .bind(
-        //         0,
-        //         primaryAutoLobTrigger.and(DriverStation::isTeleop),
-        //         new AutoLob(drivetrain, shooter, hopper, intake, leds, false)
-        //     )
-        //     .build();
 
         // Reset the field-centric heading on left bumper press.
         primaryZeroTrigger.onTrue(
@@ -207,7 +181,7 @@ public class RobotContainer {
         outtakeTrigger.whileTrue(
             new ParallelCommandGroup(
                 intake.new ChangeStates(IntakeState.DOWN_REV),
-                hopper.new ChangeState((HopperState.REVERSE)),
+                hopper.new ChangeState(HopperState.REVERSE),
                 shooter.new ChangeState(FeederState.UNSTUCKFEEDER)
             )
         );

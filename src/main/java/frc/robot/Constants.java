@@ -6,9 +6,6 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
 
-import java.util.Map;
-import java.util.Set;
-
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
@@ -22,7 +19,6 @@ import com.therekrab.autopilot.APConstraints;
 import com.therekrab.autopilot.APProfile;
 import com.therekrab.autopilot.APTarget;
 import com.therekrab.autopilot.Autopilot;
-
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.ProfiledPIDController;
@@ -41,9 +37,11 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import frc.robot.generated.TunerConstants;
 import edu.wpi.first.wpilibj.LEDPattern;
 import edu.wpi.first.wpilibj.util.Color;
+import frc.robot.generated.TunerConstants;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide
@@ -60,14 +58,18 @@ import edu.wpi.first.wpilibj.util.Color;
 public final class Constants {
 
     public static class ClimberConstants {
+
         public static final double kI = 0;
         public static final double kD = 0;
         public static final double kP = 0;
         public static final int idClimberOne = 15;
+
         // public static final int idClimberTwo = 10;
 
         public static enum ClimberState {
-            CLIMB(0.25), STOP(0), DOWN(-0.25);
+            CLIMB(0.25),
+            STOP(0),
+            DOWN(-0.25);
 
             public double percentage;
 
@@ -78,11 +80,14 @@ public final class Constants {
     }
 
     public static class HopperConstants {
+
         public static final int HopperId = 30;
         public static final Distance kHopperExtent = Inches.of(12.0);
 
         public static enum HopperState {
-            FEED(1), REVERSE(-1), STOP(0);
+            FEED(1),
+            REVERSE(-1),
+            STOP(0);
 
             public double percentage;
 
@@ -93,10 +98,13 @@ public final class Constants {
     }
 
     public static class FeederConstants {
+
         public static final int FeederID = 20; // idk if this port is used yet plz check
 
         public static enum FeederState {
-            FEED(1), UNSTUCKFEEDER(-1), STOP(0);
+            FEED(1),
+            UNSTUCKFEEDER(-1),
+            STOP(0);
 
             public double percentage;
 
@@ -107,6 +115,7 @@ public final class Constants {
     }
 
     public static class IntakeConstants {
+
         public static final double kAngleI = 1;
         public static final double kAngleD = 0;
         public static final double kAngleP = 40;
@@ -164,7 +173,7 @@ public final class Constants {
             {
                 MotionMagicCruiseVelocity = IntakeConstants.kFastCruiseVelocity; // Target cruise velocity of 80 rps
                 MotionMagicAcceleration = IntakeConstants.kFastAcceleration; // Target acceleration of 160 rps/s (0.5
-                                                                             // seconds)
+                // seconds)
                 MotionMagicJerk = IntakeConstants.kFastJerk; // Target jerk of 1600 rps/s/s (0.1 seconds)
             }
         };
@@ -186,10 +195,11 @@ public final class Constants {
         public static final double kCompressI = 0;
         public static final double kCompressD = 0;
         public static final ProfiledPIDController compressPID = new ProfiledPIDController(
-                kCompressP,
-                kCompressI,
-                kCompressD,
-                new TrapezoidProfile.Constraints(kCompressRate, 1));
+            kCompressP,
+            kCompressI,
+            kCompressD,
+            new TrapezoidProfile.Constraints(kCompressRate, 1)
+        );
 
         public static enum IntakeState {
             DOWN_ON(Degrees.of(-9), 1),
@@ -210,6 +220,7 @@ public final class Constants {
     }
 
     public static class OperatorConstants {
+
         public static final int kPrimaryControllerPort = 0;
         public static final int kSecondaryControllerPort = 1;
 
@@ -261,38 +272,42 @@ public final class Constants {
     }
 
     public static class DrivetrainConstants {
+
         public static final Distance kChassisSizeX = Inches.of(27.0);
         public static final Distance kChassisSizeY = Inches.of(27.0);
 
         public static final Distance kBumperSizeX = Inches.of(35.0);
         public static final Distance kBumperSizeY = Inches.of(35.0);
 
-        public static final double kMaxTranslationSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
+        public static final double kMaxTranslationSpeed = 0.5 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
         public static final double kMaxRotationSpeed = RotationsPerSecond.of(0.75).in(RadiansPerSecond);
-        
+
         public static final double kPointKP = 5;
         public static final double kPointKI = 0.0;
         public static final double kPointKD = 0.0;
         public static final double kPointFeedForward = 0.0;
 
-        public static final double kAimKP = 6;
-        public static final double kAimKI = 0.1;
+        public static final double kAimKP = 12.5;
+        public static final double kAimKI = 0.50;
         public static final double kAimKD = 0.0;
         public static final double kAimFeedForward = 0.0;
-
 
         public static final Angle AutoAimTolerance = Degrees.of(10);
         public static final double kAutoAimInputMultiplier = 1;
 
-        public static final PhoenixPIDController AutoAimRotationController = new PhoenixPIDController(kAimKP, kAimKI,
-                kAimKD);
+        public static final PhoenixPIDController AutoAimRotationController = new PhoenixPIDController(
+            kAimKP,
+            kAimKI,
+            kAimKD
+        );
+
         static {
             AutoAimRotationController.enableContinuousInput(-Math.PI, Math.PI);
         }
-
     }
 
     public static class ShooterConstants {
+
         //Hood PID Values
 
         //Proportional (this might be too high and contributing to the osclillations)
@@ -312,9 +327,7 @@ public final class Constants {
         // hood absolute encoder (WCP throughbore)
         /** Hood encoder CAN ID */
         public static final int kHoodEncoderID = 2;
-        /** encoder offset (so that 0 is when center of mass is horizontal) */
-        public static final Angle kEncoderOffset = Degrees.of(-248);
-        /** ratio from the sensor (WCP throughbore encoder) to the mechanism (the hood) */
+        public static final Angle kEncoderOffset = Degrees.of(-214);
         public static final double kSensorToMechanismRatio = 34 / 16;
         /** ratio from the motor to the sensor (WCP throughbore encoder) */
         public static final double kMotorToSensorRatio = 125;
@@ -346,7 +359,7 @@ public final class Constants {
             {
                 MotionMagicCruiseVelocity = ShooterConstants.kCruiseVelocity; // Target cruise velocity of 80 rps
                 MotionMagicAcceleration = ShooterConstants.kAcceleration; // Target acceleration of 160 rps/s (0.5
-                                                                          // seconds)
+                // seconds)
                 MotionMagicJerk = ShooterConstants.kJerk; // Target jerk of 1600 rps/s/s (0.1 seconds)
             }
         };
@@ -378,7 +391,7 @@ public final class Constants {
         // Shooter Motor Config and PID
         // public static final double kP = 35;
         // public static final double kI = 10;
-        public static final double kP = 5;
+        public static final double kP = 7.5;
         public static final double kI = 0;
         public static final double kD = 0;
         public static final double kS = 0;
@@ -407,7 +420,7 @@ public final class Constants {
                 CurrentLimits.SupplyCurrentLimit = kCurrentLimit;
                 MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
                 MotorOutput.NeutralMode = NeutralModeValue.Coast;
-                ClosedLoopRamps.VoltageClosedLoopRampPeriod=kRampRate;
+                ClosedLoopRamps.VoltageClosedLoopRampPeriod = kRampRate;
             }
         };
 
@@ -423,7 +436,7 @@ public final class Constants {
                 CurrentLimits.SupplyCurrentLimit = kCurrentLimit;
                 MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
                 MotorOutput.NeutralMode = NeutralModeValue.Coast;
-                ClosedLoopRamps.VoltageClosedLoopRampPeriod=kRampRate;
+                ClosedLoopRamps.VoltageClosedLoopRampPeriod = kRampRate;
             }
         };
 
@@ -440,15 +453,18 @@ public final class Constants {
 
         // Old equation stuff
         /** units: m/s */
-        public static final double launchVelocity = Units.feetToMeters(29);// convert from ft/s to m/s
+        public static final double launchVelocity = Units.feetToMeters(29); // convert from ft/s to m/s
         public static final double ratio = 1;
         public static final double shootHeight = Units.inchesToMeters(40);
 
-        public static AngularVelocity kShooterVelocityTolerance = RPM.of(50);
+        public static AngularVelocity kShooterVelocityTolerance = RPM.of(100);
         public static Angle maxPitch = Degrees.of(85);
 
         public static final Distance kShooterWheelRadius = Inches.of(2);
         public static final Distance kShooterRollerRadius = Inches.of(0.75);
+
+        public static final double kMotorToWheelRatio = 1;
+        public static final double kMotorToRollerRatio = 1.167;
 
         public static final double kShooterEfficiency = 0.80;
 
@@ -475,43 +491,45 @@ public final class Constants {
         public static final Matrix<N3, N1> kSingleTagStdDevs = VecBuilder.fill(1, 1, 4);
         public static final Matrix<N3, N1> kMultiTagStdDevs = VecBuilder.fill(0.25, 0.25, 1);
 
-        public final static Transform3d leftShooterCamTransform = new Transform3d(
-                Units.inchesToMeters(-1.2887),
-                Units.inchesToMeters(8.8466),
-                Units.inchesToMeters(21.1190),
-                new Rotation3d(
-                        0,
-                        Units.degreesToRadians(-30),
-                        Units.degreesToRadians(-5)));
-        public final static Transform3d rightShooterCamTransform = new Transform3d(
-                Units.inchesToMeters(-1.2887),
-                Units.inchesToMeters(-8.8466),
-                Units.inchesToMeters(21.1190),
-                new Rotation3d(
-                        0,
-                        Units.degreesToRadians(-30),
-                        Units.degreesToRadians(5)));
+        public static final Transform3d leftShooterCamTransform = new Transform3d(
+            Units.inchesToMeters(-1.2887),
+            Units.inchesToMeters(8.8466),
+            Units.inchesToMeters(21.1190),
+            new Rotation3d(0, Units.degreesToRadians(-30), Units.degreesToRadians(-5))
+        );
+        public static final Transform3d rightShooterCamTransform = new Transform3d(
+            Units.inchesToMeters(-1.2887),
+            Units.inchesToMeters(-8.8466),
+            Units.inchesToMeters(21.1190),
+            new Rotation3d(0, Units.degreesToRadians(-30), Units.degreesToRadians(5))
+        );
     }
 
     public static class FieldConstants {
+
         public static final Map<DriverStation.Alliance, Pose2d> hubLocations = Map.of(
-                Alliance.Blue, new Pose2d(Units.inchesToMeters(182.11), Units.inchesToMeters(158.84), new Rotation2d()),
-                Alliance.Red,
-                new Pose2d(Units.inchesToMeters(651.22 - 182.11), Units.inchesToMeters(158.84), new Rotation2d()));
+            Alliance.Blue,
+            new Pose2d(Units.inchesToMeters(182.11), Units.inchesToMeters(158.84), new Rotation2d()),
+            Alliance.Red,
+            new Pose2d(Units.inchesToMeters(651.22 - 182.11), Units.inchesToMeters(158.84), new Rotation2d())
+        );
 
         public static final Set<Pose2d> blueLobPositions = Set.of(
-                new Pose2d(2.5, 2.1, new Rotation2d()),
-                new Pose2d(2.5, 5.6, new Rotation2d()));
+            new Pose2d(2.5, 2.1, new Rotation2d()),
+            new Pose2d(2.5, 5.6, new Rotation2d())
+        );
 
         public static final Set<Pose2d> redLobPositions = Set.of(
-                new Pose2d(14.1, 2.1, new Rotation2d()),
-                new Pose2d(14.1, 5.6, new Rotation2d()));
+            new Pose2d(14.1, 2.1, new Rotation2d()),
+            new Pose2d(14.1, 5.6, new Rotation2d())
+        );
 
         public static final Map<DriverStation.Alliance, Set<Pose2d>> lobLocations = Map.of(
-                Alliance.Blue,
-                blueLobPositions,
-                Alliance.Red,
-                redLobPositions);
+            Alliance.Blue,
+            blueLobPositions,
+            Alliance.Red,
+            redLobPositions
+        );
 
         public static enum TrenchZone {
             BLUE_LEFT(Inches.of(182.11), Inches.of(317.69 - 24.97)),
@@ -545,27 +563,38 @@ public final class Constants {
 
         public static enum FieldZone {
             FIELD(
-                    new Translation2d(kFieldWidth.div(2), kFieldHeight.div(2)),
-                    new Translation2d(kFieldWidth, kFieldHeight)),
+                new Translation2d(kFieldWidth.div(2), kFieldHeight.div(2)),
+                new Translation2d(kFieldWidth, kFieldHeight)
+            ),
             TRENCH_BLUE_LEFT(
-                    new Translation2d(kTrenchX,
-                            kFieldHeight.minus(kTrenchZoneHeight.div(2)).minus(kTrenchZoneYBuffer.div(2))),
-                    new Translation2d(kTrenchX, kFieldHeight.minus(kTrenchZoneHeight.div(2))),
-                    new Translation2d(kTrenchZoneWidth, kTrenchZoneHeight.plus(kTrenchZoneYBuffer))),
+                new Translation2d(
+                    kTrenchX,
+                    kFieldHeight.minus(kTrenchZoneHeight.div(2)).minus(kTrenchZoneYBuffer.div(2))
+                ),
+                new Translation2d(kTrenchX, kFieldHeight.minus(kTrenchZoneHeight.div(2))),
+                new Translation2d(kTrenchZoneWidth, kTrenchZoneHeight.plus(kTrenchZoneYBuffer))
+            ),
             TRENCH_BLUE_RIGHT(
-                    new Translation2d(kTrenchX, kTrenchZoneHeight.div(2).plus(kTrenchZoneYBuffer.div(2))),
-                    new Translation2d(kTrenchX, kTrenchZoneHeight.div(2)),
-                    new Translation2d(kTrenchZoneWidth, kTrenchZoneHeight.plus(kTrenchZoneYBuffer))),
+                new Translation2d(kTrenchX, kTrenchZoneHeight.div(2).plus(kTrenchZoneYBuffer.div(2))),
+                new Translation2d(kTrenchX, kTrenchZoneHeight.div(2)),
+                new Translation2d(kTrenchZoneWidth, kTrenchZoneHeight.plus(kTrenchZoneYBuffer))
+            ),
             TRENCH_RED_LEFT(
-                    new Translation2d(kFieldWidth.minus(kTrenchX),
-                            kTrenchZoneHeight.div(2).plus(kTrenchZoneYBuffer.div(2))),
-                    new Translation2d(kFieldWidth.minus(kTrenchX), kTrenchZoneHeight.div(2)),
-                    new Translation2d(kTrenchZoneWidth, kTrenchZoneHeight.plus(kTrenchZoneYBuffer))),
+                new Translation2d(
+                    kFieldWidth.minus(kTrenchX),
+                    kTrenchZoneHeight.div(2).plus(kTrenchZoneYBuffer.div(2))
+                ),
+                new Translation2d(kFieldWidth.minus(kTrenchX), kTrenchZoneHeight.div(2)),
+                new Translation2d(kTrenchZoneWidth, kTrenchZoneHeight.plus(kTrenchZoneYBuffer))
+            ),
             TRENCH_RED_RIGHT(
-                    new Translation2d(kFieldWidth.minus(kTrenchX),
-                            kFieldHeight.minus(kTrenchZoneHeight.div(2)).minus(kTrenchZoneYBuffer.div(2))),
-                    new Translation2d(kFieldWidth.minus(kTrenchX), kFieldHeight.minus(kTrenchZoneHeight.div(2))),
-                    new Translation2d(kTrenchZoneWidth, kTrenchZoneHeight.plus(kTrenchZoneYBuffer)));
+                new Translation2d(
+                    kFieldWidth.minus(kTrenchX),
+                    kFieldHeight.minus(kTrenchZoneHeight.div(2)).minus(kTrenchZoneYBuffer.div(2))
+                ),
+                new Translation2d(kFieldWidth.minus(kTrenchX), kFieldHeight.minus(kTrenchZoneHeight.div(2))),
+                new Translation2d(kTrenchZoneWidth, kTrenchZoneHeight.plus(kTrenchZoneYBuffer))
+            );
 
             public final Translation2d center, focus, size;
 
@@ -581,10 +610,10 @@ public final class Constants {
         }
 
         public static final FieldZone[] kTrenchZones = new FieldZone[] {
-                FieldZone.TRENCH_BLUE_LEFT,
-                FieldZone.TRENCH_BLUE_RIGHT,
-                FieldZone.TRENCH_RED_LEFT,
-                FieldZone.TRENCH_RED_RIGHT
+            FieldZone.TRENCH_BLUE_LEFT,
+            FieldZone.TRENCH_BLUE_RIGHT,
+            FieldZone.TRENCH_RED_LEFT,
+            FieldZone.TRENCH_RED_RIGHT,
         };
 
         /** Units:m/s^2 */
@@ -594,49 +623,82 @@ public final class Constants {
     }
 
     public static class AutoConstants {
+
         /** units: seconds */
         public static final double ShootTime = 4;
 
         public static final APConstraints kAutopilotConstraints = new APConstraints()
-                .withAcceleration(7.0)
-                .withJerk(3.5);
+            .withAcceleration(7.0)
+            .withJerk(3.5);
         public static final APProfile kAutopilotAlignProfile = new APProfile(kAutopilotConstraints)
-                .withErrorXY(Centimeters.of(2.0))
-                .withErrorTheta(Degrees.of(1))
-                .withBeelineRadius(Centimeters.of(5.0));
+            .withErrorXY(Centimeters.of(2.0))
+            .withErrorTheta(Degrees.of(1))
+            .withBeelineRadius(Centimeters.of(5.0));
         public static final Autopilot kAutopilotAlignController = new Autopilot(kAutopilotAlignProfile);
         public static final APProfile kAutopilotCruiseProfile = new APProfile(kAutopilotConstraints)
-                .withErrorXY(Centimeters.of(20.0))
-                .withErrorTheta(Degrees.of(15.0))
-                .withBeelineRadius(Centimeters.of(25.0));
+            .withErrorXY(Centimeters.of(20.0))
+            .withErrorTheta(Degrees.of(15.0))
+            .withBeelineRadius(Centimeters.of(25.0));
         public static final Autopilot kAutopilotCruiseController = new Autopilot(kAutopilotCruiseProfile);
     }
 
     public static class AlignConstants {
+
         public static enum TowerAlignGoal {
             LEFT(
-                    new APTarget(new Pose2d(FieldConstants.kTowerX,
-                            FieldConstants.kTowerY.plus(FieldConstants.kTowerWidth.div(2))
-                                    .plus(DrivetrainConstants.kBumperSizeX.div(2)),
-                            Rotation2d.kZero)).withVelocity(0).withoutEntryAngle()),
+                new APTarget(
+                    new Pose2d(
+                        FieldConstants.kTowerX,
+                        FieldConstants.kTowerY
+                            .plus(FieldConstants.kTowerWidth.div(2))
+                            .plus(DrivetrainConstants.kBumperSizeX.div(2)),
+                        Rotation2d.kZero
+                    )
+                )
+                    .withVelocity(0)
+                    .withoutEntryAngle()
+            ),
             RIGHT(
-                    new APTarget(new Pose2d(FieldConstants.kTowerX,
-                            FieldConstants.kTowerY.minus(FieldConstants.kTowerWidth.div(2))
-                                    .minus(DrivetrainConstants.kBumperSizeX.div(2)),
-                            Rotation2d.k180deg)).withVelocity(0).withEntryAngle(Rotation2d.k180deg)),
+                new APTarget(
+                    new Pose2d(
+                        FieldConstants.kTowerX,
+                        FieldConstants.kTowerY
+                            .minus(FieldConstants.kTowerWidth.div(2))
+                            .minus(DrivetrainConstants.kBumperSizeX.div(2)),
+                        Rotation2d.k180deg
+                    )
+                )
+                    .withVelocity(0)
+                    .withEntryAngle(Rotation2d.k180deg)
+            ),
             MIDDLE_FRONT(
-                    new APTarget(new Pose2d(
-                            FieldConstants.kTowerX.plus(DrivetrainConstants.kBumperSizeX.div(2)).plus(Inches.of(6)),
-                            FieldConstants.kTowerY, Rotation2d.k180deg)).withVelocity(0).withoutEntryAngle(),
-                    new APTarget(new Pose2d(FieldConstants.kTowerX, FieldConstants.kTowerY, Rotation2d.k180deg))
-                            .withVelocity(0).withoutEntryAngle()),
+                new APTarget(
+                    new Pose2d(
+                        FieldConstants.kTowerX.plus(DrivetrainConstants.kBumperSizeX.div(2)).plus(Inches.of(6)),
+                        FieldConstants.kTowerY,
+                        Rotation2d.k180deg
+                    )
+                )
+                    .withVelocity(0)
+                    .withoutEntryAngle(),
+                new APTarget(new Pose2d(FieldConstants.kTowerX, FieldConstants.kTowerY, Rotation2d.k180deg))
+                    .withVelocity(0)
+                    .withoutEntryAngle()
+            ),
             MIDDLE_BACK(
-                    new APTarget(new Pose2d(
-                            FieldConstants.kTowerX.minus(DrivetrainConstants.kBumperSizeX.div(2))
-                                    .minus(Inches.of(6)),
-                            FieldConstants.kTowerY, Rotation2d.kZero)).withVelocity(0).withoutEntryAngle(),
-                    new APTarget(new Pose2d(FieldConstants.kTowerX, FieldConstants.kTowerY, Rotation2d.kZero))
-                            .withVelocity(0).withoutEntryAngle());
+                new APTarget(
+                    new Pose2d(
+                        FieldConstants.kTowerX.minus(DrivetrainConstants.kBumperSizeX.div(2)).minus(Inches.of(6)),
+                        FieldConstants.kTowerY,
+                        Rotation2d.kZero
+                    )
+                )
+                    .withVelocity(0)
+                    .withoutEntryAngle(),
+                new APTarget(new Pose2d(FieldConstants.kTowerX, FieldConstants.kTowerY, Rotation2d.kZero))
+                    .withVelocity(0)
+                    .withoutEntryAngle()
+            );
 
             public final APTarget[] targets;
 
@@ -677,7 +739,7 @@ public final class Constants {
 
     public static final class JoeLookupTableConstants {
 
-      public static record LookupTablePoint(AngularVelocity angularVelocity, double efficiency) {};
+        public static record LookupTablePoint(AngularVelocity angularVelocity, double efficiency) {}
 
         /**
          * adjust the angle of the hood down by this much (in radians for each
@@ -691,24 +753,40 @@ public final class Constants {
 
         // stores desired motor angular velocity and shooter efficiency based on position
         public static final Map<Distance, LookupTablePoint> joeLookupTable = Map.ofEntries(
-                //non-continuous feeding
-                // Map.entry(Meters.of(1),   new LookupTablePoint(RPM.of(2000), 0.93)),
-                // Map.entry(Meters.of(1.5), new LookupTablePoint(RPM.of(2100), 0.92)),
-                // Map.entry(Meters.of(2),   new LookupTablePoint(RPM.of(2200), 0.91)),
-                // Map.entry(Meters.of(2.5), new LookupTablePoint(RPM.of(2300), 0.90)),
-                // Map.entry(Meters.of(3),   new LookupTablePoint(RPM.of(2400), 0.88)),
-                // Map.entry(Meters.of(3.5), new LookupTablePoint(RPM.of(2500), 0.84)),
-                // Map.entry(Meters.of(4),   new LookupTablePoint(RPM.of(2700), 0.78)),
-                // Map.entry(Meters.of(4.5), new LookupTablePoint(RPM.of(2900), 0.72))
-                //continuous feeding
-                Map.entry(Meters.of(1),   new LookupTablePoint(RPM.of(1800), 1.1)), //efficiency > 1 lol probably from incorrect calculation of fuel velocity
-                Map.entry(Meters.of(1.5), new LookupTablePoint(RPM.of(1900), 1.05)),
-                Map.entry(Meters.of(2),   new LookupTablePoint(RPM.of(2000), 1.025)),
-                Map.entry(Meters.of(2.5), new LookupTablePoint(RPM.of(2100), 1)),
-                Map.entry(Meters.of(3),   new LookupTablePoint(RPM.of(2200), 1)),
-                Map.entry(Meters.of(3.5), new LookupTablePoint(RPM.of(2300), 0.97)),
-                Map.entry(Meters.of(4),   new LookupTablePoint(RPM.of(2500), 0.90)),
-                Map.entry(Meters.of(4.5), new LookupTablePoint(RPM.of(2700), 0.85))
+            //non-continuous feeding
+            // Map.entry(Meters.of(1),   new LookupTablePoint(RPM.of(2000), 0.93)),
+            // Map.entry(Meters.of(1.5), new LookupTablePoint(RPM.of(2100), 0.92)),
+            // Map.entry(Meters.of(2),   new LookupTablePoint(RPM.of(2200), 0.91)),
+            // Map.entry(Meters.of(2.5), new LookupTablePoint(RPM.of(2300), 0.90)),
+            // Map.entry(Meters.of(3),   new LookupTablePoint(RPM.of(2400), 0.88)),
+            // Map.entry(Meters.of(3.5), new LookupTablePoint(RPM.of(2500), 0.84)),
+            // Map.entry(Meters.of(4),   new LookupTablePoint(RPM.of(2700), 0.78)),
+            // Map.entry(Meters.of(4.5), new LookupTablePoint(RPM.of(2900), 0.72))
+            //before gear ratio fix
+            // Map.entry(Meters.of(1),   new LookupTablePoint(RPM.of(1800), 1.1)),
+            // Map.entry(Meters.of(1.5), new LookupTablePoint(RPM.of(1900), 1.05)),
+            // Map.entry(Meters.of(2),   new LookupTablePoint(RPM.of(2000), 1.025)),
+            // Map.entry(Meters.of(2.5), new LookupTablePoint(RPM.of(2100), 1)),
+            // Map.entry(Meters.of(3),   new LookupTablePoint(RPM.of(2200), 1)),
+            // Map.entry(Meters.of(3.5), new LookupTablePoint(RPM.of(2300), 0.97)),
+            // Map.entry(Meters.of(4),   new LookupTablePoint(RPM.of(2500), 0.90)),
+            // Map.entry(Meters.of(4.5), new LookupTablePoint(RPM.of(2700), 0.85))
+            // Map.entry(Meters.of(1),   new LookupTablePoint(RPM.of(1800), 0.92)),
+            // Map.entry(Meters.of(1.5), new LookupTablePoint(RPM.of(1900), 0.90)),
+            // Map.entry(Meters.of(2),   new LookupTablePoint(RPM.of(2000), 0.88)),
+            // Map.entry(Meters.of(2.5), new LookupTablePoint(RPM.of(2100), 0.85)),
+            // Map.entry(Meters.of(3),   new LookupTablePoint(RPM.of(2200), 0.80)),
+            // Map.entry(Meters.of(3.5), new LookupTablePoint(RPM.of(2300), 0.78)),
+            // Map.entry(Meters.of(4),   new LookupTablePoint(RPM.of(2500), 0.73)),
+            // Map.entry(Meters.of(4.5), new LookupTablePoint(RPM.of(2700), 0.70))
+            Map.entry(Meters.of(1), new LookupTablePoint(RPM.of(1800), 1.20)), //1
+            Map.entry(Meters.of(1.5), new LookupTablePoint(RPM.of(1900), 1.20)),
+            Map.entry(Meters.of(2), new LookupTablePoint(RPM.of(2000), 1.15)), //2
+            Map.entry(Meters.of(2.5), new LookupTablePoint(RPM.of(2100), 1.05)),
+            Map.entry(Meters.of(3), new LookupTablePoint(RPM.of(2200), 1.00)), //3
+            Map.entry(Meters.of(3.5), new LookupTablePoint(RPM.of(2300), 0.95)),
+            Map.entry(Meters.of(4), new LookupTablePoint(RPM.of(2500), 0.90)),
+            Map.entry(Meters.of(4.5), new LookupTablePoint(RPM.of(2700), 0.85))
         );
     }
 }
