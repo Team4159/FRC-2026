@@ -25,6 +25,7 @@ import frc.robot.Constants.OperatorConstants.DriveFlag;
 import frc.robot.Constants.OperatorConstants.DriveMode;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.commands.AutoAim;
+import frc.robot.commands.AutoLob;
 import frc.robot.commands.HubShoot;
 import frc.robot.commands.TowerShoot;
 import frc.robot.subsystems.Drivetrain;
@@ -51,8 +52,8 @@ public class RobotContainer {
     private final Trigger primarySlowModeTrigger = primaryController.rightTrigger();
     private final Trigger primaryDriveAssistTrigger = primaryController.start();
     // private final Trigger primaryLeftClimbAlignTrigger = primaryController.povLeft();
-    // private final Trigger primaryAutoAimTrigger = primaryController.x();
-    // private final Trigger primaryAutoLobTrigger = primaryController.a();
+    private final Trigger primaryAutoAimTrigger = primaryController.x();
+    private final Trigger primaryAutoLobTrigger = primaryController.a();
     // private final Trigger primaryRightClimbAlignTrigger = primaryController.povRight();
 
     // Secondary Triggers
@@ -146,6 +147,12 @@ public class RobotContainer {
         primaryIntakeAssistTrigger
             .and(DriverStation::isTeleop)
             .whileTrue(drivetrain.new DriveFlagToggler(DriveFlag.INTAKE_ASSIST));
+        primaryAutoAimTrigger
+            .and(DriverStation::isTeleop)
+            .whileTrue(new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.of(primaryController)));
+        primaryAutoLobTrigger
+            .and(DriverStation::isTeleop)
+            .whileTrue(new AutoLob(drivetrain, shooter, hopper, intake, leds, false));
 
         // Reset the field-centric heading on left bumper press.
         primaryZeroTrigger.onTrue(
