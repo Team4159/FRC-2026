@@ -296,23 +296,27 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                 double rightDiagonalVertical = Math.abs(
                     rotatedRightExtentDiagonal.getFirst().getY() - rotatedRightExtentDiagonal.getSecond().getY()
                 );
-                var mostVerticalDiagonal = (leftDiagonalVertical > rightDiagonalVertical)
-                    ? rotatedLeftExtentDiagonal
-                    : rotatedRightExtentDiagonal;
-                Distance focusOffset = (
-                    mostVerticalDiagonal.getFirst().getMeasureY().plus(mostVerticalDiagonal.getSecond().getMeasureY())
-                ).div(-2);
+                var mostVerticalDiagonal =
+                    leftDiagonalVertical > rightDiagonalVertical
+                        ? rotatedLeftExtentDiagonal
+                        : rotatedRightExtentDiagonal;
+                Distance focusOffset = mostVerticalDiagonal
+                    .getFirst()
+                    .getMeasureY()
+                    .plus(mostVerticalDiagonal.getSecond().getMeasureY())
+                    .div(-2);
                 Translation2d alignFocus = trenchFocus.plus(new Translation2d(Meters.of(0.0), focusOffset));
 
                 Distance errorX = alignFocus.getMeasureX().minus(robotPose.getMeasureX());
                 Distance errorY = alignFocus.getMeasureY().minus(robotPose.getMeasureY());
-                Distance localErrorY = (trenchFocus.getY() < FieldConstants.kAllianceHeight.baseUnitMagnitude() / 2)
-                    ? errorY.copy()
-                    : errorY.times(-1);
+                Distance localErrorY =
+                    trenchFocus.getY() < FieldConstants.kAllianceHeight.baseUnitMagnitude() / 2
+                        ? errorY.copy()
+                        : errorY.times(-1);
 
                 boolean hasPassed = !errorX.isNear(Meters.zero(), OperatorConstants.kTrenchAssistPassPositionTolerance);
                 boolean isNotApproaching =
-                    (Math.signum(getInputX(true)) == -Math.signum(errorX.magnitude())) ||
+                    Math.signum(getInputX(true)) == -Math.signum(errorX.magnitude()) ||
                     Math.abs(getInputX(true)) <= OperatorConstants.kTrenchAssistApproachInputTolerance;
                 if (hasPassed && isNotApproaching) {
                     return Optional.empty();
@@ -326,7 +330,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                         -OperatorConstants.kTrenchAssistAlignPositionInnerTolerance.baseUnitMagnitude() &&
                     localErrorY.baseUnitMagnitude() <=
                         OperatorConstants.kTrenchAssistAlignPositionOuterTolerance.baseUnitMagnitude();
-                boolean againstAlignment = (influence >= Math.abs(vy));
+                boolean againstAlignment = influence >= Math.abs(vy);
                 if (aligned || againstAlignment) {
                     vy = 0.0;
                 }
@@ -668,7 +672,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     }
 
     public boolean canAutoBrake() {
-        boolean atDesiredRotation = (externalDesiredRotation.isEmpty() ? true : isAtDesiredRotation());
+        boolean atDesiredRotation = externalDesiredRotation.isEmpty() ? true : isAtDesiredRotation();
         return getDriveFlagValue(DriveFlag.AUTO_BRAKE) && isDriveIdle() && atDesiredRotation;
     }
 

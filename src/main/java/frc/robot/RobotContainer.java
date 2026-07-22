@@ -44,6 +44,7 @@ public class RobotContainer {
     private final CommandXboxController secondaryController = new CommandXboxController(
         OperatorConstants.kSecondaryControllerPort
     );
+
     private final Trigger primaryZeroTrigger = primaryController.back();
     private final Trigger primaryIntakeAssistTrigger = primaryController.rightBumper();
     // private final Trigger primaryRadialModeTrigger = primaryController.y();
@@ -98,24 +99,25 @@ public class RobotContainer {
         drivetrain.setAutonomousAutoAimCommand(
             new AutoAim(drivetrain, shooter, hopper, intake, leds, true, Optional.empty())
         );
+
         // Choreo Auto
         autoFactory = drivetrain.createAutoFactory();
-        CommandScheduler.getInstance().schedule(autoFactory.warmupCmd());
-
+        CommandScheduler.getInstance().schedule(autoFactory.warmupCmd()); // warmup command so auto starts instantly
         configurableAuto = new ConfigurableAuto(autoFactory, drivetrain, shooter, intake, hopper, leds);
 
-        //rumble on collision
+        // rumble on collision
         drivetrain.crashTrigger.onTrue(
             Commands.runOnce(() ->
                 HIDRumble.rumble(primaryController.getHID(), new RumbleRequest(RumbleType.kRightRumble, 1, 0.5, 1))
             )
         );
 
-        //call the function that configures the robot bindings
+        // call the function that configures the robot bindings
         configureBindings();
     }
 
     private void configureBindings() {
+        drivetrain.registerTelemetry(logger::telemeterize);
         // Note that X is defined as forward according to WPILib convention,
         // and Y is defined as to the left according to WPILib convention.
         drivetrain.setDefaultCommand(drivetrain.new Drive(DriveMode.TELEOP, primaryRobotRelativeTrigger::getAsBoolean));
@@ -124,8 +126,7 @@ public class RobotContainer {
         RobotModeTriggers.disabled().whileTrue(drivetrain.new Drive(DriveMode.IDLE).ignoringDisable(true));
 
         // test mode
-        primaryController.y().whileTrue(drivetrain.new Drive(DriveMode.BRAKE));
-
+        primaryController.y().and(DriverStation::isTest).whileTrue(drivetrain.new Drive(DriveMode.BRAKE));
         primaryController.b().and(DriverStation::isTest).whileTrue(drivetrain.new Drive(DriveMode.POINT));
 
         // teleop mode
@@ -162,8 +163,6 @@ public class RobotContainer {
             })
         );
 
-        drivetrain.registerTelemetry(logger::telemeterize);
-
         feedHopperTrigger.whileTrue(
             new ParallelCommandGroup(
                 shooter.new ChangeState(FeederState.FEED),
@@ -195,14 +194,14 @@ public class RobotContainer {
         compressIntakeTrigger.whileTrue(intake.new ChangeStates(IntakeState.UP_OFF));
         bounceIntakeTrigger.whileTrue(intake.new BounceIntake());
 
+        // climb
         // raiseClimbTrigger.whileTrue(climber.new ChangeState(ClimberState.CLIMB));
         // lowerClimbTrigger.whileTrue(climber.new ChangeState(ClimberState.DOWN));
 
+        // manual controls
         manualHoodPitchDownTrigger.onTrue(new InstantCommand(() -> shooter.manualHood(5)));
         manualHoodPitchUpTrigger.onTrue(new InstantCommand(() -> shooter.manualHood(-5)));
-
         shootTrigger.whileTrue(shooter.new ChangeVelocity(ShooterConstants.shooterAngularVelocity));
-
         hubShootTrigger.whileTrue(new HubShoot(shooter, intake, hopper));
         towerShootTrigger.whileTrue(new TowerShoot(shooter, intake, hopper));
     }

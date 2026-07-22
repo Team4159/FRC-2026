@@ -197,7 +197,7 @@ public class PhotonVision extends SubsystemBase {
                     Double.MAX_VALUE,
                     Double.MAX_VALUE
                 );
-                else estStdDevs = estStdDevs.times(1 + ((avgDist * avgDist) / 60));
+                else estStdDevs = estStdDevs.times(1 + (avgDist * avgDist) / 60);
                 return estStdDevs;
             }
         }
