@@ -95,15 +95,13 @@ public class RobotContainer {
     private final Telemetry logger = new Telemetry();
 
     public RobotContainer() {
-        // set auto command for drivetrain
-        drivetrain.setAutonomousAutoAimCommand(
-            new AutoAim(drivetrain, shooter, hopper, intake, leds, true, Optional.empty())
-        );
-
         // Choreo Auto
         autoFactory = drivetrain.createAutoFactory();
         CommandScheduler.getInstance().schedule(autoFactory.warmupCmd()); // warmup command so auto starts instantly
         configurableAuto = new ConfigurableAuto(autoFactory, drivetrain, shooter, intake, hopper, leds);
+        drivetrain.setAutonomousAutoAimCommand(
+            new AutoAim(drivetrain, shooter, hopper, intake, leds, true, Optional.empty())
+        );
 
         // rumble on collision
         drivetrain.crashTrigger.onTrue(
@@ -112,12 +110,14 @@ public class RobotContainer {
             )
         );
 
+        // drivetrain telemetry
+        drivetrain.registerTelemetry(logger::telemeterize);
+
         // call the function that configures the robot bindings
         configureBindings();
     }
 
     private void configureBindings() {
-        drivetrain.registerTelemetry(logger::telemeterize);
         // Note that X is defined as forward according to WPILib convention,
         // and Y is defined as to the left according to WPILib convention.
         drivetrain.setDefaultCommand(drivetrain.new Drive(DriveMode.TELEOP, primaryRobotRelativeTrigger::getAsBoolean));
