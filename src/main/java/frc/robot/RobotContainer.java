@@ -46,14 +46,18 @@ public class RobotContainer {
     );
 
     private final Trigger primaryZeroTrigger = primaryController.back();
-    private final Trigger primaryIntakeAssistTrigger = primaryController.rightBumper();
+    // private final Trigger primaryIntakeAssistTrigger = primaryController.rightBumper();
     // private final Trigger primaryRadialModeTrigger = primaryController.y();
-    private final Trigger primaryRobotManualAlignModeTrigger = primaryController.leftBumper();
-    private final Trigger primaryRobotRelativeTrigger = primaryController.leftTrigger(0.1);
-    private final Trigger primarySlowModeTrigger = primaryController.rightTrigger();
+    // private final Trigger primaryRobotManualAlignModeTrigger = primaryController.leftBumper();
+    private final Trigger primaryRobotRelativeTrigger = new Trigger(() -> false);
+    private final Trigger primarySlowModeTrigger = primaryController.x();
     private final Trigger primaryDriveAssistTrigger = primaryController.start();
     // private final Trigger primaryLeftClimbAlignTrigger = primaryController.povLeft();
-    private final Trigger primaryAutoAimTrigger = primaryController.x();
+    private final Trigger primaryAutoAimTrigger = new Trigger(() -> false)
+        .or(primaryController.leftBumper())
+        .or(primaryController.leftTrigger(0.1))
+        .or(primaryController.rightBumper())
+        .or(primaryController.rightTrigger(0.1));
     private final Trigger primaryAutoLobTrigger = primaryController.a();
     // private final Trigger primaryRightClimbAlignTrigger = primaryController.povRight();
 
@@ -142,12 +146,12 @@ public class RobotContainer {
                 );
             })
         );
-        primaryRobotManualAlignModeTrigger
-            .and(DriverStation::isTeleop)
-            .whileTrue(drivetrain.new DriveFlagToggler(DriveFlag.MANUAL_ALIGN));
-        primaryIntakeAssistTrigger
-            .and(DriverStation::isTeleop)
-            .whileTrue(drivetrain.new DriveFlagToggler(DriveFlag.INTAKE_ASSIST));
+        // primaryRobotManualAlignModeTrigger
+        //     .and(DriverStation::isTeleop)
+        //     .whileTrue(drivetrain.new DriveFlagToggler(DriveFlag.MANUAL_ALIGN));
+        // primaryIntakeAssistTrigger
+        //     .and(DriverStation::isTeleop)
+        //     .whileTrue(drivetrain.new DriveFlagToggler(DriveFlag.INTAKE_ASSIST));
         primaryAutoAimTrigger
             .and(DriverStation::isTeleop)
             .whileTrue(new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.of(primaryController)));
