@@ -57,7 +57,11 @@ public class RobotContainer {
         .or(primaryController.leftBumper())
         .or(primaryController.leftTrigger(0.1))
         .or(primaryController.rightBumper())
-        .or(primaryController.rightTrigger(0.1));
+        .or(primaryController.rightTrigger(0.1))
+        .or(secondaryController.leftStick())
+        .or(secondaryController.rightStick())
+        .or(secondaryController.back())
+        .or(secondaryController.start());
     private final Trigger primaryAutoLobTrigger = primaryController.a();
     // private final Trigger primaryRightClimbAlignTrigger = primaryController.povRight();
 

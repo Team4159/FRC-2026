@@ -472,10 +472,6 @@ public class Drivetrain extends CommandSwerveDrivetrain {
      */
     public Translation2d getRawInputTranslation(boolean fieldRelative) {
         Translation2d rawInput = new Translation2d(inputX.get(), inputY.get());
-        if (fieldRelative && !DriverStation.getAlliance().orElse(Alliance.Blue).equals(Alliance.Red)) {
-            System.out.println("inverting");
-            rawInput = rawInput.times(-1);
-        }
         return rawInput;
     }
 
