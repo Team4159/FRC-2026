@@ -43,10 +43,10 @@ public class Intake extends SubsystemBase {
         setLocation(IntakeState.DOWN_OFF.rotationLocation);
         // intakeVelocityVoltage = new VelocityVoltage(0);
 
-        CurrentLimitsConfigs currentLimits = new CurrentLimitsConfigs()
+        CurrentLimitsConfigs rollerCurrentLimits = new CurrentLimitsConfigs()
             .withSupplyCurrentLimit(Amps.of(20))
             .withSupplyCurrentLimitEnable(true);
-        spinMotor.getConfigurator().apply(currentLimits);
+        spinMotor.getConfigurator().apply(rollerCurrentLimits);
 
         rollerPercentage = 0;
     }

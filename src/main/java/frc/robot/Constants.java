@@ -164,7 +164,7 @@ public final class Constants {
                 CurrentLimits.SupplyCurrentLimitEnable = true;
                 CurrentLimits.SupplyCurrentLimit = 20;
                 CurrentLimits.StatorCurrentLimitEnable = true;
-                CurrentLimits.StatorCurrentLimit = 60;
+                CurrentLimits.StatorCurrentLimit = 40;
             }
         };
 
