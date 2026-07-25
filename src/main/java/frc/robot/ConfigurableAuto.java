@@ -117,7 +117,7 @@ public class ConfigurableAuto {
 
         // shoot chooser 1
         shootChooser1.addOption("Shoot", "Shoot");
-        shootChooser1.addOption("Shoot Bump", "ShootBump");
+        // shootChooser1.addOption("Shoot Bump", "ShootBump");
         //shootChooser1.addOption("Shoot and Climb", "Climb");
         shootChooser1.setDefaultOption("None", "None");
 
@@ -130,7 +130,7 @@ public class ConfigurableAuto {
 
         // shoot chooser 2
         shootChooser2.addOption("Shoot", "Shoot");
-        shootChooser2.addOption("Shoot Bump", "ShootBump");
+        // shootChooser2.addOption("Shoot Bump", "ShootBump");
         //shootChooser2.addOption("Shoot and Climb", "Climb");
         shootChooser2.setDefaultOption("None", "None");
 

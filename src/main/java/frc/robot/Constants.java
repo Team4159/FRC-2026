@@ -206,7 +206,7 @@ public final class Constants {
             DOWN_OFF(Degrees.of(-9), 0),
             DOWN_REV(Degrees.of(-9), -1),
             UP_OFF(Degrees.of(120), 0),
-            BOUNCE_UP(Degrees.of(60), 0),
+            BOUNCE_UP(Degrees.of(30), 0), 
             STOP(Degrees.of(120), 0);
 
             public final Angle rotationLocation;
@@ -279,7 +279,7 @@ public final class Constants {
         public static final Distance kBumperSizeX = Inches.of(35.0);
         public static final Distance kBumperSizeY = Inches.of(35.0);
 
-        public static final double kMaxTranslationSpeed = 0.5 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
+        public static final double kMaxTranslationSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
         public static final double kMaxRotationSpeed = RotationsPerSecond.of(0.75).in(RadiansPerSecond);
 
         public static final double kPointKP = 5;
