@@ -472,6 +472,9 @@ public class Drivetrain extends CommandSwerveDrivetrain {
      */
     public Translation2d getRawInputTranslation(boolean fieldRelative) {
         Translation2d rawInput = new Translation2d(inputX.get(), inputY.get());
+        if (fieldRelative && isInverted()) {
+            rawInput = rawInput.times(-1);
+        }
         return rawInput;
     }
 
@@ -549,7 +552,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
             return Optional.empty();
         }
         Rotation2d filteredInput = getRawInputRotation();
-        if (!DriverStation.getAlliance().orElse(Alliance.Blue).equals(Alliance.Red)) {
+        if (isInverted()) {
             filteredInput = filteredInput.plus(Rotation2d.k180deg);
         }
         return Optional.of(filteredInput);
@@ -687,5 +690,9 @@ public class Drivetrain extends CommandSwerveDrivetrain {
             estimatedRealChassisSpeeds.vyMetersPerSecond
         );
         return slippingBucketFilter.calculate(expectedSpeed - actualSpeed) > 2.0;
+    }
+
+    private boolean isInverted() {
+        return DriverStation.getAlliance().orElse(Alliance.Blue).equals(Alliance.Red);
     }
 }

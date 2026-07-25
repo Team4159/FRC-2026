@@ -327,7 +327,7 @@ public final class Constants {
         // hood absolute encoder (WCP throughbore)
         /** Hood encoder CAN ID */
         public static final int kHoodEncoderID = 2;
-        public static final Angle kEncoderOffset = Degrees.of(-214);
+        public static final Angle kEncoderOffset = Degrees.of(-220.8-2.5-0.8-1.8-1.6);
         public static final double kSensorToMechanismRatio = 34 / 16;
         /** ratio from the motor to the sensor (WCP throughbore encoder) */
         public static final double kMotorToSensorRatio = 125;
