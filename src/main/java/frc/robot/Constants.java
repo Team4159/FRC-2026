@@ -116,9 +116,9 @@ public final class Constants {
 
     public static class IntakeConstants {
 
+        public static final double kAngleP = 60;
         public static final double kAngleI = 1;
         public static final double kAngleD = 0;
-        public static final double kAngleP = 40;
         public static final double kAngleG = 0.07;
 
         // motion magic
@@ -162,9 +162,9 @@ public final class Constants {
                 Feedback.RotorToSensorRatio = IntakeConstants.kMotorToSensorRatio;
 
                 CurrentLimits.SupplyCurrentLimitEnable = true;
-                CurrentLimits.SupplyCurrentLimit = 20;
+                CurrentLimits.SupplyCurrentLimit = 30;
                 CurrentLimits.StatorCurrentLimitEnable = true;
-                CurrentLimits.StatorCurrentLimit = 40;
+                CurrentLimits.StatorCurrentLimit = 60;
             }
         };
 
@@ -206,7 +206,7 @@ public final class Constants {
             DOWN_OFF(Degrees.of(-9), 0),
             DOWN_REV(Degrees.of(-9), -1),
             UP_OFF(Degrees.of(120), 0),
-            BOUNCE_UP(Degrees.of(30), 0), 
+            BOUNCE_UP(Degrees.of(60), 0), 
             STOP(Degrees.of(120), 0);
 
             public final Angle rotationLocation;
@@ -280,19 +280,19 @@ public final class Constants {
         public static final Distance kBumperSizeY = Inches.of(35.0);
 
         public static final double kMaxTranslationSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
-        public static final double kMaxRotationSpeed = RotationsPerSecond.of(0.75).in(RadiansPerSecond);
+        public static final double kMaxRotationSpeed = 2 * RotationsPerSecond.of(0.75).in(RadiansPerSecond);
 
         public static final double kPointKP = 5;
         public static final double kPointKI = 0.0;
         public static final double kPointKD = 0.0;
         public static final double kPointFeedForward = 0.0;
 
-        public static final double kAimKP = 12.5;
-        public static final double kAimKI = 0.50;
+        public static final double kAimKP = 9;
+        public static final double kAimKI = 0.1;
         public static final double kAimKD = 0.0;
         public static final double kAimFeedForward = 0.0;
 
-        public static final Angle AutoAimTolerance = Degrees.of(10);
+        public static final Angle kAutoAimTolerance = Degrees.of(10);
         public static final double kAutoAimInputMultiplier = 1;
 
         public static final PhoenixPIDController AutoAimRotationController = new PhoenixPIDController(
@@ -327,7 +327,7 @@ public final class Constants {
         // hood absolute encoder (WCP throughbore)
         /** Hood encoder CAN ID */
         public static final int kHoodEncoderID = 2;
-        public static final Angle kEncoderOffset = Degrees.of(-220.8-2.5-0.8-1.8-1.6);
+        public static final Angle kEncoderOffset = Degrees.of(-227.8-6.8-0.7-6-0.65-0.3-0.4);
         public static final double kSensorToMechanismRatio = 34 / 16;
         /** ratio from the motor to the sensor (WCP throughbore encoder) */
         public static final double kMotorToSensorRatio = 125;
@@ -779,13 +779,23 @@ public final class Constants {
             // Map.entry(Meters.of(3.5), new LookupTablePoint(RPM.of(2300), 0.78)),
             // Map.entry(Meters.of(4),   new LookupTablePoint(RPM.of(2500), 0.73)),
             // Map.entry(Meters.of(4.5), new LookupTablePoint(RPM.of(2700), 0.70))
-            Map.entry(Meters.of(1), new LookupTablePoint(RPM.of(1800), 1.20)), //1
-            Map.entry(Meters.of(1.5), new LookupTablePoint(RPM.of(1900), 1.20)),
-            Map.entry(Meters.of(2), new LookupTablePoint(RPM.of(2000), 1.15)), //2
-            Map.entry(Meters.of(2.5), new LookupTablePoint(RPM.of(2100), 1.05)),
-            Map.entry(Meters.of(3), new LookupTablePoint(RPM.of(2200), 1.00)), //3
-            Map.entry(Meters.of(3.5), new LookupTablePoint(RPM.of(2300), 0.95)),
-            Map.entry(Meters.of(4), new LookupTablePoint(RPM.of(2500), 0.90)),
+
+            // Map.entry(Meters.of(1), new LookupTablePoint(RPM.of(1800), 1.20)), //1
+            // Map.entry(Meters.of(1.5), new LookupTablePoint(RPM.of(1900), 1.20)),
+            // Map.entry(Meters.of(2), new LookupTablePoint(RPM.of(2000), 1.15)), //2
+            // Map.entry(Meters.of(2.5), new LookupTablePoint(RPM.of(2100), 1.05)),
+            // Map.entry(Meters.of(3), new LookupTablePoint(RPM.of(2200), 1.00)), //3
+            // Map.entry(Meters.of(3.5), new LookupTablePoint(RPM.of(2300), 0.95)),
+            // Map.entry(Meters.of(4), new LookupTablePoint(RPM.of(2500), 0.90)),
+            // Map.entry(Meters.of(4.5), new LookupTablePoint(RPM.of(2700), 0.85))
+
+            Map.entry(Meters.of(1.0), new LookupTablePoint(RPM.of(1800), 1.1)),
+            Map.entry(Meters.of(1.5), new LookupTablePoint(RPM.of(1900), 1.05)),
+            Map.entry(Meters.of(2.0), new LookupTablePoint(RPM.of(2000), 1.025)),
+            Map.entry(Meters.of(2.5), new LookupTablePoint(RPM.of(2100), 1)),
+            Map.entry(Meters.of(3.0), new LookupTablePoint(RPM.of(2200), 1)),
+            Map.entry(Meters.of(3.5), new LookupTablePoint(RPM.of(2300), 0.97)),
+            Map.entry(Meters.of(4.0), new LookupTablePoint(RPM.of(2500), 0.90)),
             Map.entry(Meters.of(4.5), new LookupTablePoint(RPM.of(2700), 0.85))
         );
     }

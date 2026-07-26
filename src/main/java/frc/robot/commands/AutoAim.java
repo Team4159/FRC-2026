@@ -5,6 +5,7 @@ import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static frc.robot.Constants.DrivetrainConstants.kAutoAimTolerance;
 
 import edu.wpi.first.math.MathSharedStore;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -407,7 +408,7 @@ public class AutoAim extends Command {
     }
 
     private boolean isAtDesiredRotation(Angle angle) {
-        return drivetrain.getState().Pose.getRotation().getMeasure().isNear(angle, Degrees.of(5));
+        return drivetrain.getState().Pose.getRotation().getMeasure().isNear(angle, kAutoAimTolerance);
     }
 
     /** Units: meters */

@@ -75,7 +75,7 @@ public class Intake extends SubsystemBase {
             Units.rotationsToDegrees(locationMotor.getClosedLoopError().getValueAsDouble())
         );
 
-        if (getPivotAngle().in(Degrees) < 30) {
+        if (getPivotAngle().in(Degrees) < 15) {
             setSpinSpeed(rollerPercentage);
         } else {
             setSpinSpeed(0);
