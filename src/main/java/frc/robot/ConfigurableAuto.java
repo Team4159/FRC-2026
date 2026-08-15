@@ -16,7 +16,7 @@ import frc.lib.InstantCommandRunWhenDisabled;
 import frc.lib.PoseTrajectory;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.IntakeConstants.IntakeState;
-import frc.robot.commands.AutoAim;
+import frc.robot.commands.AutoShoot;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Hopper;
 import frc.robot.subsystems.Intake;
@@ -215,7 +215,7 @@ public class ConfigurableAuto {
                         //outpost intake -> shooting position
                         .andThen(intakeToShootTraj.cmd())
                         //auto aim(autonomous mode is false because the point of autonomous mode is for SOTM it will use choreo for translation of the swerve and the auto aim for rotation but this is stationary)
-                        .andThen(new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty()))
+                        .andThen(new AutoShoot(drivetrain, shooter, hopper, intake, leds, false, Optional.empty()))
                 );
 
                 //choreo marker behavior
@@ -250,7 +250,7 @@ public class ConfigurableAuto {
                     //the regular mid auto just scores the preloads
                     .andThen(startToShootTraj.cmd())
                     //auto aim(autonomous mode is false because the point of autonomous mode is for SOTM it will use choreo for translation of the swerve and the auto aim for rotation but this is stationary)
-                    .andThen(new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty()))
+                    .andThen(new AutoShoot(drivetrain, shooter, hopper, intake, leds, false, Optional.empty()))
                     // .andThen(shootToClimbTraj.cmd())
                     // .andThen(new AutoAlign(drivetrain, towerAlignGoal,
                     // primaryRobotRelativeTrigger))
@@ -343,7 +343,7 @@ public class ConfigurableAuto {
                     new ParallelDeadlineGroup(
                         new WaitCommand(AutoConstants.ShootTime),
                         //auto aim(autonomous mode is false because the point of autonomous mode is for SOTM it will use choreo for translation of the swerve and the auto aim for rotation but this is stationary)
-                        new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())
+                        new AutoShoot(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())
                     )
                 )
                 //shoot 1 -> intake 2
@@ -353,7 +353,7 @@ public class ConfigurableAuto {
                 // .andThen(new AutoRecovery(drivetrain, shooter, intake, AutoRecoveryMode.SWEEP, autoRecoverySide,
                 //         intake2ToShoot2Traj.getFinalPose().get().getTranslation()))
                 //auto aim(autonomous mode is false because the point of autonomous mode is for SOTM it will use choreo for translation of the swerve and the auto aim for rotation but this is stationary)
-                .andThen(new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty()))
+                .andThen(new AutoShoot(drivetrain, shooter, hopper, intake, leds, false, Optional.empty()))
         );
 
         //elastic notifications

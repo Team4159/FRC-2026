@@ -131,8 +131,8 @@ public final class Constants {
         public static final double kSlowJerk = 1600;
 
         public static final int kAngleEncoderId = 1;
-        public static final int kAngleId = 6; // youre welcome Faye
-        public static final int kIntakeSpinId = 7;
+        public static final int kAngleId = Robot.isReal() ? 6 : 36; // youre welcome Faye
+        public static final int kIntakeSpinId = Robot.isReal() ? 7 : 37;
 
         public static final Angle kEncoderOffset = Degrees.of(0);
         //now 25 and 2 because encoder is on the jackshaft now.
@@ -206,7 +206,7 @@ public final class Constants {
             DOWN_OFF(Degrees.of(-9), 0),
             DOWN_REV(Degrees.of(-9), -1),
             UP_OFF(Degrees.of(120), 0),
-            BOUNCE_UP(Degrees.of(60), 0), 
+            BOUNCE_UP(Degrees.of(60), 0),
             STOP(Degrees.of(120), 0);
 
             public final Angle rotationLocation;
@@ -292,17 +292,17 @@ public final class Constants {
         public static final double kAimKD = 0.0;
         public static final double kAimFeedForward = 0.0;
 
-        public static final Angle kAutoAimTolerance = Degrees.of(10);
-        public static final double kAutoAimInputMultiplier = 1;
+        public static final Angle kAutoShootTolerance = Degrees.of(10);
+        public static final double kAutoShootInputMultiplier = 1;
 
-        public static final PhoenixPIDController AutoAimRotationController = new PhoenixPIDController(
+        public static final PhoenixPIDController autoShootRotationController = new PhoenixPIDController(
             kAimKP,
             kAimKI,
             kAimKD
         );
 
         static {
-            AutoAimRotationController.enableContinuousInput(-Math.PI, Math.PI);
+            autoShootRotationController.enableContinuousInput(-Math.PI, Math.PI);
         }
     }
 
@@ -322,12 +322,12 @@ public final class Constants {
         public static final double kHoodS = 5;
 
         /** hood CAN ID */
-        public static final int HoodId = 8;
+        public static final int HoodId = Robot.isReal() ? 8 : 38;
 
         // hood absolute encoder (WCP throughbore)
         /** Hood encoder CAN ID */
         public static final int kHoodEncoderID = 2;
-        public static final Angle kEncoderOffset = Degrees.of(-227.8-6.8-0.7-6-0.65-0.3-0.4);
+        public static final Angle kEncoderOffset = Degrees.of(-227.8 - 6.8 - 0.7 - 6 - 0.65 - 0.3 - 0.4);
         public static final double kSensorToMechanismRatio = 34 / 16;
         /** ratio from the motor to the sensor (WCP throughbore encoder) */
         public static final double kMotorToSensorRatio = 125;
@@ -472,14 +472,14 @@ public final class Constants {
         // TODO implement in the calculation
         public static final Transform2d shooterOffset = new Transform2d(0, 0, new Rotation2d());
 
-        public static enum AutoAimStatus {
+        public static enum AutoShootStatus {
             SHOOT(LEDConstants.LEDStatus.GREEN_BLINK),
             OUTOFRANGE(LEDConstants.LEDStatus.RED_BLINK),
             WAITING(LEDConstants.LEDStatus.YELLOW_BLINK);
 
             public LEDConstants.LEDStatus ledStatus;
 
-            private AutoAimStatus(LEDConstants.LEDStatus ledStatus) {
+            private AutoShootStatus(LEDConstants.LEDStatus ledStatus) {
                 this.ledStatus = ledStatus;
             }
         }
@@ -779,7 +779,6 @@ public final class Constants {
             // Map.entry(Meters.of(3.5), new LookupTablePoint(RPM.of(2300), 0.78)),
             // Map.entry(Meters.of(4),   new LookupTablePoint(RPM.of(2500), 0.73)),
             // Map.entry(Meters.of(4.5), new LookupTablePoint(RPM.of(2700), 0.70))
-
             // Map.entry(Meters.of(1), new LookupTablePoint(RPM.of(1800), 1.20)), //1
             // Map.entry(Meters.of(1.5), new LookupTablePoint(RPM.of(1900), 1.20)),
             // Map.entry(Meters.of(2), new LookupTablePoint(RPM.of(2000), 1.15)), //2
@@ -788,7 +787,6 @@ public final class Constants {
             // Map.entry(Meters.of(3.5), new LookupTablePoint(RPM.of(2300), 0.95)),
             // Map.entry(Meters.of(4), new LookupTablePoint(RPM.of(2500), 0.90)),
             // Map.entry(Meters.of(4.5), new LookupTablePoint(RPM.of(2700), 0.85))
-
             Map.entry(Meters.of(1.0), new LookupTablePoint(RPM.of(1800), 1.1)),
             Map.entry(Meters.of(1.5), new LookupTablePoint(RPM.of(1900), 1.05)),
             Map.entry(Meters.of(2.0), new LookupTablePoint(RPM.of(2000), 1.025)),

@@ -36,7 +36,7 @@ import frc.robot.Constants.HopperConstants;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.OperatorConstants.DriveFlag;
 import frc.robot.Constants.OperatorConstants.DriveMode;
-import frc.robot.commands.AutoAim;
+import frc.robot.commands.AutoShoot;
 import frc.robot.generated.CommandSwerveDrivetrain;
 import frc.robot.generated.TunerConstants;
 import java.util.HashMap;
@@ -115,7 +115,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
 
     {
         driveFlags.put(DriveFlag.SLOW_MODE, new DriveFlagValue(false));
-        driveFlags.put(DriveFlag.DRIVE_ASSIST, new DriveFlagValue(false));
+        driveFlags.put(DriveFlag.DRIVE_ASSIST, new DriveFlagValue(true));
         driveFlags.put(DriveFlag.AUTO_BRAKE, new DriveFlagValue(true));
         driveFlags.put(DriveFlag.INTAKE_ASSIST, new DriveFlagValue(false));
         driveFlags.put(DriveFlag.MANUAL_ALIGN, new DriveFlagValue(false));
@@ -124,7 +124,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     private Optional<Rotation2d> externalDesiredRotation = Optional.empty();
 
     private boolean autoPathAutoAimMode = false;
-    private AutoAim autoAimCommand;
+    private AutoShoot autoAimCommand;
 
     public Drivetrain(CommandXboxController controller) {
         super(
@@ -579,7 +579,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     }
 
     /** set the AutoAim command to be used for shooting while moving during auto */
-    public void setAutonomousAutoAimCommand(AutoAim autoAimCommand) {
+    public void setAutonomousAutoAimCommand(AutoShoot autoAimCommand) {
         this.autoAimCommand = autoAimCommand;
     }
 

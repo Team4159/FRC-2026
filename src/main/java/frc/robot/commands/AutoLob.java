@@ -29,7 +29,7 @@ import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.HopperConstants.HopperState;
 import frc.robot.Constants.IntakeConstants.IntakeState;
 import frc.robot.Constants.ShooterConstants;
-import frc.robot.Constants.ShooterConstants.AutoAimStatus;
+import frc.robot.Constants.ShooterConstants.AutoShootStatus;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Hopper;
 import frc.robot.subsystems.Intake;
@@ -61,7 +61,7 @@ public class AutoLob extends Command {
     private boolean autonomousMode;
 
     /** stores auto aim statuses (SHOOT, WAITING, OUTOFRANGE) and corresponding LEDStatus*/
-    private AutoAimStatus autoAimStatus;
+    private AutoShootStatus autoAimStatus;
     /** LED status supplier used for changing the LED status */
     private LEDStatusSupplier ledStatusSupplier;
 
@@ -101,7 +101,7 @@ public class AutoLob extends Command {
 
         this.timer = new Timer();
 
-        autoAimStatus = AutoAimStatus.WAITING;
+        autoAimStatus = AutoShootStatus.WAITING;
         ledStatusSupplier = () -> {
             return autoAimStatus.ledStatus;
         };
@@ -170,13 +170,13 @@ public class AutoLob extends Command {
 
         if (!timer.hasElapsed(ShooterConstants.backwardsTime)) {
             //run neck backwards if at the beginning
-            autoAimStatus = AutoAimStatus.WAITING;
+            autoAimStatus = AutoShootStatus.WAITING;
             shooter.setFeederSpeed(FeederState.UNSTUCKFEEDER.percentage);
             hopper.setHopperSpeed(HopperState.STOP.percentage);
         }
         if (shooter.isAtPitch() && shooter.isAtSpeed() && isAtDesiredRotation(Radians.of(desiredRobotAngle))) {
             //shoot the fuel if at the right pitch
-            autoAimStatus = AutoAimStatus.SHOOT;
+            autoAimStatus = AutoShootStatus.SHOOT;
             shooter.setFeederSpeed(FeederState.FEED.percentage);
             hopper.setHopperSpeed(HopperState.FEED.percentage);
         } else {
@@ -196,12 +196,12 @@ public class AutoLob extends Command {
         SmartDashboard.putBoolean("isatspeed", shooter.isAtSpeed());
         SmartDashboard.putBoolean("swerve isatangle", isAtDesiredRotation(Radians.of(desiredRobotAngle)));
         if (shooter.isAtPitch() && shooter.isAtSpeed() && isAtDesiredRotation(Radians.of(desiredRobotAngle))) {
-            autoAimStatus = AutoAimStatus.SHOOT;
+            autoAimStatus = AutoShootStatus.SHOOT;
         } else {
-            autoAimStatus = AutoAimStatus.WAITING;
+            autoAimStatus = AutoShootStatus.WAITING;
         }
 
-        if (autoAimStatus == AutoAimStatus.SHOOT) {
+        if (autoAimStatus == AutoShootStatus.SHOOT) {
             shooter.setFeederSpeed(FeederState.FEED.percentage);
             hopper.setHopperSpeed(HopperState.FEED.percentage);
         }
@@ -234,15 +234,15 @@ public class AutoLob extends Command {
      */
     private void rotateSwerve(double desiredAngle) {
         //PID controller to calculate omega
-        double omega = Constants.DrivetrainConstants.AutoAimRotationController.calculate(
+        double omega = Constants.DrivetrainConstants.autoShootRotationController.calculate(
             drivetrain.getState().Pose.getRotation().getRadians(),
             desiredAngle,
             Timer.getFPGATimestamp()
         );
         //set ChassisSpeeds
         ChassisSpeeds chassisSpeeds = new ChassisSpeeds(
-            drivetrain.getInputSpeedX(true) * DrivetrainConstants.kAutoAimInputMultiplier,
-            drivetrain.getInputSpeedY(true) * DrivetrainConstants.kAutoAimInputMultiplier,
+            drivetrain.getInputSpeedX(true) * DrivetrainConstants.kAutoShootInputMultiplier,
+            drivetrain.getInputSpeedY(true) * DrivetrainConstants.kAutoShootInputMultiplier,
             omega
         );
 
@@ -295,14 +295,15 @@ public class AutoLob extends Command {
                     Math.pow(launchVelocity, 4) -
                         Math.pow(FieldConstants.g * distance, 2) -
                         2 * FieldConstants.g * height * Math.pow(launchVelocity, 2)
-                )) / (FieldConstants.g * distance)
+                )) /
+                (FieldConstants.g * distance)
         );
 
         if (Double.isNaN(desiredPitch)) {
             //equation can only return angles from 45-90 deg (in radians of course), anything lower than that will be NaN
             //the minimum possible hood angle on the physical shooter is 45, so no additional calculation is needed, just set to 45
             desiredPitch = Units.degreesToRadians(45);
-            autoAimStatus = AutoAimStatus.OUTOFRANGE;
+            autoAimStatus = AutoShootStatus.OUTOFRANGE;
         }
         // if(desiredPitch > Constants.ShooterConstants.maxPitch){
         //     desiredPitch = Constants.ShooterConstants.maxPitch;
