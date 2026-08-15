@@ -52,7 +52,7 @@ public class RobotContainer {
     private final Trigger primaryIntakeTrigger = primaryController.leftTrigger(0.1);
     private final Trigger primaryOuttakeTrigger = primaryController.x();
 
-    private final Trigger autoShootTriggerPrototype = primaryController.rightTrigger(); // do not use prototype
+    private final Trigger autoShootTriggerPrototype = primaryController.rightTrigger(0.1); // do not use prototype
     private final Trigger hubShootTriggerPrototype = primaryController.rightBumper(); // do not use prototype
     private final Trigger autoShootTrigger, hubShootTrigger;
     private final Trigger towerShootTrigger = autoShootTriggerPrototype.and(hubShootTriggerPrototype);
