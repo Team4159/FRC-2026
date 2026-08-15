@@ -94,7 +94,7 @@ public class AutoShoot extends Command {
      * stores auto aim statuses (SHOOT, WAITING, OUTOFRANGE) and corresponding
      * LEDStatus
      */
-    private AutoShootStatus autoAimStatus;
+    private AutoShootStatus autoShootStatus;
     /** LED status supplier used for changing the LED status */
     private LEDStatusSupplier ledStatusSupplier;
 
@@ -142,9 +142,9 @@ public class AutoShoot extends Command {
         this.leds = leds;
         this.feedbackController = feedbackController;
 
-        autoAimStatus = AutoShootStatus.WAITING;
+        autoShootStatus = AutoShootStatus.WAITING;
         ledStatusSupplier = () -> {
-            return autoAimStatus.ledStatus;
+            return autoShootStatus.ledStatus;
         };
         this.autonomousMode = autonomousMode;
         if (!autonomousMode) addRequirements(drivetrain, shooter, hopper);
@@ -207,7 +207,7 @@ public class AutoShoot extends Command {
 
         // check if in range, return if out of range
         if (getDistanceFromHub() > JoeLookupTableConstants.kMaxDistance.in(Meters)) {
-            autoAimStatus = AutoShootStatus.OUTOFRANGE;
+            autoShootStatus = AutoShootStatus.OUTOFRANGE;
             if (feedbackController.isPresent()) {
                 HIDRumble.rumble(
                     feedbackController.get().getHID(),
@@ -246,7 +246,7 @@ public class AutoShoot extends Command {
         // }
         if (shooter.isAtPitch() && shooter.isAtSpeed() && isAtDesiredRotation(Radians.of(desiredRobotAngle))) {
             // shoot the fuel if at the right pitch
-            autoAimStatus = AutoShootStatus.SHOOT;
+            autoShootStatus = AutoShootStatus.SHOOT;
             shooter.setFeederSpeed(FeederState.FEED.percentage);
             hopper.setHopperSpeed(HopperState.FEED.percentage);
         } else {
@@ -282,7 +282,7 @@ public class AutoShoot extends Command {
             sim_shootFuel(vx, vy, vz);
         }
 
-        SmartDashboard.putString("Auto Aim Status", autoAimStatus.name());
+        SmartDashboard.putString("Auto Aim Status", autoShootStatus.name());
         SmartDashboard.putNumber("distance from hub", getDistanceFromHub());
         SmartDashboard.putNumber("autoaim desired pitch", desiredHoodAngle.in(Degrees));
     }
@@ -446,7 +446,7 @@ public class AutoShoot extends Command {
             // the minimum possible hood angle on the physical shooter is 45, so no
             // additional calculation is needed, just set to 45
             desiredPitch = Units.degreesToRadians(45);
-            autoAimStatus = AutoShootStatus.OUTOFRANGE;
+            autoShootStatus = AutoShootStatus.OUTOFRANGE;
         }
         if (desiredPitch > Constants.ShooterConstants.maxPitch.in(Radians)) {
             desiredPitch = Constants.ShooterConstants.maxPitch.in(Radians);

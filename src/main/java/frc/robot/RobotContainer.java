@@ -84,7 +84,7 @@ public class RobotContainer {
         autoFactory = drivetrain.createAutoFactory();
         CommandScheduler.getInstance().schedule(autoFactory.warmupCmd()); // warmup command so auto starts instantly
         configurableAuto = new ConfigurableAuto(autoFactory, drivetrain, shooter, intake, hopper, leds);
-        drivetrain.setAutonomousAutoAimCommand(
+        drivetrain.setAutonomousAutoShootCommand(
             new AutoShoot(drivetrain, shooter, hopper, intake, leds, true, Optional.empty())
         );
 

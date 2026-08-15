@@ -61,7 +61,7 @@ public class AutoLob extends Command {
     private boolean autonomousMode;
 
     /** stores auto aim statuses (SHOOT, WAITING, OUTOFRANGE) and corresponding LEDStatus*/
-    private AutoShootStatus autoAimStatus;
+    private AutoShootStatus autoShootStatus;
     /** LED status supplier used for changing the LED status */
     private LEDStatusSupplier ledStatusSupplier;
 
@@ -101,9 +101,9 @@ public class AutoLob extends Command {
 
         this.timer = new Timer();
 
-        autoAimStatus = AutoShootStatus.WAITING;
+        autoShootStatus = AutoShootStatus.WAITING;
         ledStatusSupplier = () -> {
-            return autoAimStatus.ledStatus;
+            return autoShootStatus.ledStatus;
         };
         this.autonomousMode = autonomousMode;
         if (!autonomousMode) addRequirements(drivetrain);
@@ -170,13 +170,13 @@ public class AutoLob extends Command {
 
         if (!timer.hasElapsed(ShooterConstants.backwardsTime)) {
             //run neck backwards if at the beginning
-            autoAimStatus = AutoShootStatus.WAITING;
+            autoShootStatus = AutoShootStatus.WAITING;
             shooter.setFeederSpeed(FeederState.UNSTUCKFEEDER.percentage);
             hopper.setHopperSpeed(HopperState.STOP.percentage);
         }
         if (shooter.isAtPitch() && shooter.isAtSpeed() && isAtDesiredRotation(Radians.of(desiredRobotAngle))) {
             //shoot the fuel if at the right pitch
-            autoAimStatus = AutoShootStatus.SHOOT;
+            autoShootStatus = AutoShootStatus.SHOOT;
             shooter.setFeederSpeed(FeederState.FEED.percentage);
             hopper.setHopperSpeed(HopperState.FEED.percentage);
         } else {
@@ -196,12 +196,12 @@ public class AutoLob extends Command {
         SmartDashboard.putBoolean("isatspeed", shooter.isAtSpeed());
         SmartDashboard.putBoolean("swerve isatangle", isAtDesiredRotation(Radians.of(desiredRobotAngle)));
         if (shooter.isAtPitch() && shooter.isAtSpeed() && isAtDesiredRotation(Radians.of(desiredRobotAngle))) {
-            autoAimStatus = AutoShootStatus.SHOOT;
+            autoShootStatus = AutoShootStatus.SHOOT;
         } else {
-            autoAimStatus = AutoShootStatus.WAITING;
+            autoShootStatus = AutoShootStatus.WAITING;
         }
 
-        if (autoAimStatus == AutoShootStatus.SHOOT) {
+        if (autoShootStatus == AutoShootStatus.SHOOT) {
             shooter.setFeederSpeed(FeederState.FEED.percentage);
             hopper.setHopperSpeed(HopperState.FEED.percentage);
         }
@@ -223,7 +223,7 @@ public class AutoLob extends Command {
 
         double vz = robotRelativeBallVelocityVertical;
 
-        SmartDashboard.putString("Auto Aim Status", autoAimStatus.name());
+        SmartDashboard.putString("Auto Aim Status", autoShootStatus.name());
 
         //only feed (shown by shooting fuel in simulation) if the status is "SHOOT"
         sim_shootFuel(vx, vy, vz);
@@ -303,7 +303,7 @@ public class AutoLob extends Command {
             //equation can only return angles from 45-90 deg (in radians of course), anything lower than that will be NaN
             //the minimum possible hood angle on the physical shooter is 45, so no additional calculation is needed, just set to 45
             desiredPitch = Units.degreesToRadians(45);
-            autoAimStatus = AutoShootStatus.OUTOFRANGE;
+            autoShootStatus = AutoShootStatus.OUTOFRANGE;
         }
         // if(desiredPitch > Constants.ShooterConstants.maxPitch){
         //     desiredPitch = Constants.ShooterConstants.maxPitch;

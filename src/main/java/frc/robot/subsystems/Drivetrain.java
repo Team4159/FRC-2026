@@ -123,8 +123,8 @@ public class Drivetrain extends CommandSwerveDrivetrain {
 
     private Optional<Rotation2d> externalDesiredRotation = Optional.empty();
 
-    private boolean autoPathAutoAimMode = false;
-    private AutoShoot autoAimCommand;
+    private boolean autoPathAutoShootMode = false;
+    private AutoShoot autoShootCommand;
 
     public Drivetrain(CommandXboxController controller) {
         super(
@@ -579,8 +579,8 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     }
 
     /** set the AutoAim command to be used for shooting while moving during auto */
-    public void setAutonomousAutoAimCommand(AutoShoot autoAimCommand) {
-        this.autoAimCommand = autoAimCommand;
+    public void setAutonomousAutoShootCommand(AutoShoot autoShootCommand) {
+        this.autoShootCommand = autoShootCommand;
     }
 
     /**
@@ -607,10 +607,10 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         // was used to set the autoAimCommand, it will use the omega from the auto aim
         // command to aim at the hub
         // otherwise it will use target speeds and PID
-        if (autoPathAutoAimMode && autoAimCommand != null) {
+        if (autoPathAutoShootMode && autoShootCommand != null) {
             // get the desired omega directly from the auto aim controller(instead of
             // calculated speeds and PID)
-            targetSpeeds.omegaRadiansPerSecond = autoAimCommand.getDesiredOmega();
+            targetSpeeds.omegaRadiansPerSecond = autoShootCommand.getDesiredOmega();
         } else {
             m_pathThetaController.enableContinuousInput(-Math.PI, Math.PI);
             // get desired omega from calculated speeds and PID
@@ -629,7 +629,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     }
 
     /**
-     * @param autoPathAutoAimMode if true the robot will run autoaim along the auto
+     * @param autoPathAutoShootMode if true the robot will run autoaim along the auto
      *                            trajectory
      *                            a value of true will activate the AutoAim command
      *                            and a value of false will cancel it. it will also
@@ -638,12 +638,12 @@ public class Drivetrain extends CommandSwerveDrivetrain {
      *                            I hate this implementation but I have negative
      *                            intelligence
      */
-    public void setAutoPathAutoAimMode(boolean autoPathAutoAimMode) {
-        this.autoPathAutoAimMode = autoPathAutoAimMode;
-        if (autoPathAutoAimMode) {
-            CommandScheduler.getInstance().schedule(autoAimCommand);
+    public void setAutoPathAutoShootMode(boolean autoPathAutoShootMode) {
+        this.autoPathAutoShootMode = autoPathAutoShootMode;
+        if (autoPathAutoShootMode) {
+            CommandScheduler.getInstance().schedule(autoShootCommand);
         } else {
-            CommandScheduler.getInstance().cancel(autoAimCommand);
+            CommandScheduler.getInstance().cancel(autoShootCommand);
         }
     }
 
