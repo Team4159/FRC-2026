@@ -4,6 +4,8 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.Constants.FeederConstants.FeederState;
+import frc.robot.Constants.HopperConstants.HopperState;
 import frc.robot.Constants.IntakeConstants.IntakeState;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.subsystems.Hopper;
@@ -14,11 +16,10 @@ public class HubShoot extends Command {
 
     private final Shooter shooter;
     private final Intake intake;
-
-    @SuppressWarnings("unused")
     private final Hopper hopper;
 
     private Timer timer;
+    private boolean feedFlag;
 
     public HubShoot(Shooter shooter, Intake intake, Hopper hopper) {
         this.shooter = shooter;
@@ -37,6 +38,7 @@ public class HubShoot extends Command {
         CommandScheduler.getInstance().schedule(intake.new BounceIntake());
 
         timer.reset();
+        feedFlag = false;
     }
 
     @Override
@@ -46,15 +48,18 @@ public class HubShoot extends Command {
         //     shooter.setFeederSpeed(FeederState.UNSTUCKFEEDER.percentage);
         //     hopper.setHopperSpeed(HopperState.STOP.percentage);
         // }
-        // if (shooter.isAtPitch() && shooter.isAtSpeed()) {
-        //     //shoot the fuel if at the right pitch
-        //     shooter.setFeederSpeed(FeederState.FEED.percentage);
-        //     hopper.setHopperSpeed(HopperState.FEED.percentage);
-        // } else {
-        //     //otherwise just wait
-        //     shooter.setFeederSpeed(FeederState.STOP.percentage);
-        //     hopper.setHopperSpeed(HopperState.STOP.percentage);
-        // }
+        if (shooter.isAtPitch() && shooter.isAtSpeed()) {
+            feedFlag = true;
+        }
+        if (feedFlag) {
+            //shoot the fuel if at the right pitch
+            shooter.setFeederSpeed(FeederState.FEED.percentage);
+            hopper.setHopperSpeed(HopperState.FEED.percentage);
+        } else {
+            //otherwise just wait
+            shooter.setFeederSpeed(FeederState.STOP.percentage);
+            hopper.setHopperSpeed(HopperState.STOP.percentage);
+        }
 
         SmartDashboard.putBoolean("isAtPitch", shooter.isAtPitch());
         SmartDashboard.putBoolean("isatspeed", shooter.isAtSpeed());
