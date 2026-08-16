@@ -42,7 +42,6 @@ import frc.robot.generated.TunerConstants;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 public class Drivetrain extends CommandSwerveDrivetrain {
@@ -158,17 +157,11 @@ public class Drivetrain extends CommandSwerveDrivetrain {
 
     public class Drive extends Command {
 
-        private final BooleanSupplier robotRelativeSupplier;
         private final Supplier<SwerveRequest> driveSupplier;
 
-        public Drive(DriveMode driveMode, BooleanSupplier robotRelativeSupplier) {
-            this.robotRelativeSupplier = robotRelativeSupplier;
+        public Drive(DriveMode driveMode) {
             this.driveSupplier = getDriveSupplier(driveMode);
             addRequirements(Drivetrain.this);
-        }
-
-        public Drive(DriveMode driveMode) {
-            this(driveMode, () -> false);
         }
 
         @Override
@@ -176,7 +169,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
             setControl(driveSupplier.get());
         }
 
-        private SwerveRequest getTeleopDrive(boolean robotRelative) {
+        private SwerveRequest getTeleopDrive() {
             if (canAutoBrake()) {
                 return brakeDrive;
             }
@@ -191,7 +184,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
             Translation2d inputSpeedTranslation;
             double inputSpeedRotation = getInputRotationVelocity() * maxRotationSpeed;
             if (getDriveFlagValue(DriveFlag.MANUAL_ALIGN)) {
-                Translation2d input = getInputTranslation(!robotRelative);
+                Translation2d input = getInputTranslation(true);
                 double x = 0;
                 double y = 0;
                 if (input.getNorm() >= 0.0) {
@@ -203,7 +196,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                 }
                 inputSpeedTranslation = new Translation2d(x * maxTranslationSpeed, y * maxTranslationSpeed);
             } else {
-                inputSpeedTranslation = getInputSpeedTranslation(!robotRelative);
+                inputSpeedTranslation = getInputSpeedTranslation(true);
             }
 
             Optional<Rotation2d> desiredRotation = Optional.empty();
@@ -227,19 +220,6 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                         new Rotation2d(angle)
                     )
                 );
-            }
-
-            if (robotRelative) {
-                if (desiredRotation.isPresent()) {
-                    return robotCentricFacingAngleDrive
-                        .withVelocityX(inputSpeedTranslation.getX())
-                        .withVelocityY(inputSpeedTranslation.getY())
-                        .withTargetDirection(desiredRotation.get());
-                }
-                return robotCentricDrive
-                    .withVelocityX(inputSpeedTranslation.getX())
-                    .withVelocityY(inputSpeedTranslation.getY())
-                    .withRotationalRate(inputSpeedRotation);
             }
 
             var assistSpeed = driveAssist();
@@ -345,7 +325,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         private Supplier<SwerveRequest> getDriveSupplier(DriveMode driveMode) {
             return () ->
                 switch (driveMode) {
-                    case TELEOP -> getTeleopDrive(robotRelativeSupplier.getAsBoolean());
+                    case TELEOP -> getTeleopDrive();
                     case BRAKE -> brakeDrive;
                     case POINT -> pointDrive.withModuleDirection(new Rotation2d(getInputX(false), getInputY(false)));
                     case IDLE -> idleDrive;

@@ -44,18 +44,17 @@ public class RobotContainer {
     // );
 
     private final Trigger zeroTrigger = primaryController.back();
-    private final Trigger robotRelativeTrigger = new Trigger(() -> false);
     private final Trigger slowModeTrigger = primaryController.leftBumper();
     private final Trigger driverAssistToggleTrigger = primaryController.y();
-    private final Trigger autoLobTrigger = primaryController.a();
 
-    private final Trigger primaryIntakeTrigger = primaryController.leftTrigger(0.1);
-    private final Trigger primaryOuttakeTrigger = primaryController.x();
+    private final Trigger intakeTrigger = primaryController.leftTrigger(0.1);
+    private final Trigger outtakeTrigger = primaryController.x();
 
     private final Trigger autoShootTriggerPrototype = primaryController.rightTrigger(0.1); // do not use prototype
     private final Trigger hubShootTriggerPrototype = primaryController.rightBumper(); // do not use prototype
     private final Trigger autoShootTrigger, hubShootTrigger;
     private final Trigger towerShootTrigger = autoShootTriggerPrototype.and(hubShootTriggerPrototype);
+    private final Trigger autoLobTrigger = primaryController.a();
 
     {
         autoShootTrigger = autoShootTriggerPrototype.and(towerShootTrigger.negate());
@@ -105,10 +104,18 @@ public class RobotContainer {
     private void configureBindings() {
         // Note that X is defined as forward according to WPILib convention,
         // and Y is defined as to the left according to WPILib convention.
-        drivetrain.setDefaultCommand(drivetrain.new Drive(DriveMode.TELEOP, robotRelativeTrigger::getAsBoolean));
+        drivetrain.setDefaultCommand(drivetrain.new Drive(DriveMode.TELEOP));
         // Idle while the robot is disabled. This ensures the configured
         // neutral mode is applied to the drive motors while disabled.
         RobotModeTriggers.disabled().whileTrue(drivetrain.new Drive(DriveMode.IDLE).ignoringDisable(true));
+
+        // Reset the field-centric heading on left bumper press.
+        zeroTrigger.onTrue(
+            Commands.runOnce(() -> {
+                HIDRumble.rumble(primaryController.getHID(), new RumbleRequest(RumbleType.kLeftRumble, 0.5, 0.25));
+                drivetrain.seedFieldCentric();
+            })
+        );
 
         // test mode
         primaryController.y().and(DriverStation::isTest).whileTrue(drivetrain.new Drive(DriveMode.BRAKE));
@@ -128,37 +135,26 @@ public class RobotContainer {
         autoShootTrigger
             .and(DriverStation::isTeleop)
             .whileTrue(new AutoShoot(drivetrain, shooter, hopper, intake, leds, false, Optional.of(primaryController)));
+        hubShootTrigger.and(DriverStation::isTeleop).whileTrue(new HubShoot(shooter, intake, hopper));
+        towerShootTrigger.and(DriverStation::isTeleop).whileTrue(new TowerShoot(shooter, intake, hopper));
         autoLobTrigger
             .and(DriverStation::isTeleop)
             .whileTrue(new AutoLob(drivetrain, shooter, hopper, intake, leds, false));
 
-        // Reset the field-centric heading on left bumper press.
-        zeroTrigger.onTrue(
-            Commands.runOnce(() -> {
-                HIDRumble.rumble(primaryController.getHID(), new RumbleRequest(RumbleType.kLeftRumble, 0.5, 0.25));
-                drivetrain.seedFieldCentric();
-            })
-        );
-
-        // intake
-        primaryIntakeTrigger.whileTrue(
+        intakeTrigger.whileTrue(
             new ParallelCommandGroup(
                 intake.new ChangeStates(IntakeState.DOWN_ON),
                 hopper.new ChangeState(HopperState.FEED)
             )
         ); // .onFalse(intake.new
         // ChangeStates(IntakeState.BOUNCE_UP));
-        primaryOuttakeTrigger.whileTrue(
+        outtakeTrigger.whileTrue(
             new ParallelCommandGroup(
                 intake.new ChangeStates(IntakeState.DOWN_REV),
                 hopper.new ChangeState(HopperState.REVERSE),
                 shooter.new ChangeState(FeederState.UNSTUCKFEEDER)
             )
         );
-
-        // manual controls
-        hubShootTrigger.and(DriverStation::isTeleop).whileTrue(new HubShoot(shooter, intake, hopper));
-        towerShootTrigger.and(DriverStation::isTeleop).whileTrue(new TowerShoot(shooter, intake, hopper));
     }
 
     public Command getAutonomousCommand() {
