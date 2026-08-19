@@ -14,7 +14,7 @@ public class Hopper extends SubsystemBase {
     private TalonFX hopperMotor;
 
     public Hopper() {
-        hopperMotor = new TalonFX(HopperConstants.HopperId);
+        hopperMotor = new TalonFX(HopperConstants.HOPPER_MOTOR_ID);
         CurrentLimitsConfigs currentLimits = new CurrentLimitsConfigs()
             .withSupplyCurrentLimit(Amps.of(20))
             .withSupplyCurrentLimitEnable(true);

@@ -20,7 +20,7 @@ public class FuelSimulation {
     private static final double kSimulationStepPeriod = 0.005;
     private static final int kSimulationMaxStepsPerFrame = 20;
     private static final double kSimulationTimeScale = 1.0;
-    private static final Translation3d kGravity = new Translation3d(0, 0, -FieldConstants.g);
+    private static final Translation3d kGravity = new Translation3d(0, 0, -FieldConstants.G);
     private static final double kAirDensity = 1.2;
     private static final double kFuelRadius = 0.15;
     // private static final double kFuelMass = Units.lbsToKilograms((0.5 + 0.448) / 2.0);

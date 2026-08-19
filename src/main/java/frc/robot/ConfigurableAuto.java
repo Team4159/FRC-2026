@@ -341,7 +341,7 @@ public class ConfigurableAuto {
                 //deadline group terminates auto aim when the time runs out
                 .andThen(
                     new ParallelDeadlineGroup(
-                        new WaitCommand(AutoConstants.ShootTime),
+                        new WaitCommand(AutoConstants.SHOOT_TIME),
                         //auto aim(autonomous mode is false because the point of autonomous mode is for SOTM it will use choreo for translation of the swerve and the auto aim for rotation but this is stationary)
                         new AutoShoot(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())
                     )

@@ -20,7 +20,7 @@ public class ManualShoot extends Command {
 
     @Override
     public void initialize() {
-        shooter.setSpeed(ShooterConstants.shooterAngularVelocity);
+        shooter.setSpeed(ShooterConstants.SHOOTER_ANGULAR_VELOCITY);
     }
 
     @Override

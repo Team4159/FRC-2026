@@ -25,7 +25,7 @@ public class Climber extends SubsystemBase {
         // climberConfigTwo.kI = Constants.ClimberConstants.kI;
         // climberConfigTwo.kD = Constants.ClimberConstants.kD;
 
-        climbMotorOne = new TalonFX(Constants.ClimberConstants.idClimberOne);
+        climbMotorOne = new TalonFX(Constants.ClimberConstants.CLIMBER_ONE_MOTOR_ID);
         // climbMotorTwo = new TalonFX(Constants.ClimberConstants.idClimberTwo);
 
         // climbMotorOne.getConfigurator().apply(climberConfigOne);

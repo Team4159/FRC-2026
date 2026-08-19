@@ -35,7 +35,7 @@ public class AutoAlign extends Command {
 
     @Override
     public void execute() {
-        boolean atTarget = AutoConstants.kAutopilotAlignController.atTarget(drivetrain.getState().Pose, currentTarget);
+        boolean atTarget = AutoConstants.AUTOPILOT_ALIGN_CONTROLELR.atTarget(drivetrain.getState().Pose, currentTarget);
         boolean targetIsIntermediate = (progress < goal.targets.length - 1);
         if (atTarget && targetIsIntermediate) {
             progress++;
@@ -60,7 +60,7 @@ public class AutoAlign extends Command {
 
     private void alignToTarget() {
         SwerveDriveState drivetrainState = drivetrain.getState();
-        APResult result = AutoConstants.kAutopilotAlignController.calculate(
+        APResult result = AutoConstants.AUTOPILOT_ALIGN_CONTROLELR.calculate(
             drivetrainState.Pose,
             drivetrainState.Speeds,
             currentTarget

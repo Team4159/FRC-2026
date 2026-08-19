@@ -118,7 +118,7 @@ public class Telemetry {
             driveModuleSpeeds[i].setAngle(state.ModuleStates[i].angle);
             driveModuleDirections[i].setAngle(state.ModuleStates[i].angle);
             driveModuleSpeeds[i].setLength(
-                state.ModuleStates[i].speedMetersPerSecond / (2 * DrivetrainConstants.kMaxTranslationSpeed)
+                state.ModuleStates[i].speedMetersPerSecond / (2 * DrivetrainConstants.MAX_TRANSLATION_SPEED)
             );
         }
     }

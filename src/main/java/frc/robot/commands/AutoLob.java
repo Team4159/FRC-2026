@@ -121,7 +121,7 @@ public class AutoLob extends Command {
 
         timeOffset = MathSharedStore.getTimestamp();
 
-        shooter.setSpeed(ShooterConstants.lobAngularVelocity);
+        shooter.setSpeed(ShooterConstants.LOB_ANGULAR_VELOCITY);
 
         timer.reset();
     }
@@ -131,7 +131,7 @@ public class AutoLob extends Command {
         //recalculate lob position
         this.target = drivetrain
             .getState()
-            .Pose.nearest(Constants.FieldConstants.lobLocations.get(DriverStation.getAlliance().orElse(Alliance.Blue)));
+            .Pose.nearest(Constants.FieldConstants.LOB_LOCATIONS.get(DriverStation.getAlliance().orElse(Alliance.Blue)));
 
         //calculate desired pitch for hood angle
         double desiredHoodAngle = getDesiredHoodPitch();
@@ -168,7 +168,7 @@ public class AutoLob extends Command {
             .getAngle()
             .getRadians();
 
-        if (!timer.hasElapsed(ShooterConstants.backwardsTime)) {
+        if (!timer.hasElapsed(ShooterConstants.BACKWARDS_TIME)) {
             //run neck backwards if at the beginning
             autoShootStatus = AutoShootStatus.WAITING;
             shooter.setFeederSpeed(FeederState.UNSTUCKFEEDER.percentage);
@@ -234,15 +234,15 @@ public class AutoLob extends Command {
      */
     private void rotateSwerve(double desiredAngle) {
         //PID controller to calculate omega
-        double omega = Constants.DrivetrainConstants.autoShootRotationController.calculate(
+        double omega = Constants.DrivetrainConstants.AUTO_SHOOT_ROTATION_CONTROLLER.calculate(
             drivetrain.getState().Pose.getRotation().getRadians(),
             desiredAngle,
             Timer.getFPGATimestamp()
         );
         //set ChassisSpeeds
         ChassisSpeeds chassisSpeeds = new ChassisSpeeds(
-            drivetrain.getInputSpeedX(true) * DrivetrainConstants.kAutoShootInputMultiplier,
-            drivetrain.getInputSpeedY(true) * DrivetrainConstants.kAutoShootInputMultiplier,
+            drivetrain.getInputSpeedX(true) * DrivetrainConstants.AUTO_SHOOT_INPUT_MULTIPLIER,
+            drivetrain.getInputSpeedY(true) * DrivetrainConstants.AUTO_SHOOT_INPUT_MULTIPLIER,
             omega
         );
 
@@ -270,12 +270,12 @@ public class AutoLob extends Command {
         //the delta y for TOF would be the height
         //the equation then becomes 0 = -(1/2)g * TOF^2 + vy * TOF - height -> 0 = (1/2)g * TOF^2 - vy * TOF + height
         //then use quadratic formula and always add the radical to get the 2nd time the fuel is at the target height (so that it is on the way down)
-        double radical = Math.sqrt(Math.pow(vy, 2) - 2 * Constants.FieldConstants.g * height);
+        double radical = Math.sqrt(Math.pow(vy, 2) - 2 * Constants.FieldConstants.G * height);
         if (Double.isNaN(radical)) {
             return 0;
         }
         double numerator = vy + radical;
-        double time = numerator / Constants.FieldConstants.g;
+        double time = numerator / Constants.FieldConstants.G;
         SmartDashboard.putNumber("time of flight", time);
         return time;
     }
@@ -293,10 +293,10 @@ public class AutoLob extends Command {
             (Math.pow(launchVelocity, 2) +
                 Math.sqrt(
                     Math.pow(launchVelocity, 4) -
-                        Math.pow(FieldConstants.g * distance, 2) -
-                        2 * FieldConstants.g * height * Math.pow(launchVelocity, 2)
+                        Math.pow(FieldConstants.G * distance, 2) -
+                        2 * FieldConstants.G * height * Math.pow(launchVelocity, 2)
                 )) /
-                (FieldConstants.g * distance)
+                (FieldConstants.G * distance)
         );
 
         if (Double.isNaN(desiredPitch)) {
@@ -346,7 +346,7 @@ public class AutoLob extends Command {
 
     @Override
     public void end(boolean interrupted) {
-        shooter.adjustHood(ShooterConstants.kRestingAngle);
+        shooter.adjustHood(ShooterConstants.RESTING_ANGLE);
         //shooter.setSpeed(ShooterConstants.restingAngularVelocity);
         shooter.stopShooter();
         shooter.setFeederSpeed(FeederState.STOP.percentage);

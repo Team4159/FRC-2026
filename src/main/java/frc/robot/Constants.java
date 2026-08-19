@@ -59,10 +59,11 @@ public final class Constants {
 
     public static class ClimberConstants {
 
-        public static final double kI = 0;
-        public static final double kD = 0;
-        public static final double kP = 0;
-        public static final int idClimberOne = 15;
+        public static final double I_GAIN = 0;
+        public static final double D_GAIN = 0;
+        public static final double P_GAIN = 0;
+        public static final int CLIMBER_ONE_MOTOR_ID = 15;
+        //previously idClimberOne
 
         // public static final int idClimberTwo = 10;
 
@@ -81,7 +82,7 @@ public final class Constants {
 
     public static class HopperConstants {
 
-        public static final int HopperId = 30;
+        public static final int HOPPER_MOTOR_ID = 30;
         public static final Distance kHopperExtent = Inches.of(12.0);
 
         public static enum HopperState {
@@ -99,7 +100,7 @@ public final class Constants {
 
     public static class FeederConstants {
 
-        public static final int FeederID = 20; // idk if this port is used yet plz check
+        public static final int FEEDER_MOTOR_ID = 20; // idk if this port is used yet plz check
 
         public static enum FeederState {
             FEED(1),
@@ -116,50 +117,50 @@ public final class Constants {
 
     public static class IntakeConstants {
 
-        public static final double kAngleP = 60;
-        public static final double kAngleI = 1;
-        public static final double kAngleD = 0;
-        public static final double kAngleG = 0.07;
+        public static final double ANGLE_P_GAIN = 60;
+        public static final double ANGLE_I_GAIN = 1;
+        public static final double ANGLE_D_GAIN = 0;
+        public static final double ANGLE_G_GAIN = 0.07;
 
         // motion magic
-        public static final double kFastCruiseVelocity = 200;
-        public static final double kFastAcceleration = 500;
-        public static final double kFastJerk = 1600;
+        public static final double FAST_CRUISE_VELOCITY = 200;
+        public static final double FAST_ACCELERATION = 500;
+        public static final double FAST_JERK = 1600;
 
-        public static final double kSlowCruiseVelocity = 1;
-        public static final double kSlowAcceleration = 5;
-        public static final double kSlowJerk = 1600;
+        public static final double SLOW_CRUISE_VELOCITY = 1;
+        public static final double SLOW_ACCELERATION = 5;
+        public static final double SLOW_JERK = 1600;
 
-        public static final int kAngleEncoderId = 1;
-        public static final int kAngleId = Robot.isReal() ? 6 : 36; // youre welcome Faye
-        public static final int kIntakeSpinId = Robot.isReal() ? 7 : 37;
+        public static final int ANGLE_ENCODER_ID = 1;
+        public static final int INTAKE_ANGLE_MOTOR_ID = Robot.isReal() ? 6 : 36; // youre welcome Faye
+        public static final int INTAKE_SPIN_MOTOR_ID = Robot.isReal() ? 7 : 37;
 
-        public static final Angle kEncoderOffset = Degrees.of(0);
+        public static final Angle ENCODER_OFFSET = Degrees.of(0);
         //now 25 and 2 because encoder is on the jackshaft now.
-        public static final double kMotorToSensorRatio = 25;
-        public static final double kSensorToMechanismRatio = 2;
+        public static final double MOTOR_TO_SENSOR_RATIO = 25;
+        public static final double SENSEOR_TO_MECHANISM_RATIO = 2;
 
         // motor configs
-        public static final CANcoderConfiguration canCoderConfig = new CANcoderConfiguration() {
+        public static final CANcoderConfiguration CAN_CODER_CONFIG = new CANcoderConfiguration() {
             {
                 MagnetSensor.withAbsoluteSensorDiscontinuityPoint(Rotations.of(0.9));
                 MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
-                MagnetSensor.withMagnetOffset(IntakeConstants.kEncoderOffset);
+                MagnetSensor.withMagnetOffset(IntakeConstants.ENCODER_OFFSET);
             }
         };
 
-        public static final TalonFXConfiguration angleConfig = new TalonFXConfiguration() {
+        public static final TalonFXConfiguration ANGLE_CONFIG = new TalonFXConfiguration() {
             {
-                Slot0.kP = IntakeConstants.kAngleP;
-                Slot0.kI = IntakeConstants.kAngleI;
-                Slot0.kD = IntakeConstants.kAngleD;
-                Slot0.kG = IntakeConstants.kAngleG;
+                Slot0.kP = IntakeConstants.ANGLE_P_GAIN;
+                Slot0.kI = IntakeConstants.ANGLE_I_GAIN;
+                Slot0.kD = IntakeConstants.ANGLE_D_GAIN;
+                Slot0.kG = IntakeConstants.ANGLE_G_GAIN;
                 Slot0.withGravityType(GravityTypeValue.Arm_Cosine);
                 // abs encoder
-                Feedback.FeedbackRemoteSensorID = IntakeConstants.kAngleEncoderId;
+                Feedback.FeedbackRemoteSensorID = IntakeConstants.ANGLE_ENCODER_ID;
                 Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
-                Feedback.SensorToMechanismRatio = IntakeConstants.kSensorToMechanismRatio;
-                Feedback.RotorToSensorRatio = IntakeConstants.kMotorToSensorRatio;
+                Feedback.SensorToMechanismRatio = IntakeConstants.SENSEOR_TO_MECHANISM_RATIO;
+                Feedback.RotorToSensorRatio = IntakeConstants.MOTOR_TO_SENSOR_RATIO;
 
                 CurrentLimits.SupplyCurrentLimitEnable = true;
                 CurrentLimits.SupplyCurrentLimit = 30;
@@ -169,36 +170,36 @@ public final class Constants {
         };
 
         // motion magic
-        public static final MotionMagicConfigs kFastMotionMagicConfig = new MotionMagicConfigs() {
+        public static final MotionMagicConfigs FAST_MOTION_MAGIC_CONFIG = new MotionMagicConfigs() {
             {
-                MotionMagicCruiseVelocity = IntakeConstants.kFastCruiseVelocity; // Target cruise velocity of 80 rps
-                MotionMagicAcceleration = IntakeConstants.kFastAcceleration; // Target acceleration of 160 rps/s (0.5
+                MotionMagicCruiseVelocity = IntakeConstants.FAST_CRUISE_VELOCITY; // Target cruise velocity of 80 rps
+                MotionMagicAcceleration = IntakeConstants.FAST_ACCELERATION; // Target acceleration of 160 rps/s (0.5
                 // seconds)
-                MotionMagicJerk = IntakeConstants.kFastJerk; // Target jerk of 1600 rps/s/s (0.1 seconds)
+                MotionMagicJerk = IntakeConstants.FAST_JERK; // Target jerk of 1600 rps/s/s (0.1 seconds)
             }
         };
 
-        public static final MotionMagicConfigs kSlowMotionMagicConfig = new MotionMagicConfigs() {
+        public static final MotionMagicConfigs SLOW_MOTION_MAGIC_CONFIG = new MotionMagicConfigs() {
             {
-                MotionMagicCruiseVelocity = IntakeConstants.kSlowCruiseVelocity;
-                MotionMagicAcceleration = IntakeConstants.kSlowAcceleration;
-                MotionMagicJerk = IntakeConstants.kSlowJerk;
+                MotionMagicCruiseVelocity = IntakeConstants.SLOW_CRUISE_VELOCITY;
+                MotionMagicAcceleration = IntakeConstants.SLOW_ACCELERATION;
+                MotionMagicJerk = IntakeConstants.SLOW_JERK;
             }
         };
 
         // public static final double kLocationGearRatio = 1.0 / 2.0;
-        public static final double kSpinGearRatio = 1.0 / 5.0;
+        public static final double SPIN_GEAR_RATIO = 1.0 / 5.0;
 
         /** Units: rad/s */
-        public static final double kCompressRate = 1;
-        public static final double kCompressP = 1;
-        public static final double kCompressI = 0;
-        public static final double kCompressD = 0;
-        public static final ProfiledPIDController compressPID = new ProfiledPIDController(
-            kCompressP,
-            kCompressI,
-            kCompressD,
-            new TrapezoidProfile.Constraints(kCompressRate, 1)
+        public static final double COMPRESS_RATE = 1;
+        public static final double COMPRESS_P_GAIN = 1;
+        public static final double COMPRESS_I_GAIN = 0;
+        public static final double COMPRESS_D_GAIN = 0;
+        public static final ProfiledPIDController COMPRESS_PID = new ProfiledPIDController(
+            COMPRESS_P_GAIN,
+            COMPRESS_I_GAIN,
+            COMPRESS_D_GAIN,
+            new TrapezoidProfile.Constraints(COMPRESS_RATE, 1)
         );
 
         public static enum IntakeState {
@@ -221,16 +222,16 @@ public final class Constants {
 
     public static class OperatorConstants {
 
-        public static final int kPrimaryControllerPort = 0;
-        public static final int kSecondaryControllerPort = 1;
+        public static final int PRIMARY_CONTROLLER_PORT = 0;
+        public static final int SECONDARY_CONTROLLER_PORT = 1;
 
         // controller joystick constants
-        public static final double kPrimaryTranslationDeadband = 0.05;
-        public static final double kPrimaryRotationDeadband = 0.05;
-        public static final double kPrimaryTranslationExponent = 2.0;
-        public static final double kPrimaryRotationExponent = 2.0;
-        public static final double kPrimaryTranslationRadius = 0.99;
-        public static final double kPrimaryRotationRadius = 0.99;
+        public static final double PRIMARY_TRANSLATION_DEADBAND = 0.05;
+        public static final double PRIMARY_ROTATION_DEADBAND = 0.05;
+        public static final double PRIMARY_TRANSLATION_EXPONENT = 2.0;
+        public static final double PRIMARY_ROTATION_EXPONENT = 2.0;
+        public static final double PRIMARY_TRANSLATION_RADIUS = 0.99;
+        public static final double PRIMARY_ROTATION_RADIUS = 0.99;
 
         public static enum DriveMode {
             TELEOP,
@@ -248,61 +249,61 @@ public final class Constants {
         }
 
         // drive assist constants
-        public static final Distance kTrenchAssistPassPositionTolerance = Meters.of(0.45);
-        public static final double kTrenchAssistApproachInputTolerance = 0.2;
-        public static final Distance kTrenchAssistAlignPositionInnerTolerance = Meters.of(0.05);
-        public static final Distance kTrenchAssistAlignPositionOuterTolerance = Meters.of(0.15);
-        public static final double kTrenchAssistAlignStrength = 0.8;
-        public static final double kTrenchAssistAlignInfluence = 0.2;
-        public static final Distance kTrenchAssistFrontProtrusionExtent = Inches.of(10.0);
+        public static final Distance TRENCH_ASSIST_PASS_POSITION_TOLERANCE = Meters.of(0.45);
+        public static final double TRENCH_ASSIST_APPROACH_INPUT_TO_TOLERANCE = 0.2;
+        public static final Distance TRENCH_ASSIST_ALIGN_POSITION_INNER_TOLERANCE = Meters.of(0.05);
+        public static final Distance TRENCH_ASSIST_ALIGN_POSITION_OUTER_TOLERANCE = Meters.of(0.15);
+        public static final double TRENCH_ASSIST_ALIGN_STRENGTH = 0.8;
+        public static final double TRENCH_ASSIST_ALGIN_INFLUENCE = 0.2;
+        public static final Distance TRENCH_ASSIST_FRONT_PROTRUSION_EXTENT = Inches.of(10.0);
 
         // drive mode constants
-        public static final Angle kPrimaryAutoBrakeReachedDesiredAngleTolerance = Degrees.of(5);
+        public static final Angle AUTO_BRAKE_REACHED_DESIRED_ANGLE_TOLERANCE = Degrees.of(5);
 
-        public static final double kPrimarySlowModeTranslationFactor = 0.25;
-        public static final double kPrimarySlowModeRotationFactor = 1;
+        public static final double SLOW_MODE_TRANSLATION_FACTOR = 0.25;
+        public static final double SLOW_MODE_ROTATION_FACTOR = 1;
 
-        public static final double kPrimaryIntakeRotationInputDeadzone = 0.2;
+        public static final double INTAKE_ROTATION_INPUT_DEADZONE = 0.2;
 
-        public static final double kPrimaryRadialModeDeadband = 0.2;
+        public static final double RADIAL_MODE_DEADBAND = 0.2;
 
-        public static final double kPrimaryAlignModeDeadband = 0.65;
-        public static final double kPrimaryAlignModeSpeedTranslationFactor = 0.2;
-        public static final double kPrimaryAlignModeSpeedRotationFactor = 0.1;
+        public static final double ALIGN_MODE_DEADBAND = 0.65;
+        public static final double ALIGN_MODE_SPEED_TRANSLATION_FACTOR = 0.2;
+        public static final double ALIGN_MODE_SPEED_ROTATION_FACTOR = 0.1;
     }
 
     public static class DrivetrainConstants {
 
-        public static final Distance kChassisSizeX = Inches.of(27.0);
-        public static final Distance kChassisSizeY = Inches.of(27.0);
+        public static final Distance CHASSIS_SIZE_X = Inches.of(27.0);
+        public static final Distance CHASSIS_SIZE_Y = Inches.of(27.0);
 
-        public static final Distance kBumperSizeX = Inches.of(35.0);
-        public static final Distance kBumperSizeY = Inches.of(35.0);
+        public static final Distance BUMPER_SIZE_X = Inches.of(35.0);
+        public static final Distance BUMPER_SIZE_Y = Inches.of(35.0);
 
-        public static final double kMaxTranslationSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
-        public static final double kMaxRotationSpeed = 2 * RotationsPerSecond.of(0.75).in(RadiansPerSecond);
+        public static final double MAX_TRANSLATION_SPEED = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
+        public static final double MAX_ROTATION_SPEED = 2 * RotationsPerSecond.of(0.75).in(RadiansPerSecond);
 
-        public static final double kPointKP = 5;
-        public static final double kPointKI = 0.0;
-        public static final double kPointKD = 0.0;
-        public static final double kPointFeedForward = 0.0;
+        public static final double POINT_P_GAIN = 5;
+        public static final double POINT_I_GAIN = 0.0;
+        public static final double POINT_D_GAIN = 0.0;
+        public static final double POINT_FEED_FORWARD = 0.0;
 
-        public static final double kAimKP = 9;
-        public static final double kAimKI = 0.1;
-        public static final double kAimKD = 0.0;
-        public static final double kAimFeedForward = 0.0;
+        public static final double AIM_P_GAIN = 9;
+        public static final double AIM_I_GAIN = 0.1;
+        public static final double AIM_D_GAIN = 0.0;
+        public static final double AIM_FEED_FORWARD = 0.0;
 
-        public static final Angle kAutoShootTolerance = Degrees.of(10);
-        public static final double kAutoShootInputMultiplier = 1;
+        public static final Angle AUTO_SHOOT_TOLERANCE = Degrees.of(10);
+        public static final double AUTO_SHOOT_INPUT_MULTIPLIER = 1;
 
-        public static final PhoenixPIDController autoShootRotationController = new PhoenixPIDController(
-            kAimKP,
-            kAimKI,
-            kAimKD
+        public static final PhoenixPIDController AUTO_SHOOT_ROTATION_CONTROLLER = new PhoenixPIDController(
+            AIM_P_GAIN,
+            AIM_I_GAIN,
+            AIM_D_GAIN
         );
 
         static {
-            autoShootRotationController.enableContinuousInput(-Math.PI, Math.PI);
+            AUTO_SHOOT_ROTATION_CONTROLLER.enableContinuousInput(-Math.PI, Math.PI);
         }
     }
 
@@ -311,68 +312,68 @@ public final class Constants {
         //Hood PID Values
 
         //Proportional (this might be too high and contributing to the osclillations)
-        public static final double kHoodP = 150;
+        public static final double HOOD_P_GAIN = 150;
         //Integral
-        public static final double kHoodI = 25;
+        public static final double HOOD_I_GAIN = 25;
         //Derivative
-        public static final double kHoodD = 0;
+        public static final double HOOD_D_GAIN = 0;
         //G - multiplied by cosine of the angle, so zero point should be when COM is perfectly horizontal
-        public static final double kHoodG = 0.03;
+        public static final double HOOD_G_GAIN = 0.03;
         //S - static friction (this might be a bit high could also be contributing to some of the oscillations)
-        public static final double kHoodS = 5;
+        public static final double HOOD_S_GAIN = 5;
 
         /** hood CAN ID */
-        public static final int HoodId = Robot.isReal() ? 8 : 38;
+        public static final int HOOD_MOTOR_ID = Robot.isReal() ? 8 : 38;
 
         // hood absolute encoder (WCP throughbore)
         /** Hood encoder CAN ID */
-        public static final int kHoodEncoderID = 2;
-        public static final Angle kEncoderOffset = Degrees.of(-227.8 - 6.8 - 0.7 - 6 - 0.65 - 0.3 - 0.4);
-        public static final double kSensorToMechanismRatio = 34 / 16;
+        public static final int HOOD_ENCODER_ID = 2;
+        public static final Angle ENCODER_OFFSET = Degrees.of(-227.8 - 6.8 - 0.7 - 6 - 0.65 - 0.3 - 0.4);
+        public static final double SENSOR_TO_MECHANISM_RATIO = 34 / 16;
         /** ratio from the motor to the sensor (WCP throughbore encoder) */
-        public static final double kMotorToSensorRatio = 125;
+        public static final double MOTOR_TO_SENSOR_RATIO = 125;
 
         //Motion Magic®
         //think of it as max velocity
-        public static final double kCruiseVelocity = 40;
+        public static final double CRUISE_VELOCITY = 40;
         //the maximum acceleration used to achieve cruising velocity
-        public static final double kAcceleration = 80;
+        public static final double ACCELERATION = 80;
         //maximum jerk (helps smooth the movement out more)
-        public static final double kJerk = 1600;
+        public static final double JERK = 1600;
 
         /** the angle between the center of the shooter and the very edge */
-        public static final Angle kHoodAngleOffset = Degrees.of(7.6743605);
+        public static final Angle HOOD_ANGLE_OFFSET = Degrees.of(7.6743605);
 
-        public static final Angle kRestingAngle = Degrees.of(-5.8019605);
+        public static final Angle RESTING_ANGLE = Degrees.of(-5.8019605);
 
         // hood cancoder
-        public static final CANcoderConfiguration canCoderConfig = new CANcoderConfiguration() {
+        public static final CANcoderConfiguration CAN_CODER_CONFIG = new CANcoderConfiguration() {
             {
                 MagnetSensor.withAbsoluteSensorDiscontinuityPoint(Rotations.of(0.5));
                 MagnetSensor.SensorDirection = SensorDirectionValue.Clockwise_Positive;
-                MagnetSensor.withMagnetOffset(ShooterConstants.kEncoderOffset);
+                MagnetSensor.withMagnetOffset(ShooterConstants.ENCODER_OFFSET);
             }
         };
 
         // motion magic
-        public static final MotionMagicConfigs kHoodMotionMagicConfig = new MotionMagicConfigs() {
+        public static final MotionMagicConfigs HOOD_MOTION_MAGIC_CONFIG = new MotionMagicConfigs() {
             {
-                MotionMagicCruiseVelocity = ShooterConstants.kCruiseVelocity; // Target cruise velocity of 80 rps
-                MotionMagicAcceleration = ShooterConstants.kAcceleration; // Target acceleration of 160 rps/s (0.5
+                MotionMagicCruiseVelocity = ShooterConstants.CRUISE_VELOCITY; // Target cruise velocity of 80 rps
+                MotionMagicAcceleration = ShooterConstants.ACCELERATION; // Target acceleration of 160 rps/s (0.5
                 // seconds)
-                MotionMagicJerk = ShooterConstants.kJerk; // Target jerk of 1600 rps/s/s (0.1 seconds)
+                MotionMagicJerk = ShooterConstants.JERK; // Target jerk of 1600 rps/s/s (0.1 seconds)
             }
         };
         // hood motor conifg
-        public static final TalonFXConfiguration hoodConfig = new TalonFXConfiguration() {
+        public static final TalonFXConfiguration HOOD_CONFIG = new TalonFXConfiguration() {
             {
-                Slot0.kP = ShooterConstants.kHoodP;
-                Slot0.kI = ShooterConstants.kHoodI;
-                Slot0.kD = ShooterConstants.kHoodD;
+                Slot0.kP = ShooterConstants.HOOD_P_GAIN;
+                Slot0.kI = ShooterConstants.HOOD_I_GAIN;
+                Slot0.kD = ShooterConstants.HOOD_D_GAIN;
                 // Slot0.kS = ShooterConstants.kHoodS;
                 // Slot0.kV = ShooterConstants.kHoodV;
                 // Slot0.kA = ShooterConstants.kHoodA;
-                Slot0.kG = ShooterConstants.kHoodG;
+                Slot0.kG = ShooterConstants.HOOD_G_GAIN;
                 Slot0.withGravityType(GravityTypeValue.Arm_Cosine);
                 MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
                 MotorOutput.NeutralMode = NeutralModeValue.Brake;
@@ -380,97 +381,97 @@ public final class Constants {
                 CurrentLimits.SupplyCurrentLimitEnable = true;
                 CurrentLimits.SupplyCurrentLimit = 20;
                 // abs encoder
-                Feedback.FeedbackRemoteSensorID = ShooterConstants.kHoodEncoderID;
+                Feedback.FeedbackRemoteSensorID = ShooterConstants.HOOD_ENCODER_ID;
                 Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
-                Feedback.SensorToMechanismRatio = ShooterConstants.kSensorToMechanismRatio;
-                Feedback.RotorToSensorRatio = ShooterConstants.kMotorToSensorRatio;
-                MotionMagic = kHoodMotionMagicConfig;
+                Feedback.SensorToMechanismRatio = ShooterConstants.SENSOR_TO_MECHANISM_RATIO;
+                Feedback.RotorToSensorRatio = ShooterConstants.MOTOR_TO_SENSOR_RATIO;
+                MotionMagic = HOOD_MOTION_MAGIC_CONFIG;
             }
         };
 
         // Shooter Motor Config and PID
         // public static final double kP = 35;
         // public static final double kI = 10;
-        public static final double kP = 7.5;
-        public static final double kI = 0;
-        public static final double kD = 0;
-        public static final double kS = 0;
+        public static final double P_GAIN = 7.5;
+        public static final double I_GAIN = 0;
+        public static final double D_GAIN = 0;
+        public static final double S_GAIN = 0;
         //remove if doesnt work
-        public static final double kV = 0.25;
-        public static final double kA = 2.14;
+        public static final double V_GAIN = 0.25;
+        public static final double A_GAIN = 2.14;
 
-        public static final double kCurrentLimit = 25;
-        public static final double kRampRate = 0.2;
+        public static final double CURRENT_LIMIT = 25;
+        public static final double RAMP_RATE = 0.2;
 
-        public static final int ShooterIDLeftBottom = 9;
-        public static final int ShooterIDLeftTop = 10;
-        public static final int ShooterIDRightTop = 12;
-        public static final int ShooterIDRightBottom = 11;
+        public static final int SHOOTER_LEFT_BOTTOM_MOTOR_ID = 9;
+        public static final int SHOOTER_LEFT_TOP_MOTOR_ID = 10;
+        public static final int SHOOTER_RIGHT_TOP_MOTOR_ID = 12;
+        public static final int SHOOTER_RIGHT_BOTTOM_MOTOR_ID = 11;
 
         // shooter motors config
-        public static final TalonFXConfiguration rightShooterMotorsConfig = new TalonFXConfiguration() {
+        public static final TalonFXConfiguration RIGHT_SHOOTER_MOTORS_CONFIG = new TalonFXConfiguration() {
             {
-                Slot0.kP = ShooterConstants.kP;
-                Slot0.kI = ShooterConstants.kI;
-                Slot0.kD = ShooterConstants.kD;
-                Slot0.kS = ShooterConstants.kS;
-                Slot0.kV = ShooterConstants.kV;
-                Slot0.kA = ShooterConstants.kA;
+                Slot0.kP = ShooterConstants.P_GAIN;
+                Slot0.kI = ShooterConstants.I_GAIN;
+                Slot0.kD = ShooterConstants.D_GAIN;
+                Slot0.kS = ShooterConstants.S_GAIN;
+                Slot0.kV = ShooterConstants.V_GAIN;
+                Slot0.kA = ShooterConstants.A_GAIN;
                 CurrentLimits.SupplyCurrentLimitEnable = true;
-                CurrentLimits.SupplyCurrentLimit = kCurrentLimit;
+                CurrentLimits.SupplyCurrentLimit = CURRENT_LIMIT;
                 MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
                 MotorOutput.NeutralMode = NeutralModeValue.Coast;
-                ClosedLoopRamps.VoltageClosedLoopRampPeriod = kRampRate;
+                ClosedLoopRamps.VoltageClosedLoopRampPeriod = RAMP_RATE;
             }
         };
 
-        public static final TalonFXConfiguration leftShooterMotorsConfig = new TalonFXConfiguration() {
+        public static final TalonFXConfiguration LEFT_SHOOTER_MOTORS_CONFIG = new TalonFXConfiguration() {
             {
-                Slot0.kP = ShooterConstants.kP;
-                Slot0.kI = ShooterConstants.kI;
-                Slot0.kD = ShooterConstants.kD;
-                Slot0.kS = ShooterConstants.kS;
-                Slot0.kV = ShooterConstants.kV;
-                Slot0.kA = ShooterConstants.kA;
+                Slot0.kP = ShooterConstants.P_GAIN;
+                Slot0.kI = ShooterConstants.I_GAIN;
+                Slot0.kD = ShooterConstants.D_GAIN;
+                Slot0.kS = ShooterConstants.S_GAIN;
+                Slot0.kV = ShooterConstants.V_GAIN;
+                Slot0.kA = ShooterConstants.A_GAIN;
                 CurrentLimits.SupplyCurrentLimitEnable = true;
-                CurrentLimits.SupplyCurrentLimit = kCurrentLimit;
+                CurrentLimits.SupplyCurrentLimit = CURRENT_LIMIT;
                 MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
                 MotorOutput.NeutralMode = NeutralModeValue.Coast;
-                ClosedLoopRamps.VoltageClosedLoopRampPeriod = kRampRate;
+                ClosedLoopRamps.VoltageClosedLoopRampPeriod = RAMP_RATE;
             }
         };
 
-        public static final AngularVelocity shooterAngularVelocity = RPM.of(2000);
-        public static final AngularVelocity lobAngularVelocity = RPM.of(2000);
-        public static final AngularVelocity restingAngularVelocity = RPM.of(1000);
-        public static final AngularVelocity hubAngularVelocity = RPM.of(2500);
-        public static final AngularVelocity towerAngularVelocity = RPM.of(3000);
+        public static final AngularVelocity SHOOTER_ANGULAR_VELOCITY = RPM.of(2000);
+        public static final AngularVelocity LOB_ANGULAR_VELOCITY = RPM.of(2000);
+        public static final AngularVelocity RESTING_ANGULAR_VELOCITY = RPM.of(1000);
+        public static final AngularVelocity HUB_ANGULAR_VELOCITY = RPM.of(2500);
+        public static final AngularVelocity TOWER_ANGULAR_VELOCITY = RPM.of(3000);
 
-        public static final Angle hubHoodPitch = Degrees.of(75);
-        public static final Angle towerHoodPitch = Degrees.of(70);
+        public static final Angle HUB_HOOD_PITCH = Degrees.of(75);
+        public static final Angle TOWER_HOOD_PITCH = Degrees.of(70);
 
-        public static final double backwardsTime = 0.05;
+        public static final double BACKWARDS_TIME = 0.05;
 
         // Old equation stuff
         /** units: m/s */
-        public static final double launchVelocity = Units.feetToMeters(29); // convert from ft/s to m/s
-        public static final double ratio = 1;
-        public static final double shootHeight = Units.inchesToMeters(40);
+        public static final double LAUNCH_VELOCITY = Units.feetToMeters(29); // convert from ft/s to m/s
+        public static final double RATIO = 1;
+        public static final double SHOOTER_HEIGHT = Units.inchesToMeters(40);
 
-        public static AngularVelocity kShooterVelocityTolerance = RPM.of(100);
-        public static Angle maxPitch = Degrees.of(85);
+        public static AngularVelocity SHOOTER_VELOCITY_TOLERANCE = RPM.of(100);
+        public static Angle MAX_PITCH = Degrees.of(85);
 
-        public static final Distance kShooterWheelRadius = Inches.of(2);
-        public static final Distance kShooterRollerRadius = Inches.of(0.75);
+        public static final Distance SHOOTER_WHEEL_RADIUS = Inches.of(2);
+        public static final Distance SHOOTER_ROLLER_RADIUS = Inches.of(0.75);
 
-        public static final double kMotorToWheelRatio = 1;
-        public static final double kMotorToRollerRatio = 1.167;
+        public static final double MOTOR_TO_WHEEL_RATIO = 1;
+        public static final double MOTOR_TO_ROLLER_RATIO = 1.167;
 
-        public static final double kShooterEfficiency = 0.80;
+        public static final double SHOOTER_EFFICIENCY = 0.80;
 
         // robot relative shooter offset
         // TODO implement in the calculation
-        public static final Transform2d shooterOffset = new Transform2d(0, 0, new Rotation2d());
+        public static final Transform2d SHOOTER_OFFSET = new Transform2d(0, 0, new Rotation2d());
 
         public static enum AutoShootStatus {
             SHOOT(LEDConstants.LEDStatus.GREEN_BLINK),
@@ -488,16 +489,16 @@ public final class Constants {
     public static class PhotonVisionConstants {
 
         // TODO: tune stddev values
-        public static final Matrix<N3, N1> kSingleTagStdDevs = VecBuilder.fill(1, 1, 4);
-        public static final Matrix<N3, N1> kMultiTagStdDevs = VecBuilder.fill(0.25, 0.25, 1);
+        public static final Matrix<N3, N1> SINGLE_TAG_STD_DEVS = VecBuilder.fill(1, 1, 4);
+        public static final Matrix<N3, N1> MULTI_TAG_STD_DEVS = VecBuilder.fill(0.25, 0.25, 1);
 
-        public static final Transform3d leftShooterCamTransform = new Transform3d(
+        public static final Transform3d LEFT_SHOOTER_CAM_TRANSFORM = new Transform3d(
             Units.inchesToMeters(-1.2887),
             Units.inchesToMeters(8.8466),
             Units.inchesToMeters(21.1190),
             new Rotation3d(0, Units.degreesToRadians(-30), Units.degreesToRadians(-5))
         );
-        public static final Transform3d rightShooterCamTransform = new Transform3d(
+        public static final Transform3d RIGHT_SHOOTER_CAM_TRANSFORM = new Transform3d(
             Units.inchesToMeters(-1.2887),
             Units.inchesToMeters(-8.8466),
             Units.inchesToMeters(21.1190),
@@ -507,28 +508,28 @@ public final class Constants {
 
     public static class FieldConstants {
 
-        public static final Map<DriverStation.Alliance, Pose2d> hubLocations = Map.of(
+        public static final Map<DriverStation.Alliance, Pose2d> HUB_LOCATIONS = Map.of(
             Alliance.Blue,
             new Pose2d(Units.inchesToMeters(182.11), Units.inchesToMeters(158.84), new Rotation2d()),
             Alliance.Red,
             new Pose2d(Units.inchesToMeters(651.22 - 182.11), Units.inchesToMeters(158.84), new Rotation2d())
         );
 
-        public static final Set<Pose2d> blueLobPositions = Set.of(
+        public static final Set<Pose2d> HUB_LOB_POSITIONS = Set.of(
             new Pose2d(2.5, 2.1, new Rotation2d()),
             new Pose2d(2.5, 5.6, new Rotation2d())
         );
 
-        public static final Set<Pose2d> redLobPositions = Set.of(
+        public static final Set<Pose2d> RED_LOB_POSITIONS = Set.of(
             new Pose2d(14.1, 2.1, new Rotation2d()),
             new Pose2d(14.1, 5.6, new Rotation2d())
         );
 
-        public static final Map<DriverStation.Alliance, Set<Pose2d>> lobLocations = Map.of(
+        public static final Map<DriverStation.Alliance, Set<Pose2d>> LOB_LOCATIONS = Map.of(
             Alliance.Blue,
-            blueLobPositions,
+            HUB_LOB_POSITIONS,
             Alliance.Red,
-            redLobPositions
+            RED_LOB_POSITIONS
         );
 
         public static enum TrenchZone {
@@ -545,63 +546,63 @@ public final class Constants {
             }
         }
 
-        public static Distance kFieldWidth = Inches.of(651.22);
-        public static Distance kFieldHeight = Inches.of(317.69);
+        public static Distance FIELD_WIDTH = Inches.of(651.22);
+        public static Distance FIELD_HEIGHT = Inches.of(317.69);
 
-        public static Distance kAllianceWidth = Inches.of(156.61);
-        public static Distance kAllianceHeight = kFieldHeight;
+        public static Distance ALLIANCE_WIDTH = Inches.of(156.61);
+        public static Distance ALLIANCE_HEIGHT = FIELD_HEIGHT;
 
-        public static Distance kTrenchX = Inches.of(182.11);
-        public static Distance kTrenchZoneWidth = Inches.of(140.0);
-        public static Distance kTrenchZoneHeight = Inches.of(49.96);
+        public static Distance TRENCH_X = Inches.of(182.11);
+        public static Distance TRENCH_ZONE_WIDTH = Inches.of(140.0);
+        public static Distance TRENCH_ZONE_HEIGHT = Inches.of(49.96);
 
-        public static Distance kTowerX = Inches.of(41.755);
-        public static Distance kTowerY = Inches.of(147.47);
-        public static Distance kTowerWidth = Inches.of(35.2);
+        public static Distance TOWER_X = Inches.of(41.755);
+        public static Distance TOWER_Y = Inches.of(147.47);
+        public static Distance TOWER_WIDTH = Inches.of(35.2);
 
-        public static Distance kTrenchZoneYBuffer = DrivetrainConstants.kBumperSizeY.div(4);
+        public static Distance TRENCH_ZONE_Y_BUFFER = DrivetrainConstants.BUMPER_SIZE_Y.div(4);
 
         public static enum FieldZone {
             FIELD(
-                new Translation2d(kFieldWidth.div(2), kFieldHeight.div(2)),
-                new Translation2d(kFieldWidth, kFieldHeight)
+                new Translation2d(FIELD_WIDTH.div(2), FIELD_HEIGHT.div(2)),
+                new Translation2d(FIELD_WIDTH, FIELD_HEIGHT)
             ),
             TRENCH_BLUE_LEFT(
                 new Translation2d(
-                    kTrenchX,
-                    kFieldHeight.minus(kTrenchZoneHeight.div(2)).minus(kTrenchZoneYBuffer.div(2))
+                    TRENCH_X,
+                    FIELD_HEIGHT.minus(TRENCH_ZONE_HEIGHT.div(2)).minus(TRENCH_ZONE_Y_BUFFER.div(2))
                 ),
-                new Translation2d(kTrenchX, kFieldHeight.minus(kTrenchZoneHeight.div(2))),
-                new Translation2d(kTrenchZoneWidth, kTrenchZoneHeight.plus(kTrenchZoneYBuffer))
+                new Translation2d(TRENCH_X, FIELD_HEIGHT.minus(TRENCH_ZONE_HEIGHT.div(2))),
+                new Translation2d(TRENCH_ZONE_WIDTH, TRENCH_ZONE_HEIGHT.plus(TRENCH_ZONE_Y_BUFFER))
             ),
             TRENCH_BLUE_RIGHT(
-                new Translation2d(kTrenchX, kTrenchZoneHeight.div(2).plus(kTrenchZoneYBuffer.div(2))),
-                new Translation2d(kTrenchX, kTrenchZoneHeight.div(2)),
-                new Translation2d(kTrenchZoneWidth, kTrenchZoneHeight.plus(kTrenchZoneYBuffer))
+                new Translation2d(TRENCH_X, TRENCH_ZONE_HEIGHT.div(2).plus(TRENCH_ZONE_Y_BUFFER.div(2))),
+                new Translation2d(TRENCH_X, TRENCH_ZONE_HEIGHT.div(2)),
+                new Translation2d(TRENCH_ZONE_WIDTH, TRENCH_ZONE_HEIGHT.plus(TRENCH_ZONE_Y_BUFFER))
             ),
             TRENCH_RED_LEFT(
                 new Translation2d(
-                    kFieldWidth.minus(kTrenchX),
-                    kTrenchZoneHeight.div(2).plus(kTrenchZoneYBuffer.div(2))
+                    FIELD_WIDTH.minus(TRENCH_X),
+                    TRENCH_ZONE_HEIGHT.div(2).plus(TRENCH_ZONE_Y_BUFFER.div(2))
                 ),
-                new Translation2d(kFieldWidth.minus(kTrenchX), kTrenchZoneHeight.div(2)),
-                new Translation2d(kTrenchZoneWidth, kTrenchZoneHeight.plus(kTrenchZoneYBuffer))
+                new Translation2d(FIELD_WIDTH.minus(TRENCH_X), TRENCH_ZONE_HEIGHT.div(2)),
+                new Translation2d(TRENCH_ZONE_WIDTH, TRENCH_ZONE_HEIGHT.plus(TRENCH_ZONE_Y_BUFFER))
             ),
             TRENCH_RED_RIGHT(
                 new Translation2d(
-                    kFieldWidth.minus(kTrenchX),
-                    kFieldHeight.minus(kTrenchZoneHeight.div(2)).minus(kTrenchZoneYBuffer.div(2))
+                    FIELD_WIDTH.minus(TRENCH_X),
+                    FIELD_HEIGHT.minus(TRENCH_ZONE_HEIGHT.div(2)).minus(TRENCH_ZONE_Y_BUFFER.div(2))
                 ),
-                new Translation2d(kFieldWidth.minus(kTrenchX), kFieldHeight.minus(kTrenchZoneHeight.div(2))),
-                new Translation2d(kTrenchZoneWidth, kTrenchZoneHeight.plus(kTrenchZoneYBuffer))
+                new Translation2d(FIELD_WIDTH.minus(TRENCH_X), FIELD_HEIGHT.minus(TRENCH_ZONE_HEIGHT.div(2))),
+                new Translation2d(TRENCH_ZONE_WIDTH, TRENCH_ZONE_HEIGHT.plus(TRENCH_ZONE_Y_BUFFER))
             );
 
-            public final Translation2d center, focus, size;
+            public final Translation2d CENTER, FOCUS, SIZE;
 
             private FieldZone(Translation2d center, Translation2d focus, Translation2d size) {
-                this.center = center;
-                this.focus = focus;
-                this.size = size;
+                this.CENTER = center;
+                this.FOCUS = focus;
+                this.SIZE = size;
             }
 
             private FieldZone(Translation2d center, Translation2d size) {
@@ -609,7 +610,7 @@ public final class Constants {
             }
         }
 
-        public static final FieldZone[] kTrenchZones = new FieldZone[] {
+        public static final FieldZone[] TRENCH_ZONES = new FieldZone[] {
             FieldZone.TRENCH_BLUE_LEFT,
             FieldZone.TRENCH_BLUE_RIGHT,
             FieldZone.TRENCH_RED_LEFT,
@@ -617,29 +618,29 @@ public final class Constants {
         };
 
         /** Units:m/s^2 */
-        public static final double g = 9.80;
+        public static final double G = 9.80;
 
-        public static final double hubZ = Units.inchesToMeters(56.4);
+        public static final double HUB_Z = Units.inchesToMeters(56.4);
     }
 
     public static class AutoConstants {
 
         /** units: seconds */
-        public static final double ShootTime = 4;
+        public static final double SHOOT_TIME = 4;
 
-        public static final APConstraints kAutopilotConstraints = new APConstraints()
+        public static final APConstraints AUTOPILOT_CONSTRAINTS = new APConstraints()
             .withAcceleration(7.0)
             .withJerk(3.5);
-        public static final APProfile kAutopilotAlignProfile = new APProfile(kAutopilotConstraints)
+        public static final APProfile AUTOPILOT_ALIGN_PROFILE = new APProfile(AUTOPILOT_CONSTRAINTS)
             .withErrorXY(Centimeters.of(2.0))
             .withErrorTheta(Degrees.of(1))
             .withBeelineRadius(Centimeters.of(5.0));
-        public static final Autopilot kAutopilotAlignController = new Autopilot(kAutopilotAlignProfile);
-        public static final APProfile kAutopilotCruiseProfile = new APProfile(kAutopilotConstraints)
+        public static final Autopilot AUTOPILOT_ALIGN_CONTROLELR = new Autopilot(AUTOPILOT_ALIGN_PROFILE);
+        public static final APProfile AUTOPILOT_CRUISE_PROFILE = new APProfile(AUTOPILOT_CONSTRAINTS)
             .withErrorXY(Centimeters.of(20.0))
             .withErrorTheta(Degrees.of(15.0))
             .withBeelineRadius(Centimeters.of(25.0));
-        public static final Autopilot kAutopilotCruiseController = new Autopilot(kAutopilotCruiseProfile);
+        public static final Autopilot AUTOPILOT_CRUISE_CONTROLLER = new Autopilot(AUTOPILOT_CRUISE_PROFILE);
     }
 
     public static class AlignConstants {
@@ -648,10 +649,10 @@ public final class Constants {
             LEFT(
                 new APTarget(
                     new Pose2d(
-                        FieldConstants.kTowerX,
-                        FieldConstants.kTowerY
-                            .plus(FieldConstants.kTowerWidth.div(2))
-                            .plus(DrivetrainConstants.kBumperSizeX.div(2)),
+                        FieldConstants.TOWER_X,
+                        FieldConstants.TOWER_Y
+                            .plus(FieldConstants.TOWER_WIDTH.div(2))
+                            .plus(DrivetrainConstants.BUMPER_SIZE_X.div(2)),
                         Rotation2d.kZero
                     )
                 )
@@ -661,10 +662,10 @@ public final class Constants {
             RIGHT(
                 new APTarget(
                     new Pose2d(
-                        FieldConstants.kTowerX,
-                        FieldConstants.kTowerY
-                            .minus(FieldConstants.kTowerWidth.div(2))
-                            .minus(DrivetrainConstants.kBumperSizeX.div(2)),
+                        FieldConstants.TOWER_X,
+                        FieldConstants.TOWER_Y
+                            .minus(FieldConstants.TOWER_WIDTH.div(2))
+                            .minus(DrivetrainConstants.BUMPER_SIZE_X.div(2)),
                         Rotation2d.k180deg
                     )
                 )
@@ -674,28 +675,28 @@ public final class Constants {
             MIDDLE_FRONT(
                 new APTarget(
                     new Pose2d(
-                        FieldConstants.kTowerX.plus(DrivetrainConstants.kBumperSizeX.div(2)).plus(Inches.of(6)),
-                        FieldConstants.kTowerY,
+                        FieldConstants.TOWER_X.plus(DrivetrainConstants.BUMPER_SIZE_X.div(2)).plus(Inches.of(6)),
+                        FieldConstants.TOWER_Y,
                         Rotation2d.k180deg
                     )
                 )
                     .withVelocity(0)
                     .withoutEntryAngle(),
-                new APTarget(new Pose2d(FieldConstants.kTowerX, FieldConstants.kTowerY, Rotation2d.k180deg))
+                new APTarget(new Pose2d(FieldConstants.TOWER_X, FieldConstants.TOWER_Y, Rotation2d.k180deg))
                     .withVelocity(0)
                     .withoutEntryAngle()
             ),
             MIDDLE_BACK(
                 new APTarget(
                     new Pose2d(
-                        FieldConstants.kTowerX.minus(DrivetrainConstants.kBumperSizeX.div(2)).minus(Inches.of(6)),
-                        FieldConstants.kTowerY,
+                        FieldConstants.TOWER_X.minus(DrivetrainConstants.BUMPER_SIZE_X.div(2)).minus(Inches.of(6)),
+                        FieldConstants.TOWER_Y,
                         Rotation2d.kZero
                     )
                 )
                     .withVelocity(0)
                     .withoutEntryAngle(),
-                new APTarget(new Pose2d(FieldConstants.kTowerX, FieldConstants.kTowerY, Rotation2d.kZero))
+                new APTarget(new Pose2d(FieldConstants.TOWER_X, FieldConstants.TOWER_Y, Rotation2d.kZero))
                     .withVelocity(0)
                     .withoutEntryAngle()
             );
@@ -710,11 +711,11 @@ public final class Constants {
 
     public static final class LEDConstants {
 
-        private static final Distance ledSpacing = Meters.of(1.0 / 120.0);
+        private static final Distance LED_SPACING = Meters.of(1.0 / 120.0);
 
         public static enum LEDStatus {
             RAINBOW(LEDPattern.rainbow(255, 64)),
-            RAINBOW_SCROLL(RAINBOW.pattern.scrollAtAbsoluteSpeed(MetersPerSecond.of(1), ledSpacing)),
+            RAINBOW_SCROLL(RAINBOW.pattern.scrollAtAbsoluteSpeed(MetersPerSecond.of(1), LED_SPACING)),
 
             RED_SOLID(LEDPattern.solid(Color.kRed)),
             YELLOW_SOLID(LEDPattern.solid(Color.kYellow)),
@@ -747,12 +748,12 @@ public final class Constants {
          * multiplied by the distance from the hub (higher distance needs more
          * correction)
          */
-        public static final double kShooterDistanceVelocityCorrection = 0.01;
+        public static final double SHOOTER_DISTANCE_VELOCITY_CORRECTION = 0.01;
 
-        public static final Distance kMaxDistance = Meters.of(4.5);
+        public static final Distance MAX_DISTANCE = Meters.of(4.5);
 
         // stores desired motor angular velocity and shooter efficiency based on position
-        public static final Map<Distance, LookupTablePoint> joeLookupTable = Map.ofEntries(
+        public static final Map<Distance, LookupTablePoint> JOE_LOOKUP_TABLE = Map.ofEntries(
             //non-continuous feeding
             // Map.entry(Meters.of(1),   new LookupTablePoint(RPM.of(2000), 0.93)),
             // Map.entry(Meters.of(1.5), new LookupTablePoint(RPM.of(2100), 0.92)),

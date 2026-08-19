@@ -31,13 +31,13 @@ public class Intake extends SubsystemBase {
     // private final VelocityVoltage intakeVelocityVoltage;
 
     public Intake() {
-        locationMotor = new TalonFX(IntakeConstants.kAngleId);
-        spinMotor = new TalonFX(IntakeConstants.kIntakeSpinId);
-        canCoder = new CANcoder(IntakeConstants.kAngleEncoderId);
+        locationMotor = new TalonFX(IntakeConstants.INTAKE_ANGLE_MOTOR_ID);
+        spinMotor = new TalonFX(IntakeConstants.INTAKE_SPIN_MOTOR_ID);
+        canCoder = new CANcoder(IntakeConstants.ANGLE_ENCODER_ID);
 
-        canCoder.getConfigurator().apply(IntakeConstants.canCoderConfig);
-        locationMotor.getConfigurator().apply(IntakeConstants.angleConfig);
-        setMotionMagic(IntakeConstants.kFastMotionMagicConfig);
+        canCoder.getConfigurator().apply(IntakeConstants.CAN_CODER_CONFIG);
+        locationMotor.getConfigurator().apply(IntakeConstants.ANGLE_CONFIG);
+        setMotionMagic(IntakeConstants.FAST_MOTION_MAGIC_CONFIG);
 
         intakeMotionMagicVoltage = new MotionMagicVoltage(0);
         setLocation(IntakeState.DOWN_OFF.rotationLocation);
@@ -52,7 +52,7 @@ public class Intake extends SubsystemBase {
     }
 
     public void setMotionMagic(MotionMagicConfigs motionMagicConfigs) {
-        locationMotor.getConfigurator().apply(IntakeConstants.angleConfig.withMotionMagic(motionMagicConfigs));
+        locationMotor.getConfigurator().apply(IntakeConstants.ANGLE_CONFIG.withMotionMagic(motionMagicConfigs));
     }
 
     public void setSpinSpeed(double speed) {
@@ -112,13 +112,13 @@ public class Intake extends SubsystemBase {
 
         @Override
         public void initialize() {
-            setMotionMagic(IntakeConstants.kSlowMotionMagicConfig);
+            setMotionMagic(IntakeConstants.SLOW_MOTION_MAGIC_CONFIG);
             setLocation(IntakeState.UP_OFF.rotationLocation);
         }
 
         @Override
         public void end(boolean interrupted) {
-            setMotionMagic(IntakeConstants.kFastMotionMagicConfig);
+            setMotionMagic(IntakeConstants.FAST_MOTION_MAGIC_CONFIG);
         }
     }
 

@@ -51,13 +51,13 @@ public class Shooter extends SubsystemBase {
 
     public Shooter() {
         //initialize motors and CANCoder using the CANIDs in constants
-        hoodMotor = new TalonFX(ShooterConstants.HoodId);
-        hoodCanCoder = new CANcoder(ShooterConstants.kHoodEncoderID);
-        feederMotor = new TalonFX(FeederConstants.FeederID);
-        leftBottomShooterMotor = new TalonFX(ShooterConstants.ShooterIDLeftBottom);
-        leftTopShooterMotor = new TalonFX(ShooterConstants.ShooterIDLeftTop);
-        rightTopShooterMotor = new TalonFX(ShooterConstants.ShooterIDRightTop);
-        rightBottomShooterMotor = new TalonFX(ShooterConstants.ShooterIDRightBottom);
+        hoodMotor = new TalonFX(ShooterConstants.HOOD_MOTOR_ID);
+        hoodCanCoder = new CANcoder(ShooterConstants.HOOD_ENCODER_ID);
+        feederMotor = new TalonFX(FeederConstants.FEEDER_MOTOR_ID);
+        leftBottomShooterMotor = new TalonFX(ShooterConstants.SHOOTER_LEFT_BOTTOM_MOTOR_ID);
+        leftTopShooterMotor = new TalonFX(ShooterConstants.SHOOTER_LEFT_TOP_MOTOR_ID);
+        rightTopShooterMotor = new TalonFX(ShooterConstants.SHOOTER_RIGHT_TOP_MOTOR_ID);
+        rightBottomShooterMotor = new TalonFX(ShooterConstants.SHOOTER_RIGHT_BOTTOM_MOTOR_ID);
 
         //leaderShooterMotor = leftBottomShooterMotor;
 
@@ -70,12 +70,12 @@ public class Shooter extends SubsystemBase {
             .apply(new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive));
 
         //apply the configs
-        hoodCanCoder.getConfigurator().apply(ShooterConstants.canCoderConfig);
-        hoodMotor.getConfigurator().apply(ShooterConstants.hoodConfig);
-        leftBottomShooterMotor.getConfigurator().apply(ShooterConstants.leftShooterMotorsConfig);
-        leftTopShooterMotor.getConfigurator().apply(ShooterConstants.leftShooterMotorsConfig);
-        rightTopShooterMotor.getConfigurator().apply(ShooterConstants.rightShooterMotorsConfig);
-        rightBottomShooterMotor.getConfigurator().apply(ShooterConstants.rightShooterMotorsConfig);
+        hoodCanCoder.getConfigurator().apply(ShooterConstants.CAN_CODER_CONFIG);
+        hoodMotor.getConfigurator().apply(ShooterConstants.HOOD_CONFIG);
+        leftBottomShooterMotor.getConfigurator().apply(ShooterConstants.LEFT_SHOOTER_MOTORS_CONFIG);
+        leftTopShooterMotor.getConfigurator().apply(ShooterConstants.LEFT_SHOOTER_MOTORS_CONFIG);
+        rightTopShooterMotor.getConfigurator().apply(ShooterConstants.RIGHT_SHOOTER_MOTORS_CONFIG);
+        rightBottomShooterMotor.getConfigurator().apply(ShooterConstants.RIGHT_SHOOTER_MOTORS_CONFIG);
 
         //the feeder motor does not need much of a config so it just has its current limit config created and applied here
         CurrentLimitsConfigs currentLimits = new CurrentLimitsConfigs()
@@ -91,7 +91,7 @@ public class Shooter extends SubsystemBase {
         //when making commands for the shooter the hood should always be set back to resting position when done so the robot can go under the trench
         restHood();
         //set speed of the shooter wheels ot the resting velocity (makes it take less time to spin up and shoot, didn't cause any brownouts at Contra Costa but could use some more testing)
-        this.setSpeed(Constants.ShooterConstants.restingAngularVelocity);
+        this.setSpeed(Constants.ShooterConstants.RESTING_ANGULAR_VELOCITY);
 
         // leftTopShooterMotor.setControl(new StrictFollower(leaderShooterMotor.getDeviceID()));
         // rightTopShooterMotor.setControl(new StrictFollower(leaderShooterMotor.getDeviceID()));
@@ -122,14 +122,14 @@ public class Shooter extends SubsystemBase {
     public double getFuelSpeed() {
         double motorOmega = getShooterMotorVelocity().in(RadiansPerSecond);
 
-        double shooterOmega = motorOmega * ShooterConstants.ratio;
+        double shooterOmega = motorOmega * ShooterConstants.RATIO;
 
         double wheelTangentialSpeed =
-            shooterOmega * ShooterConstants.kShooterWheelRadius.in(Meters) * ShooterConstants.kMotorToWheelRatio;
+            shooterOmega * ShooterConstants.SHOOTER_WHEEL_RADIUS.in(Meters) * ShooterConstants.MOTOR_TO_WHEEL_RATIO;
         double rollerTangentialSpeed =
-            shooterOmega * ShooterConstants.kShooterRollerRadius.in(Meters) * ShooterConstants.kMotorToRollerRatio;
+            shooterOmega * ShooterConstants.SHOOTER_ROLLER_RADIUS.in(Meters) * ShooterConstants.MOTOR_TO_ROLLER_RATIO;
 
-        return (ShooterConstants.kShooterEfficiency * (wheelTangentialSpeed + rollerTangentialSpeed)) / 2;
+        return (ShooterConstants.SHOOTER_EFFICIENCY * (wheelTangentialSpeed + rollerTangentialSpeed)) / 2;
     }
 
     // /** @return the estimated initial speed of the ball after being shot from the shooter in m/s*/
@@ -162,7 +162,7 @@ public class Shooter extends SubsystemBase {
                 .getClosedLoopReference()
                 .isNear(
                     getShooterMotorVelocity().in(RotationsPerSecond),
-                    ShooterConstants.kShooterVelocityTolerance.in(RotationsPerSecond)
+                    ShooterConstants.SHOOTER_VELOCITY_TOLERANCE.in(RotationsPerSecond)
                 )
         );
     }
@@ -218,7 +218,7 @@ public class Shooter extends SubsystemBase {
 
     /** sets the desired angle of the hood to the resting angle(fits under the trench) */
     public void restHood() {
-        adjustHood(ShooterConstants.kRestingAngle);
+        adjustHood(ShooterConstants.RESTING_ANGLE);
     }
 
     /** @param trajectoryAngle the desired launch angle of the fuel
@@ -227,7 +227,7 @@ public class Shooter extends SubsystemBase {
     public void adjustTrajectoryAngle(Angle trajectoryAngle) {
         //adjusthood is in terms of shooter angle where the angle of the shooter COM with respect to the horizontal is 0, to get this from trajectory angle must get the complement of the trajectory angle
         //subtract the hood offset which is the angle between the hood COM and the final hood roller
-        adjustHood(Degrees.of(90).minus(trajectoryAngle).minus(ShooterConstants.kHoodAngleOffset));
+        adjustHood(Degrees.of(90).minus(trajectoryAngle).minus(ShooterConstants.HOOD_ANGLE_OFFSET));
     }
 
     /** @param adjustment how much to adjust by in degrees */

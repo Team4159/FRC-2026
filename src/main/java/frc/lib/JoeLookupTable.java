@@ -23,7 +23,7 @@ public class JoeLookupTable {
         Distance secondBestFitDistance = Inches.of(Double.MAX_VALUE);
 
         //get keys from the lookup table (A Java Map)
-        Set<Distance> keys = JoeLookupTableConstants.joeLookupTable.keySet();
+        Set<Distance> keys = JoeLookupTableConstants.JOE_LOOKUP_TABLE.keySet();
 
         //loop through each key
         for (Distance currentDistance : keys) {
@@ -41,8 +41,8 @@ public class JoeLookupTable {
         }
         //get avs and efficiencies as doubles from 2 closest points
         //AV means angular velocity btw
-        LookupTablePoint bestFitPoint = JoeLookupTableConstants.joeLookupTable.get(bestFitDistance);
-        LookupTablePoint secondBestFitPoint = JoeLookupTableConstants.joeLookupTable.get(secondBestFitDistance);
+        LookupTablePoint bestFitPoint = JoeLookupTableConstants.JOE_LOOKUP_TABLE.get(bestFitDistance);
+        LookupTablePoint secondBestFitPoint = JoeLookupTableConstants.JOE_LOOKUP_TABLE.get(secondBestFitDistance);
         double bestFitAV = bestFitPoint.angularVelocity().in(RPM);
         double secondBestFitAV = secondBestFitPoint.angularVelocity().in(RPM);
         double bestFitEfficiency = bestFitPoint.efficiency();

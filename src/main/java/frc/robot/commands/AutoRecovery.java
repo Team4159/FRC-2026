@@ -49,14 +49,14 @@ public class AutoRecovery extends Command {
 
     private record PathTarget(APTarget target, Autopilot controller) {
         public PathTarget(APTarget target) {
-            this(target, AutoConstants.kAutopilotCruiseController);
+            this(target, AutoConstants.AUTOPILOT_CRUISE_CONTROLLER);
         }
     }
 
     private static final double kUnbeachTurnSpeed = 45.0;
-    private static final double kUnbeachTranslationSpeed = DrivetrainConstants.kMaxTranslationSpeed / 2.0;
+    private static final double kUnbeachTranslationSpeed = DrivetrainConstants.MAX_TRANSLATION_SPEED / 2.0;
     private static final Distance kTrenchEntryDistance = Inches.of(60.0);
-    private static final double kIntakeTranslationSpeed = DrivetrainConstants.kMaxTranslationSpeed * 0.33;
+    private static final double kIntakeTranslationSpeed = DrivetrainConstants.MAX_TRANSLATION_SPEED * 0.33;
 
     private final Drivetrain drivetrain;
     private final Shooter shooter;
@@ -182,7 +182,7 @@ public class AutoRecovery extends Command {
             pathTargets[pathProgress].target
         );
         Rotation2d targetDirection =
-            pathController == AutoConstants.kAutopilotAlignController
+            pathController == AutoConstants.AUTOPILOT_ALIGN_CONTROLELR
                 ? result.targetAngle()
                 : new Rotation2d(result.vx().baseUnitMagnitude(), result.vy().baseUnitMagnitude());
         drivetrain.setControl(
@@ -228,7 +228,7 @@ public class AutoRecovery extends Command {
                 new APTarget(
                     new Pose2d(TrenchZone.BLUE_RIGHT.x.plus(kTrenchEntryDistance), Inches.of(40.0), Rotation2d.kZero)
                 ),
-                AutoConstants.kAutopilotCruiseController
+                AutoConstants.AUTOPILOT_CRUISE_CONTROLLER
             )
         );
         newPathTargets.add(
@@ -240,7 +240,7 @@ public class AutoRecovery extends Command {
                         Rotation2d.k180deg
                     )
                 ),
-                AutoConstants.kAutopilotAlignController
+                AutoConstants.AUTOPILOT_ALIGN_CONTROLELR
             )
         );
         newPathTargets.add(
@@ -252,7 +252,7 @@ public class AutoRecovery extends Command {
                         Rotation2d.k180deg
                     )
                 ),
-                AutoConstants.kAutopilotAlignController
+                AutoConstants.AUTOPILOT_ALIGN_CONTROLELR
             )
         );
 
@@ -277,7 +277,7 @@ public class AutoRecovery extends Command {
         newPathTargets.add(
             new PathTarget(
                 new APTarget(new Pose2d(finalTranslation, Rotation2d.k180deg)),
-                AutoConstants.kAutopilotAlignController
+                AutoConstants.AUTOPILOT_ALIGN_CONTROLELR
             )
         );
 
@@ -292,12 +292,12 @@ public class AutoRecovery extends Command {
 
     private boolean atTarget(APTarget target) {
         Pose2d pose = drivetrain.getState().Pose;
-        if (pathController == AutoConstants.kAutopilotCruiseController) {
+        if (pathController == AutoConstants.AUTOPILOT_CRUISE_CONTROLLER) {
             double distance = Math.hypot(
                 pose.getX() - target.getReference().getX(),
                 pose.getY() - target.getReference().getY()
             );
-            double allowedError = AutoConstants.kAutopilotCruiseProfile.getErrorXY().baseUnitMagnitude();
+            double allowedError = AutoConstants.AUTOPILOT_CRUISE_PROFILE.getErrorXY().baseUnitMagnitude();
             return distance <= allowedError;
         }
         return pathController.atTarget(pose, target);

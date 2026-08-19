@@ -58,20 +58,20 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         new SwerveRequest.FieldCentricFacingAngle()
             .withForwardPerspective(ForwardPerspectiveValue.BlueAlliance)
             .withDriveRequestType(DriveRequestType.Velocity)
-            .withHeadingPID(kPointKP, kPointKI, kPointKD)
-            .withTargetRateFeedforward(kPointFeedForward);
+            .withHeadingPID(POINT_P_GAIN, POINT_I_GAIN, POINT_D_GAIN)
+            .withTargetRateFeedforward(POINT_FEED_FORWARD);
     public final SwerveRequest.RobotCentricFacingAngle robotCentricFacingAngleDrive =
         new SwerveRequest.RobotCentricFacingAngle()
             .withForwardPerspective(ForwardPerspectiveValue.BlueAlliance)
             .withDriveRequestType(DriveRequestType.Velocity)
-            .withHeadingPID(kPointKP, kPointKI, kPointKD)
-            .withTargetRateFeedforward(kPointFeedForward);
+            .withHeadingPID(POINT_P_GAIN, POINT_I_GAIN, POINT_D_GAIN)
+            .withTargetRateFeedforward(POINT_FEED_FORWARD);
     public final SwerveRequest.FieldCentricFacingAngle trajectoryFacingAngleDrive =
         new SwerveRequest.FieldCentricFacingAngle()
             .withForwardPerspective(ForwardPerspectiveValue.BlueAlliance)
             .withDriveRequestType(DriveRequestType.Velocity)
-            .withHeadingPID(kPointKP, kPointKI, kPointKD)
-            .withTargetRateFeedforward(kPointFeedForward);
+            .withHeadingPID(POINT_P_GAIN, POINT_I_GAIN, POINT_D_GAIN)
+            .withTargetRateFeedforward(POINT_FEED_FORWARD);
     public final SwerveRequest.SwerveDriveBrake brakeDrive = new SwerveRequest.SwerveDriveBrake();
     public final SwerveRequest.PointWheelsAt pointDrive = new SwerveRequest.PointWheelsAt();
     public final SwerveRequest.Idle idleDrive = new SwerveRequest.Idle();
@@ -177,8 +177,8 @@ public class Drivetrain extends CommandSwerveDrivetrain {
             double maxTranslationSpeed = getMaxTranslationSpeed();
             double maxRotationSpeed = getMaxRotationSpeed();
             if (getDriveFlagValue(DriveFlag.SLOW_MODE) && getDriveFlagValue(DriveFlag.MANUAL_ALIGN)) {
-                maxTranslationSpeed *= kPrimaryAlignModeSpeedTranslationFactor;
-                maxRotationSpeed *= kPrimaryAlignModeSpeedRotationFactor;
+                maxTranslationSpeed *= ALIGN_MODE_SPEED_TRANSLATION_FACTOR;
+                maxRotationSpeed *= ALIGN_MODE_SPEED_ROTATION_FACTOR;
             }
 
             Translation2d inputSpeedTranslation;
@@ -204,7 +204,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                 desiredRotation = Optional.of(externalDesiredRotation.get());
             } else if (
                 getDriveFlagValue(DriveFlag.INTAKE_ASSIST) &&
-                getInputTranslation(true).getNorm() >= kPrimaryIntakeRotationInputDeadzone
+                getInputTranslation(true).getNorm() >= INTAKE_ROTATION_INPUT_DEADZONE
             ) {
                 Angle angle;
                 int angleSign = (int) Math.signum(getInputRotationVelocity());
@@ -250,11 +250,11 @@ public class Drivetrain extends CommandSwerveDrivetrain {
             // trench assist
             var trenchZone = PoseUtil.getPoseTrenchZone(robotPose);
             if (trenchZone.isPresent()) {
-                Translation2d trenchFocus = trenchZone.get().focus;
+                Translation2d trenchFocus = trenchZone.get().FOCUS;
 
                 var leftExtentDiagonal = Pair.of(
-                    new Translation2d(kChassisSizeX.div(2).plus(HopperConstants.kHopperExtent), kBumperSizeY.div(2)),
-                    new Translation2d(kBumperSizeX.div(-2), kBumperSizeY.div(-2))
+                    new Translation2d(CHASSIS_SIZE_X.div(2).plus(HopperConstants.kHopperExtent), BUMPER_SIZE_Y.div(2)),
+                    new Translation2d(BUMPER_SIZE_X.div(-2), BUMPER_SIZE_Y.div(-2))
                 );
                 var rotatedLeftExtentDiagonal = Pair.of(
                     leftExtentDiagonal.getFirst().rotateAround(Translation2d.kZero, robotPose.getRotation()),
@@ -290,26 +290,26 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                 Distance errorX = alignFocus.getMeasureX().minus(robotPose.getMeasureX());
                 Distance errorY = alignFocus.getMeasureY().minus(robotPose.getMeasureY());
                 Distance localErrorY =
-                    trenchFocus.getY() < FieldConstants.kAllianceHeight.baseUnitMagnitude() / 2
+                    trenchFocus.getY() < FieldConstants.ALLIANCE_HEIGHT.baseUnitMagnitude() / 2
                         ? errorY.copy()
                         : errorY.times(-1);
 
-                boolean hasPassed = !errorX.isNear(Meters.zero(), OperatorConstants.kTrenchAssistPassPositionTolerance);
+                boolean hasPassed = !errorX.isNear(Meters.zero(), OperatorConstants.TRENCH_ASSIST_PASS_POSITION_TOLERANCE);
                 boolean isNotApproaching =
                     Math.signum(getInputX(true)) == -Math.signum(errorX.magnitude()) ||
-                    Math.abs(getInputX(true)) <= OperatorConstants.kTrenchAssistApproachInputTolerance;
+                    Math.abs(getInputX(true)) <= OperatorConstants.TRENCH_ASSIST_APPROACH_INPUT_TO_TOLERANCE;
                 if (hasPassed && isNotApproaching) {
                     return Optional.empty();
                 }
 
                 double vy =
-                    kTrenchAssistAlignStrength * Math.signum(errorY.magnitude()) * Math.abs(getInputSpeedX(true));
-                double influence = OperatorConstants.kTrenchAssistAlignInfluence * getInputSpeedY(true);
+                    TRENCH_ASSIST_ALIGN_STRENGTH * Math.signum(errorY.magnitude()) * Math.abs(getInputSpeedX(true));
+                double influence = OperatorConstants.TRENCH_ASSIST_ALGIN_INFLUENCE * getInputSpeedY(true);
                 boolean aligned =
                     localErrorY.baseUnitMagnitude() >=
-                        -OperatorConstants.kTrenchAssistAlignPositionInnerTolerance.baseUnitMagnitude() &&
+                        -OperatorConstants.TRENCH_ASSIST_ALIGN_POSITION_INNER_TOLERANCE.baseUnitMagnitude() &&
                     localErrorY.baseUnitMagnitude() <=
-                        OperatorConstants.kTrenchAssistAlignPositionOuterTolerance.baseUnitMagnitude();
+                        OperatorConstants.TRENCH_ASSIST_ALIGN_POSITION_OUTER_TOLERANCE.baseUnitMagnitude();
                 boolean againstAlignment = influence >= Math.abs(vy);
                 if (aligned || againstAlignment) {
                     vy = 0.0;
@@ -421,11 +421,11 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     }
 
     public double getMaxTranslationSpeed() {
-        return kMaxTranslationSpeed * (getDriveFlagValue(DriveFlag.SLOW_MODE) ? kPrimarySlowModeTranslationFactor : 1);
+        return MAX_TRANSLATION_SPEED * (getDriveFlagValue(DriveFlag.SLOW_MODE) ? SLOW_MODE_TRANSLATION_FACTOR : 1);
     }
 
     public double getMaxRotationSpeed() {
-        return kMaxRotationSpeed * (getDriveFlagValue(DriveFlag.SLOW_MODE) ? kPrimarySlowModeRotationFactor : 1);
+        return MAX_ROTATION_SPEED * (getDriveFlagValue(DriveFlag.SLOW_MODE) ? SLOW_MODE_ROTATION_FACTOR : 1);
     }
 
     public Translation2d getInputSpeedTranslation(boolean fieldRelative) {
@@ -467,16 +467,16 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     public Translation2d getInputTranslation(boolean fieldRelative) {
         Translation2d rawInput = getRawInputTranslation(fieldRelative);
         Vector<N2> filteredInputVector = rawInput.toVector();
-        filteredInputVector = MathUtil.applyDeadband(filteredInputVector, kPrimaryTranslationDeadband, 1);
+        filteredInputVector = MathUtil.applyDeadband(filteredInputVector, PRIMARY_TRANSLATION_DEADBAND, 1);
 
         // apply max radius
-        filteredInputVector = filteredInputVector.div(kPrimaryTranslationRadius);
+        filteredInputVector = filteredInputVector.div(PRIMARY_TRANSLATION_RADIUS);
 
         // apply exponent
         if (filteredInputVector.norm() > 0.0) {
             filteredInputVector = filteredInputVector
                 .unit()
-                .times(Math.pow(filteredInputVector.norm(), kPrimaryTranslationExponent));
+                .times(Math.pow(filteredInputVector.norm(), PRIMARY_TRANSLATION_EXPONENT));
         }
 
         // clamp values
@@ -519,8 +519,8 @@ public class Drivetrain extends CommandSwerveDrivetrain {
      */
     public double getInputRotationVelocity() {
         double rawInput = getRawInputRotationVelocity();
-        double filteredInput = MathUtil.applyDeadband(Math.abs(rawInput), kPrimaryRotationDeadband, 1);
-        return Math.abs(Math.pow(filteredInput, kPrimaryRotationExponent)) * Math.signum(rawInput);
+        double filteredInput = MathUtil.applyDeadband(Math.abs(rawInput), PRIMARY_ROTATION_DEADBAND, 1);
+        return Math.abs(Math.pow(filteredInput, PRIMARY_ROTATION_EXPONENT)) * Math.signum(rawInput);
     }
 
     public Rotation2d getRawInputRotation() {
@@ -528,7 +528,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     }
 
     public Optional<Rotation2d> getInputRotation() {
-        if (Math.hypot(inputRotationX.get(), inputRotationY.get()) < kPrimaryRotationDeadband) {
+        if (Math.hypot(inputRotationX.get(), inputRotationY.get()) < PRIMARY_ROTATION_DEADBAND) {
             return Optional.empty();
         }
         Rotation2d filteredInput = getRawInputRotation();
@@ -646,7 +646,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         return (
             Math.abs(
                 getState().Pose.getRotation().minus(externalDesiredRotation.get()).getMeasure().baseUnitMagnitude()
-            ) < kPrimaryAutoBrakeReachedDesiredAngleTolerance.baseUnitMagnitude()
+            ) < AUTO_BRAKE_REACHED_DESIRED_ANGLE_TOLERANCE.baseUnitMagnitude()
         );
     }
 
