@@ -4,31 +4,11 @@
 
 package frc.robot;
 
-import static edu.wpi.first.units.Units.Meters;
-import static edu.wpi.first.units.Units.MetersPerSecond;
-import static edu.wpi.first.units.Units.Seconds;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
 
-import java.util.Map;
-
-import com.ctre.phoenix6.swerve.utility.PhoenixPIDController;
-
-import edu.wpi.first.math.Matrix;
-import edu.wpi.first.math.VecBuilder;
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.math.numbers.N1;
-import edu.wpi.first.math.numbers.N3;
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.units.measure.Distance;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.LEDPattern;
-import edu.wpi.first.wpilibj.util.Color;
-import frc.robot.Constants.LEDConstants.LEDStatus;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.LinearVelocity;
+import frc.robot.generated.TunerConstants;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
@@ -39,194 +19,19 @@ import frc.robot.Constants.LEDConstants.LEDStatus;
  * constants are needed, to reduce verbosity.
  */
 public final class Constants {
-  public static class HoodConstants {
-    public static final double kI = 0;
-    public static final double kD = 0;
-    public static final double kP = 0.01;
-    public static final int HoodId = 3; //fix this
-  }
 
-  public static class ClimberConstants {
-    public static final double kI = 0;
-    public static final double kD = 0;
-    public static final double kP = 0;
-    public static final int idClimberOne = 9;
-    public static final int idClimberTwo = 10;
+    public static class OperatorConstants {
 
-    public static enum ClimberState {
-      //TODO: add accurate L1 position setpoint
-      UP(1),DOWN(0);
-
-      public double position;
-      private ClimberState(double position) {
-        position = this.position;
-      }
+        public static final int PRIMARY_CONTROLLER_PORT = 0;
+        public static final double PRIMARY_TRANSLATION_DEADBAND = 0.05;
+        public static final double PRIMARY_ROTATION_DEADBAND = 0.05;
+        public static final double PRIMARY_TRANSLATION_EXPONENT = 2.0;
+        public static final double PRIMARY_ROTATION_EXPONENT = 2.0;
     }
-  }
 
-  public static class HopperConstants {
-    public static final int HopperId = 8;
+    public static class DrivetrainConstants {
 
-    public static enum HopperState {
-      FEED(0.5),REVERSE(-0.5),STOP(0);
-      public double percentage;
-      private HopperState(double speed){
-        percentage = speed;
-      }
+        public static final LinearVelocity MAX_TRANSLATION_SPEED = TunerConstants.kSpeedAt12Volts.times(0.3);
+        public static final AngularVelocity MAX_ROTATION_SPEED = RotationsPerSecond.of(0.75);
     }
-  }
-  public static class FeederConstants{
-    public static final int FeederID = 9; //idk if this port is used yet plz check
-
-    public static enum FeederState{
-      FEED(0.5), UNSTUCKFEEDER (-0.5), STOP(0);
-      public double percentage;
-      private FeederState(double speed){
-        percentage = speed;
-      }
-    }
-  }
-
-  public static class IntakeConstants{
-    public static final double kP = 0.1;
-    public static final double kI = 0;
-    public static final double kD = 0;
-
-    public static final int kIntakePivotID = 1;
-    public static final int kIntakeSpinID = 2;
-    public static final int kEncoderID = 5;
-
-    public static final double kLocationGearRatio = 1.0 / 2.0;
-    public static final double kSpinGearRatio = 1.0 / 5.0;
-
-    public static final PIDController intakePIDController = new PIDController(kP, kI, kD);
-
-    public static enum IntakeState {
-      DOWN_ON(0.77, 1),
-      DOWN_OFF(0.77, 0),
-      UP_OFF(0.36, 0),
-      DOWN_OUTTAKE(0.77, -1); 
-
-      public final double angle;
-      public final double spinPercentage;
-
-      private IntakeState(double angle, double spinPercentage){
-        this.angle = angle;
-        this.spinPercentage = spinPercentage;
-      }
-    }
-  }
-
-  public static class OperatorConstants {
-    public static final int kDriverControllerPort = 0;
-    public static final double kDriverControllerTranslationDeadband = 0.1;
-    public static final double kDriverControllerRotationDeadband = 0.1;
-  }
-
-  public static class DrivetrainConstants {
-    public static final PhoenixPIDController AutoAimRotationController = new PhoenixPIDController(15, 0, 0);
-    static {
-      AutoAimRotationController.enableContinuousInput(-Math.PI, Math.PI);
-    }
-  }
-
-  public static class ShooterConstants {
-    //Motor Config and PID
-    public static final double kP = 0.01;
-    public static final double kI = 0;
-    public static final double kD = 0;
-    public static final int ShooterIDOne = 4;
-    public static final int ShooterIDTwo = 5;
-    public static final int ShooterIDThree = 6;
-    public static final int ShooterIDFour = 7;
-
-
-    //TODO: find ball launch velocity
-    /** units: m/s */
-    public static final double launchVelocity = Units.feetToMeters(29);//convert from ft/s to m/s
-    public static final double ratio = 1;
-    public static final double shootHeight = Units.inchesToMeters(40);
-
-    /** units: radians */
-    public static final double maxPitch = Units.degreesToRadians(85);
-
-    //robot relative shooter offset
-    //TODO implement in the calculation
-    public static final Transform2d shooterOffset = new Transform2d(0, 0, new Rotation2d());
-
-    public static enum AutoAimStatus{
-      SHOOT(LEDStatus.GREEN_BLINK),
-      OUTOFRANGE(LEDStatus.RED_BLINK),
-      WAITING(LEDStatus.YELLOW_BLINK);
-
-      public LEDStatus ledStatus;
-      private AutoAimStatus(LEDStatus ledStatus){
-        this.ledStatus = ledStatus;
-      }
-    }
-  }
-
-  public static class PhotonVisionConstants {
-
-    public static final Matrix<N3, N1> kSingleTagStdDevs = VecBuilder.fill(4, 4, 8);
-    public static final Matrix<N3, N1> kMultiTagStdDevs = VecBuilder.fill(0.5, 0.5, 1);
-
-    public final static Transform3d leftShooterCamTransform = new Transform3d(
-      Units.inchesToMeters(-0.1647),
-      Units.inchesToMeters(8.8160),
-      Units.inchesToMeters(20.3287),
-      new Rotation3d(
-        0,
-        Units.degreesToRadians(-30),
-        Units.degreesToRadians(-5)));
-    public final static Transform3d rightShooterCamTransform = new Transform3d(
-      Units.inchesToMeters(-0.1647),
-      Units.inchesToMeters(-8.8160),
-      Units.inchesToMeters(20.3287),
-      new Rotation3d(
-        0, 
-        Units.degreesToRadians(-30), 
-        Units.degreesToRadians(5)));
-  }
-
-  public static class FieldConstants {
-    public static final Map<DriverStation.Alliance, Pose2d> hubLocations = Map.of(
-      Alliance.Blue, new Pose2d(Units.inchesToMeters(182.11), Units.inchesToMeters(158.84), new Rotation2d()),
-      Alliance.Red, new Pose2d(Units.inchesToMeters(651.22 - 182.11), Units.inchesToMeters(158.84), new Rotation2d())
-    );
-
-    /** Units:m/s^2 */
-    public static final double g = 9.80;
-
-    public static final double hubZ = Units.inchesToMeters(56.4);
-  }
-
-  public static final class LEDConstants{
-    
-    private static final Distance ledSpacing = Meters.of(1.0 / 120.0);
-
-    public static enum LEDStatus { 
-        RAINBOW(LEDPattern.rainbow(255,64)),
-        RAINBOW_SCROLL(RAINBOW.pattern.scrollAtAbsoluteSpeed(MetersPerSecond.of(1), ledSpacing)),
-
-        RED_SOLID(LEDPattern.solid(Color.kRed)),
-        YELLOW_SOLID(LEDPattern.solid(Color.kYellow)),
-        BLUE_SOLID(LEDPattern.solid(Color.kBlue)),
-        GREEN_SOLID(LEDPattern.solid(Color.kGreen)),
-
-        RED_BLINK(RED_SOLID.getPattern().blink(Seconds.of(0.25), Seconds.of(0.25))),
-        YELLOW_BLINK(YELLOW_SOLID.getPattern().blink(Seconds.of(0.25), Seconds.of(0.25))),
-        GREEN_BLINK(GREEN_SOLID.getPattern().blink(Seconds.of(0.25), Seconds.of(0.25)));
-
-        private LEDPattern pattern;
-
-        LEDStatus(LEDPattern c_InPattern) {
-            this.pattern = c_InPattern;
-        }
-
-        public LEDPattern getPattern() {
-            return pattern;
-        }
-    }
-  }
 }
