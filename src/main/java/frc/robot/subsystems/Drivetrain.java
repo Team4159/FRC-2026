@@ -82,7 +82,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
             OperatorConstants.PRIMARY_ROTATION_DEADBAND,
             1
         );
-        return Math.abs(Math.pow(filteredInput, OperatorConstants.PRIMARY_ROTATION_EXPONENT)) * Math.signum(rawInput);
+        return Math.pow(filteredInput, OperatorConstants.PRIMARY_ROTATION_EXPONENT) * Math.signum(rawInput);
     }
 
     public Command drive() {
