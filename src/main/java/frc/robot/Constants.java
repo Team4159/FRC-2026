@@ -63,6 +63,7 @@ public final class Constants {
         public static final double D_GAIN = 0;
         public static final double P_GAIN = 0;
         public static final int CLIMBER_ONE_MOTOR_ID = 15;
+
         //previously idClimberOne
 
         // public static final int idClimberTwo = 10;
@@ -635,7 +636,7 @@ public final class Constants {
             .withErrorXY(Centimeters.of(2.0))
             .withErrorTheta(Degrees.of(1))
             .withBeelineRadius(Centimeters.of(5.0));
-        public static final Autopilot AUTOPILOT_ALIGN_CONTROLELR = new Autopilot(AUTOPILOT_ALIGN_PROFILE);
+        public static final Autopilot AUTOPILOT_ALIGN_CONTROLLER = new Autopilot(AUTOPILOT_ALIGN_PROFILE);
         public static final APProfile AUTOPILOT_CRUISE_PROFILE = new APProfile(AUTOPILOT_CONSTRAINTS)
             .withErrorXY(Centimeters.of(20.0))
             .withErrorTheta(Degrees.of(15.0))
@@ -650,9 +651,9 @@ public final class Constants {
                 new APTarget(
                     new Pose2d(
                         FieldConstants.TOWER_X,
-                        FieldConstants.TOWER_Y
-                            .plus(FieldConstants.TOWER_WIDTH.div(2))
-                            .plus(DrivetrainConstants.BUMPER_SIZE_X.div(2)),
+                        FieldConstants.TOWER_Y.plus(FieldConstants.TOWER_WIDTH.div(2)).plus(
+                            DrivetrainConstants.BUMPER_SIZE_X.div(2)
+                        ),
                         Rotation2d.kZero
                     )
                 )
@@ -663,9 +664,9 @@ public final class Constants {
                 new APTarget(
                     new Pose2d(
                         FieldConstants.TOWER_X,
-                        FieldConstants.TOWER_Y
-                            .minus(FieldConstants.TOWER_WIDTH.div(2))
-                            .minus(DrivetrainConstants.BUMPER_SIZE_X.div(2)),
+                        FieldConstants.TOWER_Y.minus(FieldConstants.TOWER_WIDTH.div(2)).minus(
+                            DrivetrainConstants.BUMPER_SIZE_X.div(2)
+                        ),
                         Rotation2d.k180deg
                     )
                 )

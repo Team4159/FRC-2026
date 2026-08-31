@@ -13,10 +13,10 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.lib.AllianceUtil;
 import frc.lib.PoseUtil;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DrivetrainConstants;
@@ -150,10 +150,7 @@ public class AutoRecovery extends Command {
 
     private boolean shouldRecover() {
         return (
-            !PoseUtil.isPoseInAllianceZone(
-                DriverStation.getAlliance().orElse(Alliance.Blue),
-                drivetrain.getState().Pose
-            ) &&
+            !PoseUtil.isPoseInAllianceZone(AllianceUtil.getAlliance(), drivetrain.getState().Pose) &&
             autoRecoverySide != AutoRecoverySide.MIDDLE
         );
     }
@@ -163,7 +160,7 @@ public class AutoRecovery extends Command {
             Math.abs(((MathSharedStore.getTimestamp() * kUnbeachTurnSpeed) % 360.0) - 180)
         ).plus(Degrees.of(90.0));
 
-        if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red) {
+        if (AllianceUtil.getAlliance() == Alliance.Red) {
             driveAngle = driveAngle.plus(Degrees.of(180.0));
         }
 
@@ -182,7 +179,7 @@ public class AutoRecovery extends Command {
             pathTargets[pathProgress].target
         );
         Rotation2d targetDirection =
-            pathController == AutoConstants.AUTOPILOT_ALIGN_CONTROLELR
+            pathController == AutoConstants.AUTOPILOT_ALIGN_CONTROLLER
                 ? result.targetAngle()
                 : new Rotation2d(result.vx().baseUnitMagnitude(), result.vy().baseUnitMagnitude());
         drivetrain.setControl(
@@ -240,7 +237,7 @@ public class AutoRecovery extends Command {
                         Rotation2d.k180deg
                     )
                 ),
-                AutoConstants.AUTOPILOT_ALIGN_CONTROLELR
+                AutoConstants.AUTOPILOT_ALIGN_CONTROLLER
             )
         );
         newPathTargets.add(
@@ -252,11 +249,11 @@ public class AutoRecovery extends Command {
                         Rotation2d.k180deg
                     )
                 ),
-                AutoConstants.AUTOPILOT_ALIGN_CONTROLELR
+                AutoConstants.AUTOPILOT_ALIGN_CONTROLLER
             )
         );
 
-        Alliance alliance = DriverStation.getAlliance().orElse(Alliance.Blue);
+        Alliance alliance = AllianceUtil.getAlliance();
         for (int i = 0; i < newPathTargets.size(); i++) {
             Pose2d reference = newPathTargets.get(i).target.getReference();
             if (alliance == Alliance.Red) {
@@ -277,7 +274,7 @@ public class AutoRecovery extends Command {
         newPathTargets.add(
             new PathTarget(
                 new APTarget(new Pose2d(finalTranslation, Rotation2d.k180deg)),
-                AutoConstants.AUTOPILOT_ALIGN_CONTROLELR
+                AutoConstants.AUTOPILOT_ALIGN_CONTROLLER
             )
         );
 

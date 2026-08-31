@@ -19,8 +19,6 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
@@ -28,6 +26,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.lib.AllianceUtil;
 import frc.lib.FuelSimulation;
 import frc.lib.HIDRumble;
 import frc.lib.HIDRumble.RumbleRequest;
@@ -156,7 +155,7 @@ public class AutoShoot extends Command {
     public void initialize() {
         // set adjusted robot pose to current robot pose initially
         // (need a baseline to get time from lookup table)
-        this.target = Constants.FieldConstants.HUB_LOCATIONS.get(DriverStation.getAlliance().orElse(Alliance.Blue));
+        this.target = Constants.FieldConstants.HUB_LOCATIONS.get(AllianceUtil.getAlliance());
         adjustedRobotPose = drivetrain.getState().Pose;
         // used to simulate loss of shooter velocity over time for sim
         // timeOffset = MathSharedStore.getTimestamp();

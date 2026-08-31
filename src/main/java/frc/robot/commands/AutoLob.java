@@ -14,13 +14,12 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.lib.AllianceUtil;
 import frc.lib.FuelSimulation;
 import frc.robot.Constants;
 import frc.robot.Constants.DrivetrainConstants;
@@ -113,7 +112,7 @@ public class AutoLob extends Command {
     public void initialize() {
         //set adjusted robot pose to current robot pose initially
         //(need a baseline to get time from lookup table)
-        //this.target = Constants.FieldConstants.hubLocations.get(DriverStation.getAlliance().orElse(Alliance.Blue));
+        //this.target = Constants.FieldConstants.hubLocations.get(AllianceUtil.getAlliance());
         adjustedRobotPose = drivetrain.getState().Pose;
 
         CommandScheduler.getInstance().schedule(leds.new ChangeLEDStatusSupplier(ledStatusSupplier));
@@ -131,7 +130,7 @@ public class AutoLob extends Command {
         //recalculate lob position
         this.target = drivetrain
             .getState()
-            .Pose.nearest(Constants.FieldConstants.LOB_LOCATIONS.get(DriverStation.getAlliance().orElse(Alliance.Blue)));
+            .Pose.nearest(Constants.FieldConstants.LOB_LOCATIONS.get(AllianceUtil.getAlliance()));
 
         //calculate desired pitch for hood angle
         double desiredHoodAngle = getDesiredHoodPitch();

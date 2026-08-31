@@ -30,6 +30,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.lib.AllianceUtil;
 import frc.lib.PoseUtil;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.HopperConstants;
@@ -294,7 +295,10 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                         ? errorY.copy()
                         : errorY.times(-1);
 
-                boolean hasPassed = !errorX.isNear(Meters.zero(), OperatorConstants.TRENCH_ASSIST_PASS_POSITION_TOLERANCE);
+                boolean hasPassed = !errorX.isNear(
+                    Meters.zero(),
+                    OperatorConstants.TRENCH_ASSIST_PASS_POSITION_TOLERANCE
+                );
                 boolean isNotApproaching =
                     Math.signum(getInputX(true)) == -Math.signum(errorX.magnitude()) ||
                     Math.abs(getInputX(true)) <= OperatorConstants.TRENCH_ASSIST_APPROACH_INPUT_TO_TOLERANCE;
@@ -339,7 +343,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                     // kPrimaryRadialModeDeadband, 1);
                     // Pose2d robotPose = getState().Pose;
                     // Pose2d hubPose =
-                    // FieldConstants.hubLocations.get(DriverStation.getAlliance().orElse(Alliance.Blue));
+                    // FieldConstants.hubLocations.get(AllianceUtil.getAlliance());
                     // Translation2d radialVector = new Translation2d(
                     // hubPose.getX() - robotPose.getX(),
                     // hubPose.getY() - robotPose.getY());
@@ -673,6 +677,6 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     }
 
     private boolean isInverted() {
-        return DriverStation.getAlliance().orElse(Alliance.Blue).equals(Alliance.Red);
+        return AllianceUtil.getAlliance() == Alliance.Red;
     }
 }

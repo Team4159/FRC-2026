@@ -129,7 +129,7 @@ public class Shooter extends SubsystemBase {
         double rollerTangentialSpeed =
             shooterOmega * ShooterConstants.SHOOTER_ROLLER_RADIUS.in(Meters) * ShooterConstants.MOTOR_TO_ROLLER_RATIO;
 
-        return (ShooterConstants.SHOOTER_EFFICIENCY * (wheelTangentialSpeed + rollerTangentialSpeed)) / 2;
+        return (ShooterConstants.SHOOTER_EFFICIENCY * (wheelTangentialSpeed + rollerTangentialSpeed)) / 2.0;
     }
 
     // /** @return the estimated initial speed of the ball after being shot from the shooter in m/s*/

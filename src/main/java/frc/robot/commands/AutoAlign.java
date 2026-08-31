@@ -5,9 +5,9 @@ import com.therekrab.autopilot.APTarget;
 import com.therekrab.autopilot.Autopilot.APResult;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.LinearVelocity;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.lib.AllianceUtil;
 import frc.lib.PoseUtil;
 import frc.robot.Constants.AlignConstants.TowerAlignGoal;
 import frc.robot.Constants.AutoConstants;
@@ -35,8 +35,8 @@ public class AutoAlign extends Command {
 
     @Override
     public void execute() {
-        boolean atTarget = AutoConstants.AUTOPILOT_ALIGN_CONTROLELR.atTarget(drivetrain.getState().Pose, currentTarget);
-        boolean targetIsIntermediate = (progress < goal.targets.length - 1);
+        boolean atTarget = AutoConstants.AUTOPILOT_ALIGN_CONTROLLER.atTarget(drivetrain.getState().Pose, currentTarget);
+        boolean targetIsIntermediate = progress < goal.targets.length - 1;
         if (atTarget && targetIsIntermediate) {
             progress++;
             currentTarget = getNextTarget(progress);
@@ -60,7 +60,7 @@ public class AutoAlign extends Command {
 
     private void alignToTarget() {
         SwerveDriveState drivetrainState = drivetrain.getState();
-        APResult result = AutoConstants.AUTOPILOT_ALIGN_CONTROLELR.calculate(
+        APResult result = AutoConstants.AUTOPILOT_ALIGN_CONTROLLER.calculate(
             drivetrainState.Pose,
             drivetrainState.Speeds,
             currentTarget
@@ -80,7 +80,7 @@ public class AutoAlign extends Command {
 
     private APTarget getNextTarget(int progress) {
         APTarget nextTarget = goal.targets[progress];
-        if (DriverStation.getAlliance().orElse(Alliance.Blue).equals(Alliance.Red)) {
+        if (AllianceUtil.getAlliance() == Alliance.Red) {
             nextTarget = nextTarget.withReference(PoseUtil.flipPoseAlongMiddleXY(nextTarget.getReference()));
             if (nextTarget.getEntryAngle().isPresent()) {
                 nextTarget = nextTarget.withEntryAngle(nextTarget.getEntryAngle().get().plus(Rotation2d.k180deg));

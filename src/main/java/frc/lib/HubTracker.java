@@ -9,7 +9,7 @@ public class HubTracker {
     public static boolean isHubActive(Alliance alliance) {
         Optional<Alliance> activeHub = getActiveHub();
         if (!activeHub.isEmpty()) {
-            return alliance.equals(activeHub.get());
+            return alliance == activeHub.get();
         }
         return false;
     }
@@ -22,7 +22,7 @@ public class HubTracker {
         }
 
         Alliance autoWinner = autoWinnerOptional.get();
-        Alliance autoLoser = autoWinner.equals(Alliance.Blue) ? Alliance.Red : Alliance.Blue;
+        Alliance autoLoser = autoWinner == Alliance.Blue ? Alliance.Red : Alliance.Blue;
         if (matchTime > 105) {
             return Optional.of(autoLoser);
         } else if (matchTime > 80) {
