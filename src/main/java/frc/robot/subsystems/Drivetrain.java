@@ -9,7 +9,6 @@ import static frc.robot.Constants.OperatorConstants.*;
 import choreo.Choreo.TrajectoryLogger;
 import choreo.auto.AutoFactory;
 import choreo.trajectory.SwerveSample;
-import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.ctre.phoenix6.swerve.SwerveRequest.ForwardPerspectiveValue;
@@ -46,8 +45,6 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 public class Drivetrain extends CommandSwerveDrivetrain {
-
-    public final Pigeon2 pigeon = new Pigeon2(TunerConstants.DrivetrainConstants.Pigeon2Id, TunerConstants.kCANBus);
 
     public final SwerveRequest.FieldCentric fieldCentricDrive = new SwerveRequest.FieldCentric()
         .withForwardPerspective(ForwardPerspectiveValue.BlueAlliance)
@@ -90,7 +87,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     private final ChassisSpeeds estimatedRealChassisSpeeds = new ChassisSpeeds(
         0,
         0,
-        pigeon.getAngularVelocityYWorld().getValueAsDouble()
+        getPigeon2().getAngularVelocityYWorld().getValueAsDouble()
     );
     private final LinearFilter estimatedRealChassisSpeedXFilter = LinearFilter.movingAverage(5);
     private final LinearFilter estimatedRealChassisSpeedYFilter = LinearFilter.movingAverage(5);
@@ -152,7 +149,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         estimatedRealChassisSpeeds.vyMetersPerSecond = estimatedRealChassisSpeedYFilter.calculate(
             displacement.getY() / 0.02
         );
-        estimatedRealChassisSpeeds.omegaRadiansPerSecond = pigeon.getAngularVelocityYWorld().getValueAsDouble();
+        estimatedRealChassisSpeeds.omegaRadiansPerSecond = getPigeon2().getAngularVelocityYWorld().getValueAsDouble();
         isSlipping();
     }
 
@@ -661,8 +658,8 @@ public class Drivetrain extends CommandSwerveDrivetrain {
 
     public boolean isCrashing() {
         double xyAccelerationMagnitude = Math.hypot(
-            pigeon.getAccelerationX().getValue().in(MetersPerSecondPerSecond),
-            pigeon.getAccelerationY().getValue().in(MetersPerSecondPerSecond)
+            getPigeon2().getAccelerationX().getValue().in(MetersPerSecondPerSecond),
+            getPigeon2().getAccelerationY().getValue().in(MetersPerSecondPerSecond)
         );
         return xyAccelerationMagnitude >= 20.0;
     }
