@@ -246,8 +246,8 @@ public class AutoShoot extends Command {
         if (shooter.isAtPitch() && shooter.isAtSpeed() && isAtDesiredRotation(Radians.of(desiredRobotAngle))) {
             // shoot the fuel if at the right pitch
             autoShootStatus = AutoShootStatus.SHOOT;
-            shooter.setFeederSpeed(FeederState.FEED.percentage);
-            hopper.setHopperSpeed(HopperState.FEED.percentage);
+            shooter.setFeederSpeed(FeederState.FEED.dutyCycle);
+            hopper.setHopperSpeed(HopperState.FEED.dutyCycle);
         } else {
             //otherwise just wait
             // autoAimStatus = AutoAimStatus.WAITING;
@@ -458,8 +458,8 @@ public class AutoShoot extends Command {
     public void end(boolean interrupted) {
         shooter.adjustHood(ShooterConstants.RESTING_ANGLE);
         shooter.setSpeed(Constants.ShooterConstants.RESTING_ANGULAR_VELOCITY);
-        shooter.setFeederSpeed(FeederState.STOP.percentage);
-        hopper.setHopperSpeed(HopperState.STOP.percentage);
+        shooter.setFeederSpeed(FeederState.STOP.dutyCycle);
+        hopper.setHopperSpeed(HopperState.STOP.dutyCycle);
         CommandScheduler.getInstance().schedule(intake.new ChangeStates(IntakeState.DOWN_OFF));
     }
 }

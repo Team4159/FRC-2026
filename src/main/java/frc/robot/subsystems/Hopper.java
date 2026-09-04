@@ -40,7 +40,7 @@ public class Hopper extends SubsystemBase {
 
         @Override
         public void initialize() {
-            Hopper.this.setHopperSpeed(hopperState.percentage);
+            Hopper.this.setHopperSpeed(hopperState.dutyCycle);
         }
 
         @Override

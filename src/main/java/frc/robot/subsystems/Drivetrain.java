@@ -251,7 +251,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                 Translation2d trenchFocus = trenchZone.get().FOCUS;
 
                 var leftExtentDiagonal = Pair.of(
-                    new Translation2d(CHASSIS_SIZE_X.div(2).plus(HopperConstants.kHopperExtent), BUMPER_SIZE_Y.div(2)),
+                    new Translation2d(CHASSIS_SIZE_X.div(2).plus(HopperConstants.HOPPER_EXTENT), BUMPER_SIZE_Y.div(2)),
                     new Translation2d(BUMPER_SIZE_X.div(-2), BUMPER_SIZE_Y.div(-2))
                 );
                 var rotatedLeftExtentDiagonal = Pair.of(

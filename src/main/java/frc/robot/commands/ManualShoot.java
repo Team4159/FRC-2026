@@ -26,17 +26,17 @@ public class ManualShoot extends Command {
     @Override
     public void execute() {
         if (shooter.isAtSpeed()) {
-            shooter.setFeederSpeed(FeederState.FEED.percentage);
-            hopper.setHopperSpeed(HopperState.FEED.percentage);
+            shooter.setFeederSpeed(FeederState.FEED.dutyCycle);
+            hopper.setHopperSpeed(HopperState.FEED.dutyCycle);
         } else {
-            shooter.setFeederSpeed(FeederState.STOP.percentage);
-            hopper.setHopperSpeed(HopperState.STOP.percentage);
+            shooter.setFeederSpeed(FeederState.STOP.dutyCycle);
+            hopper.setHopperSpeed(HopperState.STOP.dutyCycle);
         }
     }
 
     @Override
     public void end(boolean interrupted) {
-        shooter.setFeederSpeed(FeederState.STOP.percentage);
-        hopper.setHopperSpeed(HopperState.STOP.percentage);
+        shooter.setFeederSpeed(FeederState.STOP.dutyCycle);
+        hopper.setHopperSpeed(HopperState.STOP.dutyCycle);
     }
 }

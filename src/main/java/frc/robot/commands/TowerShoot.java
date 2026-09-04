@@ -53,12 +53,12 @@ public class TowerShoot extends Command {
         }
         if (feedFlag) {
             //shoot the fuel if at the right pitch
-            shooter.setFeederSpeed(FeederState.FEED.percentage);
-            hopper.setHopperSpeed(HopperState.FEED.percentage);
+            shooter.setFeederSpeed(FeederState.FEED.dutyCycle);
+            hopper.setHopperSpeed(HopperState.FEED.dutyCycle);
         } else {
             //otherwise just wait
-            shooter.setFeederSpeed(FeederState.STOP.percentage);
-            hopper.setHopperSpeed(HopperState.STOP.percentage);
+            shooter.setFeederSpeed(FeederState.STOP.dutyCycle);
+            hopper.setHopperSpeed(HopperState.STOP.dutyCycle);
         }
 
         SmartDashboard.putBoolean("isAtPitch", shooter.isAtPitch());

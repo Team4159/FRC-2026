@@ -64,7 +64,7 @@ public final class Constants {
         public static final double P_GAIN = 0;
         public static final int CLIMBER_ONE_MOTOR_ID = 15;
 
-        //previously idClimberOne
+        // previously idClimberOne
 
         // public static final int idClimberTwo = 10;
 
@@ -73,10 +73,10 @@ public final class Constants {
             STOP(0),
             DOWN(-0.25);
 
-            public double percentage;
+            public final double dutyCycle;
 
-            private ClimberState(double speed) {
-                percentage = speed;
+            private ClimberState(double dutyCycle) {
+                this.dutyCycle = dutyCycle;
             }
         }
     }
@@ -84,17 +84,17 @@ public final class Constants {
     public static class HopperConstants {
 
         public static final int HOPPER_MOTOR_ID = 30;
-        public static final Distance kHopperExtent = Inches.of(12.0);
+        public static final Distance HOPPER_EXTENT = Inches.of(12.0);
 
         public static enum HopperState {
             FEED(1),
             REVERSE(-1),
             STOP(0);
 
-            public double percentage;
+            public final double dutyCycle;
 
-            private HopperState(double speed) {
-                percentage = speed;
+            private HopperState(double dutyCycle) {
+                this.dutyCycle = dutyCycle;
             }
         }
     }
@@ -105,13 +105,13 @@ public final class Constants {
 
         public static enum FeederState {
             FEED(1),
-            UNSTUCKFEEDER(-1),
+            UNJAM_FEEDER(-1),
             STOP(0);
 
-            public double percentage;
+            public final double dutyCycle;
 
-            private FeederState(double speed) {
-                percentage = speed;
+            private FeederState(double dutyCycle) {
+                this.dutyCycle = dutyCycle;
             }
         }
     }
@@ -212,11 +212,11 @@ public final class Constants {
             STOP(Degrees.of(120), 0);
 
             public final Angle rotationLocation;
-            public final double spinSpeed;
+            public final double spinDutyCycle;
 
-            private IntakeState(Angle location, double speed) {
-                rotationLocation = location;
-                spinSpeed = speed;
+            private IntakeState(Angle rotationLocation, double spinDutyCycle) {
+                this.rotationLocation = rotationLocation;
+                this.spinDutyCycle = spinDutyCycle;
             }
         }
     }
@@ -479,7 +479,7 @@ public final class Constants {
             OUTOFRANGE(LEDConstants.LEDStatus.RED_BLINK),
             WAITING(LEDConstants.LEDStatus.YELLOW_BLINK);
 
-            public LEDConstants.LEDStatus ledStatus;
+            public final LEDConstants.LEDStatus ledStatus;
 
             private AutoShootStatus(LEDConstants.LEDStatus ledStatus) {
                 this.ledStatus = ledStatus;

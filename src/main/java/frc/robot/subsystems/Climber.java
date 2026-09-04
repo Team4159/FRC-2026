@@ -53,7 +53,7 @@ public class Climber extends SubsystemBase {
 
         @Override
         public void initialize() {
-            Climber.this.setClimberSpeed(climberState.percentage);
+            Climber.this.setClimberSpeed(climberState.dutyCycle);
         }
 
         @Override

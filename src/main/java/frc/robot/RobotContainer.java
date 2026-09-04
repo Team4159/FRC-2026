@@ -152,7 +152,7 @@ public class RobotContainer {
             new ParallelCommandGroup(
                 intake.new ChangeStates(IntakeState.DOWN_REV),
                 hopper.new ChangeState(HopperState.REVERSE),
-                shooter.new ChangeState(FeederState.UNSTUCKFEEDER)
+                shooter.new ChangeState(FeederState.UNJAM_FEEDER)
             )
         );
     }

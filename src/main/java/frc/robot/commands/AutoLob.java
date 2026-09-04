@@ -170,14 +170,14 @@ public class AutoLob extends Command {
         if (!timer.hasElapsed(ShooterConstants.BACKWARDS_TIME)) {
             //run neck backwards if at the beginning
             autoShootStatus = AutoShootStatus.WAITING;
-            shooter.setFeederSpeed(FeederState.UNSTUCKFEEDER.percentage);
-            hopper.setHopperSpeed(HopperState.STOP.percentage);
+            shooter.setFeederSpeed(FeederState.UNJAM_FEEDER.dutyCycle);
+            hopper.setHopperSpeed(HopperState.STOP.dutyCycle);
         }
         if (shooter.isAtPitch() && shooter.isAtSpeed() && isAtDesiredRotation(Radians.of(desiredRobotAngle))) {
             //shoot the fuel if at the right pitch
             autoShootStatus = AutoShootStatus.SHOOT;
-            shooter.setFeederSpeed(FeederState.FEED.percentage);
-            hopper.setHopperSpeed(HopperState.FEED.percentage);
+            shooter.setFeederSpeed(FeederState.FEED.dutyCycle);
+            hopper.setHopperSpeed(HopperState.FEED.dutyCycle);
         } else {
             //otherwise just wait
             // autoAimStatus = AutoAimStatus.WAITING;
@@ -201,8 +201,8 @@ public class AutoLob extends Command {
         }
 
         if (autoShootStatus == AutoShootStatus.SHOOT) {
-            shooter.setFeederSpeed(FeederState.FEED.percentage);
-            hopper.setHopperSpeed(HopperState.FEED.percentage);
+            shooter.setFeederSpeed(FeederState.FEED.dutyCycle);
+            hopper.setHopperSpeed(HopperState.FEED.dutyCycle);
         }
 
         //AdvantageScope fuel simulation
@@ -348,8 +348,8 @@ public class AutoLob extends Command {
         shooter.adjustHood(ShooterConstants.RESTING_ANGLE);
         //shooter.setSpeed(ShooterConstants.restingAngularVelocity);
         shooter.stopShooter();
-        shooter.setFeederSpeed(FeederState.STOP.percentage);
-        hopper.setHopperSpeed(HopperState.STOP.percentage);
+        shooter.setFeederSpeed(FeederState.STOP.dutyCycle);
+        hopper.setHopperSpeed(HopperState.STOP.dutyCycle);
         CommandScheduler.getInstance().schedule(intake.new ChangeStates(IntakeState.BOUNCE_UP));
     }
 }

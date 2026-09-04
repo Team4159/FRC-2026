@@ -93,13 +93,13 @@ public class Intake extends SubsystemBase {
 
         @Override
         public void initialize() {
-            rollerPercentage = state.spinSpeed;
+            rollerPercentage = state.spinDutyCycle;
             setLocation(state.rotationLocation);
         }
 
         @Override
         public void end(boolean interrupt) {
-            Intake.this.setSpinSpeed(IntakeState.STOP.spinSpeed);
+            Intake.this.setSpinSpeed(IntakeState.STOP.spinDutyCycle);
             rollerPercentage = 0;
         }
     }

@@ -290,7 +290,7 @@ public class Shooter extends SubsystemBase {
         @Override
         public void initialize() {
             //set the feeder speed to the percentage in the state object
-            Shooter.this.setFeederSpeed(feederState.percentage);
+            Shooter.this.setFeederSpeed(feederState.dutyCycle);
         }
 
         @Override
