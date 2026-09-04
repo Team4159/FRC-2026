@@ -329,10 +329,10 @@ public final class Constants {
         // hood absolute encoder (WCP throughbore)
         /** Hood encoder CAN ID */
         public static final int HOOD_ENCODER_ID = 2;
-        public static final Angle ENCODER_OFFSET = Degrees.of(-227.8 - 6.8 - 0.7 - 6 - 0.65 - 0.3 - 0.4);
-        public static final double SENSOR_TO_MECHANISM_RATIO = 34 / 16;
+        public static final Angle HOOD_ENCODER_OFFSET = Degrees.of(-242.65);
+        public static final double HOOD_SENSOR_TO_MECHANISM_RATIO = 34 / 16; // evaluates to 2 instead of 2.125 but the lookup table is based off 2 so not changing
         /** ratio from the motor to the sensor (WCP throughbore encoder) */
-        public static final double MOTOR_TO_SENSOR_RATIO = 125;
+        public static final double HOOD_MOTOR_TO_SENSOR_RATIO = 125;
 
         //Motion Magic®
         //think of it as max velocity
@@ -352,7 +352,7 @@ public final class Constants {
             {
                 MagnetSensor.withAbsoluteSensorDiscontinuityPoint(Rotations.of(0.5));
                 MagnetSensor.SensorDirection = SensorDirectionValue.Clockwise_Positive;
-                MagnetSensor.withMagnetOffset(ShooterConstants.ENCODER_OFFSET);
+                MagnetSensor.withMagnetOffset(ShooterConstants.HOOD_ENCODER_OFFSET);
             }
         };
 
@@ -384,8 +384,8 @@ public final class Constants {
                 // abs encoder
                 Feedback.FeedbackRemoteSensorID = ShooterConstants.HOOD_ENCODER_ID;
                 Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
-                Feedback.SensorToMechanismRatio = ShooterConstants.SENSOR_TO_MECHANISM_RATIO;
-                Feedback.RotorToSensorRatio = ShooterConstants.MOTOR_TO_SENSOR_RATIO;
+                Feedback.SensorToMechanismRatio = ShooterConstants.HOOD_SENSOR_TO_MECHANISM_RATIO;
+                Feedback.RotorToSensorRatio = ShooterConstants.HOOD_MOTOR_TO_SENSOR_RATIO;
                 MotionMagic = HOOD_MOTION_MAGIC_CONFIG;
             }
         };
