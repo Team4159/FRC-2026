@@ -31,16 +31,16 @@ public class Intake extends SubsystemBase {
     // private final VelocityVoltage intakeVelocityVoltage;
 
     public Intake() {
-        locationMotor = new TalonFX(IntakeConstants.INTAKE_ANGLE_MOTOR_ID);
-        spinMotor = new TalonFX(IntakeConstants.INTAKE_SPIN_MOTOR_ID);
+        locationMotor = new TalonFX(IntakeConstants.ANGLE_MOTOR_ID);
+        spinMotor = new TalonFX(IntakeConstants.SPIN_MOTOR_ID);
         canCoder = new CANcoder(IntakeConstants.ANGLE_ENCODER_ID);
 
-        canCoder.getConfigurator().apply(IntakeConstants.CAN_CODER_CONFIG);
+        canCoder.getConfigurator().apply(IntakeConstants.ANGLE_CAN_CODER_CONFIG);
         locationMotor.getConfigurator().apply(IntakeConstants.ANGLE_CONFIG);
-        setMotionMagic(IntakeConstants.FAST_MOTION_MAGIC_CONFIG);
+        setMotionMagic(IntakeConstants.ANGLE_FAST_MOTION_MAGIC_CONFIG);
 
         intakeMotionMagicVoltage = new MotionMagicVoltage(0);
-        setLocation(IntakeState.DOWN_OFF.rotationLocation);
+        setLocation(IntakeState.DOWN_OFF.angleLocation);
         // intakeVelocityVoltage = new VelocityVoltage(0);
 
         CurrentLimitsConfigs rollerCurrentLimits = new CurrentLimitsConfigs()
@@ -94,7 +94,7 @@ public class Intake extends SubsystemBase {
         @Override
         public void initialize() {
             rollerPercentage = state.spinDutyCycle;
-            setLocation(state.rotationLocation);
+            setLocation(state.angleLocation);
         }
 
         @Override
@@ -112,13 +112,13 @@ public class Intake extends SubsystemBase {
 
         @Override
         public void initialize() {
-            setMotionMagic(IntakeConstants.SLOW_MOTION_MAGIC_CONFIG);
-            setLocation(IntakeState.UP_OFF.rotationLocation);
+            setMotionMagic(IntakeConstants.ANGLE_SLOW_MOTION_MAGIC_CONFIG);
+            setLocation(IntakeState.UP_OFF.angleLocation);
         }
 
         @Override
         public void end(boolean interrupted) {
-            setMotionMagic(IntakeConstants.FAST_MOTION_MAGIC_CONFIG);
+            setMotionMagic(IntakeConstants.ANGLE_FAST_MOTION_MAGIC_CONFIG);
         }
     }
 
@@ -134,7 +134,7 @@ public class Intake extends SubsystemBase {
 
         @Override
         public void initialize() {
-            setLocation(IntakeState.BOUNCE_UP.rotationLocation);
+            setLocation(IntakeState.BOUNCE_UP.angleLocation);
             state = IntakeState.BOUNCE_UP;
             timer.start();
             timer.reset();
@@ -146,11 +146,11 @@ public class Intake extends SubsystemBase {
             System.out.println(alternate);
             System.out.println(timer.get());
             if (state == IntakeState.DOWN_OFF && alternate) {
-                setLocation(IntakeState.BOUNCE_UP.rotationLocation);
+                setLocation(IntakeState.BOUNCE_UP.angleLocation);
                 state = IntakeState.BOUNCE_UP;
                 timer.reset();
             } else if (state == IntakeState.BOUNCE_UP && alternate) {
-                setLocation(IntakeState.DOWN_OFF.rotationLocation);
+                setLocation(IntakeState.DOWN_OFF.angleLocation);
                 state = IntakeState.DOWN_OFF;
                 timer.reset();
             }
@@ -158,11 +158,11 @@ public class Intake extends SubsystemBase {
 
         @Override
         public void end(boolean interrupted) {
-            setLocation(IntakeState.BOUNCE_UP.rotationLocation);
+            setLocation(IntakeState.BOUNCE_UP.angleLocation);
         }
 
         private boolean isNear(IntakeState state) {
-            return getPivotAngle().isNear(state.rotationLocation, Degrees.of(1));
+            return getPivotAngle().isNear(state.angleLocation, Degrees.of(1));
         }
     }
 }

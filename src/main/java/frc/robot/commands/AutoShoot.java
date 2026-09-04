@@ -342,16 +342,16 @@ public class AutoShoot extends Command {
     }
 
     private double getLaunchVelocity(AngularVelocity desiredMotorVelocity) {
-        double shooterOmega = desiredMotorVelocity.in(RadiansPerSecond) * ShooterConstants.RATIO;
+        double shooterOmega = desiredMotorVelocity.in(RadiansPerSecond) * ShooterConstants.SHOOTER_RATIO;
 
         double wheelTangentialSpeed =
             shooterOmega *
             ShooterConstants.SHOOTER_WHEEL_RADIUS.in(Meters) *
-            Constants.ShooterConstants.MOTOR_TO_WHEEL_RATIO;
+            Constants.ShooterConstants.ROTOR_TO_WHEEL_RATIO;
         double rollerTangentialSpeed =
             shooterOmega *
             ShooterConstants.SHOOTER_ROLLER_RADIUS.in(Meters) *
-            Constants.ShooterConstants.MOTOR_TO_ROLLER_RATIO;
+            Constants.ShooterConstants.ROTOR_TO_ROLLER_RATIO;
 
         return (efficiency * (wheelTangentialSpeed + rollerTangentialSpeed)) / 2;
     }
@@ -396,12 +396,12 @@ public class AutoShoot extends Command {
         // (1/2)g * TOF^2 - vy * TOF + height
         // then use quadratic formula and always add the radical to get the 2nd time the
         // fuel is at the target height (so that it is on the way down)
-        double radical = Math.sqrt(Math.pow(vy, 2) - 2 * Constants.FieldConstants.G * height);
+        double radical = Math.sqrt(Math.pow(vy, 2) - 2 * Constants.FieldConstants.GRAVITY * height);
         if (Double.isNaN(radical)) {
             return 0;
         }
         double numerator = vy + radical;
-        double time = numerator / Constants.FieldConstants.G;
+        double time = numerator / Constants.FieldConstants.GRAVITY;
         SmartDashboard.putNumber("time of flight", time);
         return time;
     }
@@ -433,10 +433,10 @@ public class AutoShoot extends Command {
             (Math.pow(launchVelocity, 2) +
                 Math.sqrt(
                     Math.pow(launchVelocity, 4) -
-                        Math.pow(FieldConstants.G * distance, 2) -
-                        2 * FieldConstants.G * height * Math.pow(launchVelocity, 2)
+                        Math.pow(FieldConstants.GRAVITY * distance, 2) -
+                        2 * FieldConstants.GRAVITY * height * Math.pow(launchVelocity, 2)
                 )) /
-                (FieldConstants.G * distance)
+                (FieldConstants.GRAVITY * distance)
         );
 
         if (Double.isNaN(desiredPitch)) {
@@ -447,8 +447,8 @@ public class AutoShoot extends Command {
             desiredPitch = Units.degreesToRadians(45);
             autoShootStatus = AutoShootStatus.OUTOFRANGE;
         }
-        if (desiredPitch > Constants.ShooterConstants.MAX_PITCH.in(Radians)) {
-            desiredPitch = Constants.ShooterConstants.MAX_PITCH.in(Radians);
+        if (desiredPitch > Constants.ShooterConstants.HOOD_MAX_PITCH.in(Radians)) {
+            desiredPitch = Constants.ShooterConstants.HOOD_MAX_PITCH.in(Radians);
         }
         SmartDashboard.putNumber("autoaim desired pitch", Units.radiansToDegrees(desiredPitch));
         return Radians.of(desiredPitch);
@@ -457,7 +457,7 @@ public class AutoShoot extends Command {
     @Override
     public void end(boolean interrupted) {
         shooter.adjustHood(ShooterConstants.HOOD_RESTING_ANGLE);
-        shooter.setSpeed(Constants.ShooterConstants.RESTING_ANGULAR_VELOCITY);
+        shooter.setSpeed(Constants.ShooterConstants.SHOOTER_RESTING_ANGULAR_VELOCITY);
         shooter.setFeederSpeed(FeederState.STOP.dutyCycle);
         hopper.setHopperSpeed(HopperState.STOP.dutyCycle);
         CommandScheduler.getInstance().schedule(intake.new ChangeStates(IntakeState.DOWN_OFF));

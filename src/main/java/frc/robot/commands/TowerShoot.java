@@ -33,8 +33,8 @@ public class TowerShoot extends Command {
 
     @Override
     public void initialize() {
-        shooter.setSpeed(ShooterConstants.TOWER_ANGULAR_VELOCITY);
-        shooter.adjustTrajectoryAngle(ShooterConstants.TOWER_HOOD_PITCH);
+        shooter.setSpeed(ShooterConstants.SHOOTER_TOWER_ANGULAR_VELOCITY);
+        shooter.adjustTrajectoryAngle(ShooterConstants.HOOD_TOWER_HOOD_PITCH);
         CommandScheduler.getInstance().schedule(intake.new BounceIntake());
 
         timer.reset();

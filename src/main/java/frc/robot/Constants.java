@@ -70,7 +70,7 @@ public final class Constants {
 
         public static enum ClimberState {
             CLIMB(0.25),
-            STOP(0),
+            STOP(0.0),
             DOWN(-0.25);
 
             public final double dutyCycle;
@@ -87,9 +87,9 @@ public final class Constants {
         public static final Distance HOPPER_EXTENT = Inches.of(12.0);
 
         public static enum HopperState {
-            FEED(1),
-            REVERSE(-1),
-            STOP(0);
+            FEED(1.0),
+            REVERSE(-1.0),
+            STOP(0.0);
 
             public final double dutyCycle;
 
@@ -104,9 +104,9 @@ public final class Constants {
         public static final int FEEDER_MOTOR_ID = 20; // idk if this port is used yet plz check
 
         public static enum FeederState {
-            FEED(1),
-            UNJAM_FEEDER(-1),
-            STOP(0);
+            FEED(1.0),
+            UNJAM(-1.0),
+            STOP(0.0);
 
             public final double dutyCycle;
 
@@ -118,50 +118,51 @@ public final class Constants {
 
     public static class IntakeConstants {
 
+        public static final int ANGLE_ENCODER_ID = 1;
+        public static final int ANGLE_MOTOR_ID = Robot.isReal() ? 6 : 36; // youre welcome Faye
+        public static final int SPIN_MOTOR_ID = Robot.isReal() ? 7 : 37;
+
+        public static final Angle ANGLE_ENCODER_OFFSET = Degrees.of(0);
+
         public static final double ANGLE_P_GAIN = 60;
         public static final double ANGLE_I_GAIN = 1;
         public static final double ANGLE_D_GAIN = 0;
         public static final double ANGLE_G_GAIN = 0.07;
 
         // motion magic
-        public static final double FAST_CRUISE_VELOCITY = 200;
-        public static final double FAST_ACCELERATION = 500;
-        public static final double FAST_JERK = 1600;
+        public static final double ANGLE_FAST_CRUISE_VELOCITY = 200;
+        public static final double ANGLE_FAST_ACCELERATION = 500;
+        public static final double ANGLE_FAST_JERK = 1600;
 
-        public static final double SLOW_CRUISE_VELOCITY = 1;
-        public static final double SLOW_ACCELERATION = 5;
-        public static final double SLOW_JERK = 1600;
+        public static final double ANGLE_SLOW_CRUISE_VELOCITY = 1;
+        public static final double ANGLE_SLOW_ACCELERATION = 5;
+        public static final double ANGLE_SLOW_JERK = 1600;
 
-        public static final int ANGLE_ENCODER_ID = 1;
-        public static final int INTAKE_ANGLE_MOTOR_ID = Robot.isReal() ? 6 : 36; // youre welcome Faye
-        public static final int INTAKE_SPIN_MOTOR_ID = Robot.isReal() ? 7 : 37;
-
-        public static final Angle ENCODER_OFFSET = Degrees.of(0);
-        //now 25 and 2 because encoder is on the jackshaft now.
-        public static final double MOTOR_TO_SENSOR_RATIO = 25;
-        public static final double SENSEOR_TO_MECHANISM_RATIO = 2;
+        // now 25 and 2 because encoder is on the jackshaft now.
+        public static final double ANGLE_ROTOR_TO_SENSOR_RATIO = 25;
+        public static final double ANGLE_SENSOR_TO_MECHANISM_RATIO = 2;
 
         // motor configs
-        public static final CANcoderConfiguration CAN_CODER_CONFIG = new CANcoderConfiguration() {
+        public static final CANcoderConfiguration ANGLE_CAN_CODER_CONFIG = new CANcoderConfiguration() {
             {
                 MagnetSensor.withAbsoluteSensorDiscontinuityPoint(Rotations.of(0.9));
                 MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
-                MagnetSensor.withMagnetOffset(IntakeConstants.ENCODER_OFFSET);
+                MagnetSensor.withMagnetOffset(ANGLE_ENCODER_OFFSET);
             }
         };
 
         public static final TalonFXConfiguration ANGLE_CONFIG = new TalonFXConfiguration() {
             {
-                Slot0.kP = IntakeConstants.ANGLE_P_GAIN;
-                Slot0.kI = IntakeConstants.ANGLE_I_GAIN;
-                Slot0.kD = IntakeConstants.ANGLE_D_GAIN;
-                Slot0.kG = IntakeConstants.ANGLE_G_GAIN;
+                Slot0.kP = ANGLE_P_GAIN;
+                Slot0.kI = ANGLE_I_GAIN;
+                Slot0.kD = ANGLE_D_GAIN;
+                Slot0.kG = ANGLE_G_GAIN;
                 Slot0.withGravityType(GravityTypeValue.Arm_Cosine);
                 // abs encoder
-                Feedback.FeedbackRemoteSensorID = IntakeConstants.ANGLE_ENCODER_ID;
+                Feedback.FeedbackRemoteSensorID = ANGLE_ENCODER_ID;
                 Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
-                Feedback.SensorToMechanismRatio = IntakeConstants.SENSEOR_TO_MECHANISM_RATIO;
-                Feedback.RotorToSensorRatio = IntakeConstants.MOTOR_TO_SENSOR_RATIO;
+                Feedback.SensorToMechanismRatio = ANGLE_SENSOR_TO_MECHANISM_RATIO;
+                Feedback.RotorToSensorRatio = ANGLE_ROTOR_TO_SENSOR_RATIO;
 
                 CurrentLimits.SupplyCurrentLimitEnable = true;
                 CurrentLimits.SupplyCurrentLimit = 30;
@@ -171,20 +172,19 @@ public final class Constants {
         };
 
         // motion magic
-        public static final MotionMagicConfigs FAST_MOTION_MAGIC_CONFIG = new MotionMagicConfigs() {
+        public static final MotionMagicConfigs ANGLE_FAST_MOTION_MAGIC_CONFIG = new MotionMagicConfigs() {
             {
-                MotionMagicCruiseVelocity = IntakeConstants.FAST_CRUISE_VELOCITY; // Target cruise velocity of 80 rps
-                MotionMagicAcceleration = IntakeConstants.FAST_ACCELERATION; // Target acceleration of 160 rps/s (0.5
-                // seconds)
-                MotionMagicJerk = IntakeConstants.FAST_JERK; // Target jerk of 1600 rps/s/s (0.1 seconds)
+                MotionMagicCruiseVelocity = ANGLE_FAST_CRUISE_VELOCITY; // Target cruise velocity of 80 rps
+                MotionMagicAcceleration = ANGLE_FAST_ACCELERATION; // Target acceleration of 160 rps/s (0.5 / seconds)
+                MotionMagicJerk = ANGLE_FAST_JERK; // Target jerk of 1600 rps/s/s (0.1 seconds)
             }
         };
 
-        public static final MotionMagicConfigs SLOW_MOTION_MAGIC_CONFIG = new MotionMagicConfigs() {
+        public static final MotionMagicConfigs ANGLE_SLOW_MOTION_MAGIC_CONFIG = new MotionMagicConfigs() {
             {
-                MotionMagicCruiseVelocity = IntakeConstants.SLOW_CRUISE_VELOCITY;
-                MotionMagicAcceleration = IntakeConstants.SLOW_ACCELERATION;
-                MotionMagicJerk = IntakeConstants.SLOW_JERK;
+                MotionMagicCruiseVelocity = ANGLE_SLOW_CRUISE_VELOCITY;
+                MotionMagicAcceleration = ANGLE_SLOW_ACCELERATION;
+                MotionMagicJerk = ANGLE_SLOW_JERK;
             }
         };
 
@@ -211,11 +211,11 @@ public final class Constants {
             BOUNCE_UP(Degrees.of(60), 0),
             STOP(Degrees.of(120), 0);
 
-            public final Angle rotationLocation;
+            public final Angle angleLocation;
             public final double spinDutyCycle;
 
-            private IntakeState(Angle rotationLocation, double spinDutyCycle) {
-                this.rotationLocation = rotationLocation;
+            private IntakeState(Angle angleLocation, double spinDutyCycle) {
+                this.angleLocation = angleLocation;
                 this.spinDutyCycle = spinDutyCycle;
             }
         }
@@ -310,21 +310,15 @@ public final class Constants {
 
     public static class ShooterConstants {
 
-        //Hood PID Values
-
-        //Proportional (this might be too high and contributing to the osclillations)
-        public static final double HOOD_P_GAIN = 150;
-        //Integral
-        public static final double HOOD_I_GAIN = 25;
-        //Derivative
-        public static final double HOOD_D_GAIN = 0;
-        //G - multiplied by cosine of the angle, so zero point should be when COM is perfectly horizontal
-        public static final double HOOD_G_GAIN = 0.03;
-        //S - static friction (this might be a bit high could also be contributing to some of the oscillations)
-        public static final double HOOD_S_GAIN = 5;
-
         /** hood CAN ID */
         public static final int HOOD_MOTOR_ID = Robot.isReal() ? 8 : 38;
+
+        //Hood PID Values
+        public static final double HOOD_P_GAIN = 150;
+        public static final double HOOD_I_GAIN = 25;
+        public static final double HOOD_D_GAIN = 0;
+        public static final double HOOD_G_GAIN = 0.03;
+        // public static final double HOOD_S_GAIN = 5;
 
         // hood absolute encoder (WCP throughbore)
         /** Hood encoder CAN ID */
@@ -332,15 +326,15 @@ public final class Constants {
         public static final Angle HOOD_ENCODER_OFFSET = Degrees.of(-242.65);
         public static final double HOOD_SENSOR_TO_MECHANISM_RATIO = 34 / 16; // evaluates to 2 instead of 2.125 but the lookup table is based off 2 so not changing
         /** ratio from the motor to the sensor (WCP throughbore encoder) */
-        public static final double HOOD_MOTOR_TO_SENSOR_RATIO = 125;
+        public static final double HOOD_ROTOR_TO_SENSOR_RATIO = 125;
 
         //Motion Magic®
         //think of it as max velocity
-        public static final double CRUISE_VELOCITY = 40;
+        public static final double HOOD_CRUISE_VELOCITY = 40;
         //the maximum acceleration used to achieve cruising velocity
-        public static final double ACCELERATION = 80;
+        public static final double HOOD_ACCELERATION = 80;
         //maximum jerk (helps smooth the movement out more)
-        public static final double JERK = 1600;
+        public static final double HOOD_JERK = 1600;
 
         /** the angle between the center of the shooter and the very edge */
         public static final Angle HOOD_ANGLE_OFFSET = Degrees.of(7.6743605);
@@ -359,10 +353,9 @@ public final class Constants {
         // motion magic
         public static final MotionMagicConfigs HOOD_MOTION_MAGIC_CONFIG = new MotionMagicConfigs() {
             {
-                MotionMagicCruiseVelocity = ShooterConstants.CRUISE_VELOCITY; // Target cruise velocity of 80 rps
-                MotionMagicAcceleration = ShooterConstants.ACCELERATION; // Target acceleration of 160 rps/s (0.5
-                // seconds)
-                MotionMagicJerk = ShooterConstants.JERK; // Target jerk of 1600 rps/s/s (0.1 seconds)
+                MotionMagicCruiseVelocity = HOOD_CRUISE_VELOCITY; // Target cruise velocity of 80 rps
+                MotionMagicAcceleration = HOOD_ACCELERATION; // Target acceleration of 160 rps/s (0.5 / seconds)
+                MotionMagicJerk = HOOD_JERK; // Target jerk of 1600 rps/s/s (0.1 seconds)
             }
         };
         // hood motor conifg
@@ -385,7 +378,7 @@ public final class Constants {
                 Feedback.FeedbackRemoteSensorID = ShooterConstants.HOOD_ENCODER_ID;
                 Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
                 Feedback.SensorToMechanismRatio = ShooterConstants.HOOD_SENSOR_TO_MECHANISM_RATIO;
-                Feedback.RotorToSensorRatio = ShooterConstants.HOOD_MOTOR_TO_SENSOR_RATIO;
+                Feedback.RotorToSensorRatio = ShooterConstants.HOOD_ROTOR_TO_SENSOR_RATIO;
                 MotionMagic = HOOD_MOTION_MAGIC_CONFIG;
             }
         };
@@ -393,16 +386,15 @@ public final class Constants {
         // Shooter Motor Config and PID
         // public static final double kP = 35;
         // public static final double kI = 10;
-        public static final double P_GAIN = 7.5;
-        public static final double I_GAIN = 0;
-        public static final double D_GAIN = 0;
-        public static final double S_GAIN = 0;
-        //remove if doesnt work
-        public static final double V_GAIN = 0.25;
-        public static final double A_GAIN = 2.14;
+        public static final double SHOOTER_P_GAIN = 7.5;
+        public static final double SHOOTER_I_GAIN = 0;
+        public static final double SHOOTER_D_GAIN = 0;
+        public static final double SHOOTER_S_GAIN = 0;
+        public static final double SHOOTER_V_GAIN = 0.25;
+        public static final double SHOOTER_A_GAIN = 2.14;
 
-        public static final double CURRENT_LIMIT = 25;
-        public static final double RAMP_RATE = 0.2;
+        public static final double SHOOTER_CURRENT_LIMIT = 25;
+        public static final double SHOOTER_RAMP_PERIOD = 0.2;
 
         public static final int SHOOTER_LEFT_BOTTOM_MOTOR_ID = 9;
         public static final int SHOOTER_LEFT_TOP_MOTOR_ID = 10;
@@ -412,61 +404,61 @@ public final class Constants {
         // shooter motors config
         public static final TalonFXConfiguration RIGHT_SHOOTER_MOTORS_CONFIG = new TalonFXConfiguration() {
             {
-                Slot0.kP = ShooterConstants.P_GAIN;
-                Slot0.kI = ShooterConstants.I_GAIN;
-                Slot0.kD = ShooterConstants.D_GAIN;
-                Slot0.kS = ShooterConstants.S_GAIN;
-                Slot0.kV = ShooterConstants.V_GAIN;
-                Slot0.kA = ShooterConstants.A_GAIN;
+                Slot0.kP = ShooterConstants.SHOOTER_P_GAIN;
+                Slot0.kI = ShooterConstants.SHOOTER_I_GAIN;
+                Slot0.kD = ShooterConstants.SHOOTER_D_GAIN;
+                Slot0.kS = ShooterConstants.SHOOTER_S_GAIN;
+                Slot0.kV = ShooterConstants.SHOOTER_V_GAIN;
+                Slot0.kA = ShooterConstants.SHOOTER_A_GAIN;
                 CurrentLimits.SupplyCurrentLimitEnable = true;
-                CurrentLimits.SupplyCurrentLimit = CURRENT_LIMIT;
+                CurrentLimits.SupplyCurrentLimit = SHOOTER_CURRENT_LIMIT;
                 MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
                 MotorOutput.NeutralMode = NeutralModeValue.Coast;
-                ClosedLoopRamps.VoltageClosedLoopRampPeriod = RAMP_RATE;
+                ClosedLoopRamps.VoltageClosedLoopRampPeriod = SHOOTER_RAMP_PERIOD;
             }
         };
 
         public static final TalonFXConfiguration LEFT_SHOOTER_MOTORS_CONFIG = new TalonFXConfiguration() {
             {
-                Slot0.kP = ShooterConstants.P_GAIN;
-                Slot0.kI = ShooterConstants.I_GAIN;
-                Slot0.kD = ShooterConstants.D_GAIN;
-                Slot0.kS = ShooterConstants.S_GAIN;
-                Slot0.kV = ShooterConstants.V_GAIN;
-                Slot0.kA = ShooterConstants.A_GAIN;
+                Slot0.kP = ShooterConstants.SHOOTER_P_GAIN;
+                Slot0.kI = ShooterConstants.SHOOTER_I_GAIN;
+                Slot0.kD = ShooterConstants.SHOOTER_D_GAIN;
+                Slot0.kS = ShooterConstants.SHOOTER_S_GAIN;
+                Slot0.kV = ShooterConstants.SHOOTER_V_GAIN;
+                Slot0.kA = ShooterConstants.SHOOTER_A_GAIN;
                 CurrentLimits.SupplyCurrentLimitEnable = true;
-                CurrentLimits.SupplyCurrentLimit = CURRENT_LIMIT;
+                CurrentLimits.SupplyCurrentLimit = SHOOTER_CURRENT_LIMIT;
                 MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
                 MotorOutput.NeutralMode = NeutralModeValue.Coast;
-                ClosedLoopRamps.VoltageClosedLoopRampPeriod = RAMP_RATE;
+                ClosedLoopRamps.VoltageClosedLoopRampPeriod = SHOOTER_RAMP_PERIOD;
             }
         };
 
         public static final AngularVelocity SHOOTER_ANGULAR_VELOCITY = RPM.of(2000);
-        public static final AngularVelocity LOB_ANGULAR_VELOCITY = RPM.of(2000);
-        public static final AngularVelocity RESTING_ANGULAR_VELOCITY = RPM.of(1000);
-        public static final AngularVelocity HUB_ANGULAR_VELOCITY = RPM.of(2500);
-        public static final AngularVelocity TOWER_ANGULAR_VELOCITY = RPM.of(3000);
+        public static final AngularVelocity SHOOTER_LOB_ANGULAR_VELOCITY = RPM.of(2000);
+        public static final AngularVelocity SHOOTER_RESTING_ANGULAR_VELOCITY = RPM.of(1000);
+        public static final AngularVelocity SHOOTER_HUB_ANGULAR_VELOCITY = RPM.of(2500);
+        public static final AngularVelocity SHOOTER_TOWER_ANGULAR_VELOCITY = RPM.of(3000);
 
-        public static final Angle HUB_HOOD_PITCH = Degrees.of(75);
-        public static final Angle TOWER_HOOD_PITCH = Degrees.of(70);
+        public static final Angle HOOD_HUB_HOOD_PITCH = Degrees.of(75);
+        public static final Angle HOOD_TOWER_HOOD_PITCH = Degrees.of(70);
 
         public static final double BACKWARDS_TIME = 0.05;
 
         // Old equation stuff
         /** units: m/s */
-        public static final double LAUNCH_VELOCITY = Units.feetToMeters(29); // convert from ft/s to m/s
-        public static final double RATIO = 1;
+        public static final double SHOOTER_LAUNCH_VELOCITY = Units.feetToMeters(29); // convert from ft/s to m/s
+        public static final double SHOOTER_RATIO = 1;
         public static final double SHOOTER_HEIGHT = Units.inchesToMeters(40);
 
         public static AngularVelocity SHOOTER_VELOCITY_TOLERANCE = RPM.of(100);
-        public static Angle MAX_PITCH = Degrees.of(85);
+        public static Angle HOOD_MAX_PITCH = Degrees.of(85);
 
         public static final Distance SHOOTER_WHEEL_RADIUS = Inches.of(2);
         public static final Distance SHOOTER_ROLLER_RADIUS = Inches.of(0.75);
 
-        public static final double MOTOR_TO_WHEEL_RATIO = 1;
-        public static final double MOTOR_TO_ROLLER_RATIO = 1.167;
+        public static final double ROTOR_TO_WHEEL_RATIO = 1;
+        public static final double ROTOR_TO_ROLLER_RATIO = 1.167;
 
         public static final double SHOOTER_EFFICIENCY = 0.80;
 
@@ -490,16 +482,16 @@ public final class Constants {
     public static class PhotonVisionConstants {
 
         // TODO: tune stddev values
-        public static final Matrix<N3, N1> SINGLE_TAG_STD_DEVS = VecBuilder.fill(1, 1, 4);
-        public static final Matrix<N3, N1> MULTI_TAG_STD_DEVS = VecBuilder.fill(0.25, 0.25, 1);
+        public static final Matrix<N3, N1> SINGLE_TAG_STANDARD_DEVIATION = VecBuilder.fill(1, 1, 4);
+        public static final Matrix<N3, N1> MULTI_TAG_STANDARD_DEVIATION = VecBuilder.fill(0.25, 0.25, 1);
 
-        public static final Transform3d LEFT_SHOOTER_CAM_TRANSFORM = new Transform3d(
+        public static final Transform3d LEFT_SHOOTER_CAMERA_TRANSFORM = new Transform3d(
             Units.inchesToMeters(-1.2887),
             Units.inchesToMeters(8.8466),
             Units.inchesToMeters(21.1190),
             new Rotation3d(0, Units.degreesToRadians(-30), Units.degreesToRadians(-5))
         );
-        public static final Transform3d RIGHT_SHOOTER_CAM_TRANSFORM = new Transform3d(
+        public static final Transform3d RIGHT_SHOOTER_CAMERA_TRANSFORM = new Transform3d(
             Units.inchesToMeters(-1.2887),
             Units.inchesToMeters(-8.8466),
             Units.inchesToMeters(21.1190),
@@ -516,21 +508,21 @@ public final class Constants {
             new Pose2d(Units.inchesToMeters(651.22 - 182.11), Units.inchesToMeters(158.84), new Rotation2d())
         );
 
-        public static final Set<Pose2d> HUB_LOB_POSITIONS = Set.of(
+        public static final Set<Pose2d> HUB_LOB_LOCATIONS = Set.of(
             new Pose2d(2.5, 2.1, new Rotation2d()),
             new Pose2d(2.5, 5.6, new Rotation2d())
         );
 
-        public static final Set<Pose2d> RED_LOB_POSITIONS = Set.of(
+        public static final Set<Pose2d> RED_LOB_LOCATIONS = Set.of(
             new Pose2d(14.1, 2.1, new Rotation2d()),
             new Pose2d(14.1, 5.6, new Rotation2d())
         );
 
         public static final Map<DriverStation.Alliance, Set<Pose2d>> LOB_LOCATIONS = Map.of(
             Alliance.Blue,
-            HUB_LOB_POSITIONS,
+            HUB_LOB_LOCATIONS,
             Alliance.Red,
-            RED_LOB_POSITIONS
+            RED_LOB_LOCATIONS
         );
 
         public static enum TrenchZone {
@@ -619,7 +611,7 @@ public final class Constants {
         };
 
         /** Units:m/s^2 */
-        public static final double G = 9.80;
+        public static final double GRAVITY = 9.80;
 
         public static final double HUB_Z = Units.inchesToMeters(56.4);
     }

@@ -33,8 +33,8 @@ public class HubShoot extends Command {
 
     @Override
     public void initialize() {
-        shooter.setSpeed(ShooterConstants.HUB_ANGULAR_VELOCITY);
-        shooter.adjustTrajectoryAngle(ShooterConstants.HUB_HOOD_PITCH);
+        shooter.setSpeed(ShooterConstants.SHOOTER_HUB_ANGULAR_VELOCITY);
+        shooter.adjustTrajectoryAngle(ShooterConstants.HOOD_HUB_HOOD_PITCH);
         CommandScheduler.getInstance().schedule(intake.new BounceIntake());
 
         timer.reset();

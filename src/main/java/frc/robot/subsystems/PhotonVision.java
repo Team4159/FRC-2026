@@ -27,8 +27,8 @@ public class PhotonVision extends SubsystemBase {
     //TODO: add other cameras later once we know where they are on the robot
     private PhotonCamera leftShooterCam, rightShooterCam;
     private PhotonPoseEstimator leftShooterEstimator, rightShooterEstimator;
-    private Matrix<N3, N1> kSingleTagStdDevs = PhotonVisionConstants.SINGLE_TAG_STD_DEVS;
-    private Matrix<N3, N1> kMultiTagStdDevs = PhotonVisionConstants.MULTI_TAG_STD_DEVS;
+    private Matrix<N3, N1> kSingleTagStdDevs = PhotonVisionConstants.SINGLE_TAG_STANDARD_DEVIATION;
+    private Matrix<N3, N1> kMultiTagStdDevs = PhotonVisionConstants.MULTI_TAG_STANDARD_DEVIATION;
 
     private final Field2d testField = new Field2d();
 
@@ -40,11 +40,11 @@ public class PhotonVision extends SubsystemBase {
         //estimators
         leftShooterEstimator = new PhotonPoseEstimator(
             aprilTagFieldLayout,
-            PhotonVisionConstants.LEFT_SHOOTER_CAM_TRANSFORM
+            PhotonVisionConstants.LEFT_SHOOTER_CAMERA_TRANSFORM
         );
         rightShooterEstimator = new PhotonPoseEstimator(
             aprilTagFieldLayout,
-            PhotonVisionConstants.RIGHT_SHOOTER_CAM_TRANSFORM
+            PhotonVisionConstants.RIGHT_SHOOTER_CAMERA_TRANSFORM
         );
 
         testField.setRobotPose(drivetrain.getState().Pose);
@@ -55,9 +55,9 @@ public class PhotonVision extends SubsystemBase {
                     .getState()
                     .Pose.plus(
                         new Transform2d(
-                            PhotonVisionConstants.RIGHT_SHOOTER_CAM_TRANSFORM.getX(),
-                            PhotonVisionConstants.RIGHT_SHOOTER_CAM_TRANSFORM.getY(),
-                            PhotonVisionConstants.RIGHT_SHOOTER_CAM_TRANSFORM.getRotation().toRotation2d()
+                            PhotonVisionConstants.RIGHT_SHOOTER_CAMERA_TRANSFORM.getX(),
+                            PhotonVisionConstants.RIGHT_SHOOTER_CAMERA_TRANSFORM.getY(),
+                            PhotonVisionConstants.RIGHT_SHOOTER_CAMERA_TRANSFORM.getRotation().toRotation2d()
                         )
                     )
             );
@@ -68,9 +68,9 @@ public class PhotonVision extends SubsystemBase {
                     .getState()
                     .Pose.plus(
                         new Transform2d(
-                            PhotonVisionConstants.LEFT_SHOOTER_CAM_TRANSFORM.getX(),
-                            PhotonVisionConstants.LEFT_SHOOTER_CAM_TRANSFORM.getY(),
-                            PhotonVisionConstants.LEFT_SHOOTER_CAM_TRANSFORM.getRotation().toRotation2d()
+                            PhotonVisionConstants.LEFT_SHOOTER_CAMERA_TRANSFORM.getX(),
+                            PhotonVisionConstants.LEFT_SHOOTER_CAMERA_TRANSFORM.getY(),
+                            PhotonVisionConstants.LEFT_SHOOTER_CAMERA_TRANSFORM.getRotation().toRotation2d()
                         )
                     )
             );

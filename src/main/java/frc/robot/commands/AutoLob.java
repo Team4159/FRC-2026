@@ -120,7 +120,7 @@ public class AutoLob extends Command {
 
         timeOffset = MathSharedStore.getTimestamp();
 
-        shooter.setSpeed(ShooterConstants.LOB_ANGULAR_VELOCITY);
+        shooter.setSpeed(ShooterConstants.SHOOTER_LOB_ANGULAR_VELOCITY);
 
         timer.reset();
     }
@@ -170,7 +170,7 @@ public class AutoLob extends Command {
         if (!timer.hasElapsed(ShooterConstants.BACKWARDS_TIME)) {
             //run neck backwards if at the beginning
             autoShootStatus = AutoShootStatus.WAITING;
-            shooter.setFeederSpeed(FeederState.UNJAM_FEEDER.dutyCycle);
+            shooter.setFeederSpeed(FeederState.UNJAM.dutyCycle);
             hopper.setHopperSpeed(HopperState.STOP.dutyCycle);
         }
         if (shooter.isAtPitch() && shooter.isAtSpeed() && isAtDesiredRotation(Radians.of(desiredRobotAngle))) {
@@ -269,12 +269,12 @@ public class AutoLob extends Command {
         //the delta y for TOF would be the height
         //the equation then becomes 0 = -(1/2)g * TOF^2 + vy * TOF - height -> 0 = (1/2)g * TOF^2 - vy * TOF + height
         //then use quadratic formula and always add the radical to get the 2nd time the fuel is at the target height (so that it is on the way down)
-        double radical = Math.sqrt(Math.pow(vy, 2) - 2 * Constants.FieldConstants.G * height);
+        double radical = Math.sqrt(Math.pow(vy, 2) - 2 * Constants.FieldConstants.GRAVITY * height);
         if (Double.isNaN(radical)) {
             return 0;
         }
         double numerator = vy + radical;
-        double time = numerator / Constants.FieldConstants.G;
+        double time = numerator / Constants.FieldConstants.GRAVITY;
         SmartDashboard.putNumber("time of flight", time);
         return time;
     }
@@ -292,10 +292,10 @@ public class AutoLob extends Command {
             (Math.pow(launchVelocity, 2) +
                 Math.sqrt(
                     Math.pow(launchVelocity, 4) -
-                        Math.pow(FieldConstants.G * distance, 2) -
-                        2 * FieldConstants.G * height * Math.pow(launchVelocity, 2)
+                        Math.pow(FieldConstants.GRAVITY * distance, 2) -
+                        2 * FieldConstants.GRAVITY * height * Math.pow(launchVelocity, 2)
                 )) /
-                (FieldConstants.G * distance)
+                (FieldConstants.GRAVITY * distance)
         );
 
         if (Double.isNaN(desiredPitch)) {

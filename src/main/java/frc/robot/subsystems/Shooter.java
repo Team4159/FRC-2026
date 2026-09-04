@@ -91,7 +91,7 @@ public class Shooter extends SubsystemBase {
         //when making commands for the shooter the hood should always be set back to resting position when done so the robot can go under the trench
         restHood();
         //set speed of the shooter wheels ot the resting velocity (makes it take less time to spin up and shoot, didn't cause any brownouts at Contra Costa but could use some more testing)
-        this.setSpeed(Constants.ShooterConstants.RESTING_ANGULAR_VELOCITY);
+        this.setSpeed(Constants.ShooterConstants.SHOOTER_RESTING_ANGULAR_VELOCITY);
 
         // leftTopShooterMotor.setControl(new StrictFollower(leaderShooterMotor.getDeviceID()));
         // rightTopShooterMotor.setControl(new StrictFollower(leaderShooterMotor.getDeviceID()));
@@ -122,12 +122,12 @@ public class Shooter extends SubsystemBase {
     public double getFuelSpeed() {
         double motorOmega = getShooterMotorVelocity().in(RadiansPerSecond);
 
-        double shooterOmega = motorOmega * ShooterConstants.RATIO;
+        double shooterOmega = motorOmega * ShooterConstants.SHOOTER_RATIO;
 
         double wheelTangentialSpeed =
-            shooterOmega * ShooterConstants.SHOOTER_WHEEL_RADIUS.in(Meters) * ShooterConstants.MOTOR_TO_WHEEL_RATIO;
+            shooterOmega * ShooterConstants.SHOOTER_WHEEL_RADIUS.in(Meters) * ShooterConstants.ROTOR_TO_WHEEL_RATIO;
         double rollerTangentialSpeed =
-            shooterOmega * ShooterConstants.SHOOTER_ROLLER_RADIUS.in(Meters) * ShooterConstants.MOTOR_TO_ROLLER_RATIO;
+            shooterOmega * ShooterConstants.SHOOTER_ROLLER_RADIUS.in(Meters) * ShooterConstants.ROTOR_TO_ROLLER_RATIO;
 
         return (ShooterConstants.SHOOTER_EFFICIENCY * (wheelTangentialSpeed + rollerTangentialSpeed)) / 2.0;
     }
