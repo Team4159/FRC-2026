@@ -345,7 +345,7 @@ public final class Constants {
         /** the angle between the center of the shooter and the very edge */
         public static final Angle HOOD_ANGLE_OFFSET = Degrees.of(7.6743605);
 
-        public static final Angle RESTING_ANGLE = Degrees.of(-5.8019605);
+        public static final Angle HOOD_RESTING_ANGLE = Degrees.of(-5.8019605);
 
         // hood cancoder
         public static final CANcoderConfiguration CAN_CODER_CONFIG = new CANcoderConfiguration() {
