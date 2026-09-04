@@ -456,7 +456,7 @@ public class AutoShoot extends Command {
 
     @Override
     public void end(boolean interrupted) {
-        shooter.adjustHood(ShooterConstants.RESTING_ANGLE);
+        shooter.adjustHood(ShooterConstants.HOOD_RESTING_ANGLE);
         shooter.setSpeed(Constants.ShooterConstants.RESTING_ANGULAR_VELOCITY);
         shooter.setFeederSpeed(FeederState.STOP.dutyCycle);
         hopper.setHopperSpeed(HopperState.STOP.dutyCycle);

@@ -69,7 +69,7 @@ public class TowerShoot extends Command {
     public void end(boolean interrupted) {
         //shooter.setSpeed(ShooterConstants.restingAngularVelocity);
         shooter.stopShooter();
-        shooter.adjustHood(ShooterConstants.RESTING_ANGLE);
+        shooter.adjustHood(ShooterConstants.HOOD_RESTING_ANGLE);
         //shooter.setFeederSpeed(FeederState.STOP.percentage);
         //hopper.setHopperSpeed(HopperState.STOP.percentage);
         CommandScheduler.getInstance().schedule(intake.new ChangeStates(IntakeState.BOUNCE_UP));

@@ -218,7 +218,7 @@ public class Shooter extends SubsystemBase {
 
     /** sets the desired angle of the hood to the resting angle(fits under the trench) */
     public void restHood() {
-        adjustHood(ShooterConstants.RESTING_ANGLE);
+        adjustHood(ShooterConstants.HOOD_RESTING_ANGLE);
     }
 
     /** @param trajectoryAngle the desired launch angle of the fuel
