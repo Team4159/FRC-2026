@@ -21,7 +21,7 @@ public class Hopper extends SubsystemBase {
         hopperMotor.getConfigurator().apply(currentLimits);
     }
 
-    public void setHopperSpeed(double speed) {
+    public void setHopperDutyCycle(double speed) {
         hopperMotor.set(speed);
     }
 
@@ -40,7 +40,7 @@ public class Hopper extends SubsystemBase {
 
         @Override
         public void initialize() {
-            Hopper.this.setHopperSpeed(hopperState.dutyCycle);
+            Hopper.this.setHopperDutyCycle(hopperState.dutyCycle);
         }
 
         @Override

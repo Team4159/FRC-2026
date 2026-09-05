@@ -144,7 +144,7 @@ public class AutoRecovery extends Command {
     @Override
     public void end(boolean interrupted) {
         if (started && finished) {
-            intake.setSpinSpeed(0.0);
+            intake.setSpinDutyCycle(0.0);
         }
     }
 

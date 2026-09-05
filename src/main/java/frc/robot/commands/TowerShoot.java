@@ -33,7 +33,7 @@ public class TowerShoot extends Command {
 
     @Override
     public void initialize() {
-        shooter.setSpeed(ShooterConstants.SHOOTER_TOWER_ANGULAR_VELOCITY);
+        shooter.setVelocity(ShooterConstants.SHOOTER_TOWER_ANGULAR_VELOCITY);
         shooter.adjustTrajectoryAngle(ShooterConstants.HOOD_TOWER_HOOD_PITCH);
         CommandScheduler.getInstance().schedule(intake.new BounceIntake());
 
@@ -48,21 +48,21 @@ public class TowerShoot extends Command {
         //     shooter.setFeederSpeed(FeederState.UNSTUCKFEEDER.percentage);
         //     hopper.setHopperSpeed(HopperState.STOP.percentage);
         // }
-        if (shooter.isAtPitch() && shooter.isAtSpeed()) {
+        if (shooter.isAtPitch() && shooter.isAtVelocity()) {
             feedFlag = true;
         }
         if (feedFlag) {
             //shoot the fuel if at the right pitch
-            shooter.setFeederSpeed(FeederState.FEED.dutyCycle);
-            hopper.setHopperSpeed(HopperState.FEED.dutyCycle);
+            shooter.setFeederDutyCycle(FeederState.FEED.dutyCycle);
+            hopper.setHopperDutyCycle(HopperState.FEED.dutyCycle);
         } else {
             //otherwise just wait
-            shooter.setFeederSpeed(FeederState.STOP.dutyCycle);
-            hopper.setHopperSpeed(HopperState.STOP.dutyCycle);
+            shooter.setFeederDutyCycle(FeederState.STOP.dutyCycle);
+            hopper.setHopperDutyCycle(HopperState.STOP.dutyCycle);
         }
 
         SmartDashboard.putBoolean("isAtPitch", shooter.isAtPitch());
-        SmartDashboard.putBoolean("isatspeed", shooter.isAtSpeed());
+        SmartDashboard.putBoolean("isatspeed", shooter.isAtVelocity());
     }
 
     @Override

@@ -230,11 +230,11 @@ public class AutoShoot extends Command {
 
         // set the desired hood angle
         shooter.adjustTrajectoryAngle(desiredHoodAngle);
-        shooter.setSpeed(desiredShooterAngularVelocity);
+        shooter.setVelocity(desiredShooterAngularVelocity);
 
         // send tolerances to smart dashboard
         SmartDashboard.putBoolean("isAtPitch", shooter.isAtPitch());
-        SmartDashboard.putBoolean("isatspeed", shooter.isAtSpeed());
+        SmartDashboard.putBoolean("isatspeed", shooter.isAtVelocity());
         SmartDashboard.putBoolean("swerve isatangle", isAtDesiredRotation(Radians.of(desiredRobotAngle)));
 
         // if (!timer.hasElapsed(ShooterConstants.backwardsTime)){
@@ -243,11 +243,11 @@ public class AutoShoot extends Command {
         // shooter.setFeederSpeed(FeederState.UNSTUCKFEEDER.percentage);
         // hopper.setHopperSpeed(HopperState.STOP.percentage);
         // }
-        if (shooter.isAtPitch() && shooter.isAtSpeed() && isAtDesiredRotation(Radians.of(desiredRobotAngle))) {
+        if (shooter.isAtPitch() && shooter.isAtVelocity() && isAtDesiredRotation(Radians.of(desiredRobotAngle))) {
             // shoot the fuel if at the right pitch
             autoShootStatus = AutoShootStatus.SHOOT;
-            shooter.setFeederSpeed(FeederState.FEED.dutyCycle);
-            hopper.setHopperSpeed(HopperState.FEED.dutyCycle);
+            shooter.setFeederDutyCycle(FeederState.FEED.dutyCycle);
+            hopper.setHopperDutyCycle(HopperState.FEED.dutyCycle);
         } else {
             //otherwise just wait
             // autoAimStatus = AutoAimStatus.WAITING;
@@ -457,9 +457,9 @@ public class AutoShoot extends Command {
     @Override
     public void end(boolean interrupted) {
         shooter.adjustHood(ShooterConstants.HOOD_RESTING_ANGLE);
-        shooter.setSpeed(Constants.ShooterConstants.SHOOTER_RESTING_ANGULAR_VELOCITY);
-        shooter.setFeederSpeed(FeederState.STOP.dutyCycle);
-        hopper.setHopperSpeed(HopperState.STOP.dutyCycle);
+        shooter.setVelocity(Constants.ShooterConstants.SHOOTER_RESTING_ANGULAR_VELOCITY);
+        shooter.setFeederDutyCycle(FeederState.STOP.dutyCycle);
+        hopper.setHopperDutyCycle(HopperState.STOP.dutyCycle);
         CommandScheduler.getInstance().schedule(intake.new ChangeStates(IntakeState.DOWN_OFF));
     }
 }

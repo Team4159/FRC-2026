@@ -20,23 +20,23 @@ public class ManualShoot extends Command {
 
     @Override
     public void initialize() {
-        shooter.setSpeed(ShooterConstants.SHOOTER_ANGULAR_VELOCITY);
+        shooter.setVelocity(ShooterConstants.SHOOTER_ANGULAR_VELOCITY);
     }
 
     @Override
     public void execute() {
-        if (shooter.isAtSpeed()) {
-            shooter.setFeederSpeed(FeederState.FEED.dutyCycle);
-            hopper.setHopperSpeed(HopperState.FEED.dutyCycle);
+        if (shooter.isAtVelocity()) {
+            shooter.setFeederDutyCycle(FeederState.FEED.dutyCycle);
+            hopper.setHopperDutyCycle(HopperState.FEED.dutyCycle);
         } else {
-            shooter.setFeederSpeed(FeederState.STOP.dutyCycle);
-            hopper.setHopperSpeed(HopperState.STOP.dutyCycle);
+            shooter.setFeederDutyCycle(FeederState.STOP.dutyCycle);
+            hopper.setHopperDutyCycle(HopperState.STOP.dutyCycle);
         }
     }
 
     @Override
     public void end(boolean interrupted) {
-        shooter.setFeederSpeed(FeederState.STOP.dutyCycle);
-        hopper.setHopperSpeed(HopperState.STOP.dutyCycle);
+        shooter.setFeederDutyCycle(FeederState.STOP.dutyCycle);
+        hopper.setHopperDutyCycle(HopperState.STOP.dutyCycle);
     }
 }

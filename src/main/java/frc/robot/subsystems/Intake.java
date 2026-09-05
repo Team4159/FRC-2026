@@ -55,8 +55,8 @@ public class Intake extends SubsystemBase {
         locationMotor.getConfigurator().apply(IntakeConstants.ANGLE_CONFIG.withMotionMagic(motionMagicConfigs));
     }
 
-    public void setSpinSpeed(double speed) {
-        spinMotor.set(speed);
+    public void setSpinDutyCycle(double dutyCycle) {
+        spinMotor.set(dutyCycle);
     }
 
     public void setLocation(Angle angle) {
@@ -76,9 +76,9 @@ public class Intake extends SubsystemBase {
         );
 
         if (getPivotAngle().in(Degrees) < 15) {
-            setSpinSpeed(rollerPercentage);
+            setSpinDutyCycle(rollerPercentage);
         } else {
-            setSpinSpeed(0);
+            setSpinDutyCycle(0);
         }
     }
 
@@ -99,7 +99,7 @@ public class Intake extends SubsystemBase {
 
         @Override
         public void end(boolean interrupt) {
-            Intake.this.setSpinSpeed(IntakeState.STOP.spinDutyCycle);
+            Intake.this.setSpinDutyCycle(IntakeState.STOP.spinDutyCycle);
             rollerPercentage = 0;
         }
     }
