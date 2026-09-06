@@ -180,6 +180,9 @@ public class Telemetry {
     }
 
     public static void run() {
+        if (!running) {
+            return;
+        }
         aggregateData();
         logData();
     }
