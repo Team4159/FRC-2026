@@ -12,7 +12,7 @@ import java.util.Map;
 import org.littletonrobotics.junction.Logger;
 
 /*
-simplified version of FuelSim by Team 5000 that includes nothing
+simplified version of FuelSim by Team 5000
 https://github.com/hammerheads5000/FuelSim
 */
 public class FuelSimulation {

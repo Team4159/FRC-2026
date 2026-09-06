@@ -4,11 +4,14 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.lib.FuelSimulation;
 import frc.lib.Telemetry;
 import org.littletonrobotics.junction.LoggedRobot;
+import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.NT4Publisher;
 
 /**
  * The methods in this class are called automatically corresponding to each mode, as described in
@@ -30,6 +33,10 @@ public class Robot extends LoggedRobot {
         // autonomous chooser on the dashboard.
         m_robotContainer = new RobotContainer();
         Telemetry.start();
+        if (RobotBase.isSimulation()) {
+            Logger.addDataReceiver(new NT4Publisher());
+            Logger.start();
+        }
     }
 
     /**
@@ -103,6 +110,8 @@ public class Robot extends LoggedRobot {
     /** This function is called periodically whilst in simulation. */
     @Override
     public void simulationPeriodic() {
-        FuelSimulation.getInstance().update();
+        if (RobotBase.isSimulation()) {
+            FuelSimulation.getInstance().update();
+        }
     }
 }

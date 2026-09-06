@@ -17,7 +17,6 @@ import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
-import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
@@ -28,8 +27,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.littletonrobotics.junction.Logger;
-import org.littletonrobotics.junction.networktables.NT4Publisher;
 
 public class Telemetry {
 
@@ -163,11 +160,6 @@ public class Telemetry {
 
         SignalLogger.setPath(DataLogManager.getLogDir());
         SignalLogger.start();
-
-        if (RobotBase.isSimulation()) {
-            Logger.addDataReceiver(new NT4Publisher());
-        }
-        Logger.start();
     }
 
     public static void run() {
