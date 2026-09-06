@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableBuilderImpl;
@@ -50,6 +51,9 @@ public class Telemetry {
     private static final NetworkTableInstance networkTableInstance = NetworkTableInstance.getDefault();
 
     private static final NetworkTable energyTable = networkTableInstance.getTable("Energy Usage");
+    private static final DoublePublisher batteryVoltagePublisher = energyTable
+        .getDoubleTopic("BatteryVoltage")
+        .publish();
     private static final DoublePublisher energyUsedPublisher = energyTable
         .getDoubleTopic("Energy Used Total")
         .publish();
@@ -234,6 +238,7 @@ public class Telemetry {
     }
 
     private static void logData() {
+        batteryVoltagePublisher.set(RobotController.getBatteryVoltage());
         energyUsedPublisher.set(energyBreakdown.values().stream().mapToDouble(Double::doubleValue).sum());
         energyBreakdownPublishers.forEach((energyCategory, publisher) -> {
             double energy = energyBreakdown.get(energyCategory);
