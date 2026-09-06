@@ -27,6 +27,7 @@ import frc.robot.Constants.DrivetrainConstants;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
@@ -170,29 +171,6 @@ public class Telemetry {
         Logger.start();
     }
 
-    public static void telemetrizeDrivetrain(SwerveDriveState drivetrainState) {
-        lastDrivetrainState = drivetrainState;
-
-        SignalLogger.writeStruct("DriveState/Pose", Pose2d.struct, drivetrainState.Pose);
-        SignalLogger.writeStruct("DriveState/Speeds", ChassisSpeeds.struct, drivetrainState.Speeds);
-        SignalLogger.writeStructArray(
-            "DriveState/ModuleStates",
-            SwerveModuleState.struct,
-            drivetrainState.ModuleStates
-        );
-        SignalLogger.writeStructArray(
-            "DriveState/ModuleTargets",
-            SwerveModuleState.struct,
-            drivetrainState.ModuleTargets
-        );
-        SignalLogger.writeStructArray(
-            "DriveState/ModulePositions",
-            SwerveModulePosition.struct,
-            drivetrainState.ModulePositions
-        );
-        SignalLogger.writeDouble("DriveState/OdometryPeriod", drivetrainState.OdometryPeriod, "seconds");
-    }
-
     public static void run() {
         aggregateData();
         logData();
@@ -245,21 +223,46 @@ public class Telemetry {
             publisher.set(energy);
         });
 
-        drivetrainPosePublisher.set(lastDrivetrainState.Pose);
-        for (int i = 0; i < swerveModuleMechanisms.length; i++) {
-            SwerveModuleState state = lastDrivetrainState.ModuleStates[i];
-            swerveModuleVelocityStates[i].setAngle(state.angle);
-            swerveModuleVelocityStates[i].setLength(
-                (state.speedMetersPerSecond / DrivetrainConstants.MAX_TRANSLATION_SPEED) * SWERVE_MODULE_SPREAD
-            );
-            swerveModuleAngleStates[i].setAngle(state.angle);
-            SwerveModuleState target = lastDrivetrainState.ModuleTargets[i];
-            swerveModuleVelocityTargets[i].setAngle(target.angle);
-            swerveModuleVelocityTargets[i].setLength(
-                (target.speedMetersPerSecond / DrivetrainConstants.MAX_TRANSLATION_SPEED) * SWERVE_MODULE_SPREAD
-            );
-            swerveModuleAngleTargets[i].setAngle(target.angle);
+        if (lastDrivetrainState != null) {
+            drivetrainPosePublisher.set(lastDrivetrainState.Pose);
+            for (int i = 0; i < swerveModuleMechanisms.length; i++) {
+                SwerveModuleState state = lastDrivetrainState.ModuleStates[i];
+                swerveModuleVelocityStates[i].setAngle(state.angle);
+                swerveModuleVelocityStates[i].setLength(
+                    (state.speedMetersPerSecond / DrivetrainConstants.MAX_TRANSLATION_SPEED) * SWERVE_MODULE_SPREAD
+                );
+                swerveModuleAngleStates[i].setAngle(state.angle);
+                SwerveModuleState target = lastDrivetrainState.ModuleTargets[i];
+                swerveModuleVelocityTargets[i].setAngle(target.angle);
+                swerveModuleVelocityTargets[i].setLength(
+                    (target.speedMetersPerSecond / DrivetrainConstants.MAX_TRANSLATION_SPEED) * SWERVE_MODULE_SPREAD
+                );
+                swerveModuleAngleTargets[i].setAngle(target.angle);
+            }
         }
+    }
+
+    public static void telemetrizeDrivetrain(SwerveDriveState drivetrainState) {
+        lastDrivetrainState = drivetrainState;
+
+        SignalLogger.writeStruct("DriveState/Pose", Pose2d.struct, drivetrainState.Pose);
+        SignalLogger.writeStruct("DriveState/Speeds", ChassisSpeeds.struct, drivetrainState.Speeds);
+        SignalLogger.writeStructArray(
+            "DriveState/ModuleStates",
+            SwerveModuleState.struct,
+            drivetrainState.ModuleStates
+        );
+        SignalLogger.writeStructArray(
+            "DriveState/ModuleTargets",
+            SwerveModuleState.struct,
+            drivetrainState.ModuleTargets
+        );
+        SignalLogger.writeStructArray(
+            "DriveState/ModulePositions",
+            SwerveModulePosition.struct,
+            drivetrainState.ModulePositions
+        );
+        SignalLogger.writeDouble("DriveState/OdometryPeriod", drivetrainState.OdometryPeriod, "seconds");
     }
 
     private static void incrementEnergyCategory(EnergyCategory energyCategory, double increment) {
