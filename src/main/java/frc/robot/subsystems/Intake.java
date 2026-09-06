@@ -24,7 +24,7 @@ public class Intake extends SubsystemBase {
     private final TalonFX spinMotor;
     private final CANcoder canCoder;
 
-    private double rollerPercentage;
+    private double rollerDutyCycle;
 
     private final MotionMagicVoltage intakeMotionMagicVoltage;
 
@@ -48,7 +48,7 @@ public class Intake extends SubsystemBase {
             .withSupplyCurrentLimitEnable(true);
         spinMotor.getConfigurator().apply(rollerCurrentLimits);
 
-        rollerPercentage = 0;
+        rollerDutyCycle = 0;
     }
 
     public void setMotionMagic(MotionMagicConfigs motionMagicConfigs) {
@@ -76,7 +76,7 @@ public class Intake extends SubsystemBase {
         );
 
         if (getPivotAngle().in(Degrees) < 15) {
-            setSpinDutyCycle(rollerPercentage);
+            setSpinDutyCycle(rollerDutyCycle);
         } else {
             setSpinDutyCycle(0);
         }
@@ -93,14 +93,14 @@ public class Intake extends SubsystemBase {
 
         @Override
         public void initialize() {
-            rollerPercentage = state.spinDutyCycle;
+            rollerDutyCycle = state.spinDutyCycle;
             setLocation(state.angleLocation);
         }
 
         @Override
         public void end(boolean interrupt) {
             Intake.this.setSpinDutyCycle(IntakeState.STOP.spinDutyCycle);
-            rollerPercentage = 0;
+            rollerDutyCycle = 0;
         }
     }
 
