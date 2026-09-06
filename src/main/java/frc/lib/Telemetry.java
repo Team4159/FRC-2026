@@ -205,39 +205,39 @@ public class Telemetry {
     private static void aggregateData() {
         Time period = Milliseconds.of(20.0);
 
-        Voltage powerDistrbutionVoltage = Volts.of(powerDistribution.getVoltage());
+        Voltage powerDistributionVoltage = Volts.of(powerDistribution.getVoltage());
         // TODO: find channels
         incrementEnergyCategory(
             EnergyCategory.SWERVE_DRIVE,
-            powerDistrbutionVoltage.times(Amps.of(powerDistribution.getCurrent(0))).times(period)
+            powerDistributionVoltage.times(Amps.of(powerDistribution.getCurrent(0))).times(period)
         );
         incrementEnergyCategory(
             EnergyCategory.SWERVE_STEER,
-            powerDistrbutionVoltage.times(Amps.of(powerDistribution.getCurrent(0))).times(period)
+            powerDistributionVoltage.times(Amps.of(powerDistribution.getCurrent(0))).times(period)
         );
         incrementEnergyCategory(
             EnergyCategory.FLYWHEEL,
-            powerDistrbutionVoltage.times(Amps.of(powerDistribution.getCurrent(0))).times(period)
+            powerDistributionVoltage.times(Amps.of(powerDistribution.getCurrent(0))).times(period)
         );
         incrementEnergyCategory(
             EnergyCategory.HOOD,
-            powerDistrbutionVoltage.times(Amps.of(powerDistribution.getCurrent(0))).times(period)
+            powerDistributionVoltage.times(Amps.of(powerDistribution.getCurrent(0))).times(period)
         );
         incrementEnergyCategory(
             EnergyCategory.NECK,
-            powerDistrbutionVoltage.times(Amps.of(powerDistribution.getCurrent(0))).times(period)
+            powerDistributionVoltage.times(Amps.of(powerDistribution.getCurrent(0))).times(period)
         );
         incrementEnergyCategory(
             EnergyCategory.HOPPER,
-            powerDistrbutionVoltage.times(Amps.of(powerDistribution.getCurrent(0))).times(period)
+            powerDistributionVoltage.times(Amps.of(powerDistribution.getCurrent(0))).times(period)
         );
         incrementEnergyCategory(
             EnergyCategory.INTAKE_PIVOT,
-            powerDistrbutionVoltage.times(Amps.of(powerDistribution.getCurrent(0))).times(period)
+            powerDistributionVoltage.times(Amps.of(powerDistribution.getCurrent(0))).times(period)
         );
         incrementEnergyCategory(
             EnergyCategory.INTAKE_ROLLER,
-            powerDistrbutionVoltage.times(Amps.of(powerDistribution.getCurrent(0))).times(period)
+            powerDistributionVoltage.times(Amps.of(powerDistribution.getCurrent(0))).times(period)
         );
     }
 
