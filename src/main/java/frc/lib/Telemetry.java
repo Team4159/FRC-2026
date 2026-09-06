@@ -1,10 +1,5 @@
 package frc.lib;
 
-import static edu.wpi.first.units.Units.Amps;
-import static edu.wpi.first.units.Units.Joules;
-import static edu.wpi.first.units.Units.Milliseconds;
-import static edu.wpi.first.units.Units.Volts;
-
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
 import edu.wpi.first.math.VecBuilder;
@@ -18,9 +13,6 @@ import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
-import edu.wpi.first.units.measure.Energy;
-import edu.wpi.first.units.measure.Time;
-import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
@@ -66,7 +58,7 @@ public class Telemetry {
         EnergyCategory,
         DoublePublisher
     >();
-    private static final Map<EnergyCategory, Energy> energyBreakdown = new HashMap<EnergyCategory, Energy>();
+    private static final Map<EnergyCategory, Double> energyBreakdown = new HashMap<EnergyCategory, Double>();
 
     static {
         for (EnergyCategory energyCategory : EnergyCategory.values()) {
@@ -74,7 +66,7 @@ public class Telemetry {
                 .map(word -> word.substring(0, 1).toUpperCase() + word.substring(1).toLowerCase())
                 .collect(Collectors.joining(" "));
             energyBreakdownPublishers.put(energyCategory, energyBreakdownTable.getDoubleTopic(name).publish());
-            energyBreakdown.put(energyCategory, Joules.of(0.0));
+            energyBreakdown.put(energyCategory, 0.0);
         }
     }
 
@@ -203,48 +195,48 @@ public class Telemetry {
     }
 
     private static void aggregateData() {
-        Time period = Milliseconds.of(20.0);
+        double period = 0.02;
 
-        Voltage powerDistributionVoltage = Volts.of(powerDistribution.getVoltage());
+        double powerDistributionVoltage = powerDistribution.getVoltage();
         // TODO: find channels
         incrementEnergyCategory(
             EnergyCategory.SWERVE_DRIVE,
-            powerDistributionVoltage.times(Amps.of(powerDistribution.getCurrent(0))).times(period)
+            period * powerDistributionVoltage * powerDistribution.getCurrent(0)
         );
         incrementEnergyCategory(
             EnergyCategory.SWERVE_STEER,
-            powerDistributionVoltage.times(Amps.of(powerDistribution.getCurrent(0))).times(period)
+            period * powerDistributionVoltage * powerDistribution.getCurrent(0)
         );
         incrementEnergyCategory(
             EnergyCategory.FLYWHEEL,
-            powerDistributionVoltage.times(Amps.of(powerDistribution.getCurrent(0))).times(period)
+            period * powerDistributionVoltage * powerDistribution.getCurrent(0)
         );
         incrementEnergyCategory(
             EnergyCategory.HOOD,
-            powerDistributionVoltage.times(Amps.of(powerDistribution.getCurrent(0))).times(period)
+            period * powerDistributionVoltage * powerDistribution.getCurrent(0)
         );
         incrementEnergyCategory(
             EnergyCategory.NECK,
-            powerDistributionVoltage.times(Amps.of(powerDistribution.getCurrent(0))).times(period)
+            period * powerDistributionVoltage * powerDistribution.getCurrent(0)
         );
         incrementEnergyCategory(
             EnergyCategory.HOPPER,
-            powerDistributionVoltage.times(Amps.of(powerDistribution.getCurrent(0))).times(period)
+            period * powerDistributionVoltage * powerDistribution.getCurrent(0)
         );
         incrementEnergyCategory(
             EnergyCategory.INTAKE_PIVOT,
-            powerDistributionVoltage.times(Amps.of(powerDistribution.getCurrent(0))).times(period)
+            period * powerDistributionVoltage * powerDistribution.getCurrent(0)
         );
         incrementEnergyCategory(
             EnergyCategory.INTAKE_ROLLER,
-            powerDistributionVoltage.times(Amps.of(powerDistribution.getCurrent(0))).times(period)
+            period * powerDistributionVoltage * powerDistribution.getCurrent(0)
         );
     }
 
     private static void logData() {
-        energyUsedPublisher.set(energyBreakdown.values().stream().mapToDouble(Energy::baseUnitMagnitude).sum());
+        energyUsedPublisher.set(energyBreakdown.values().stream().mapToDouble(Double::doubleValue).sum());
         energyBreakdownPublishers.forEach((energyCategory, publisher) -> {
-            double energy = energyBreakdown.get(energyCategory).baseUnitMagnitude();
+            double energy = energyBreakdown.get(energyCategory);
             publisher.set(energy);
         });
 
@@ -265,8 +257,8 @@ public class Telemetry {
         }
     }
 
-    private static void incrementEnergyCategory(EnergyCategory energyCategory, Energy increment) {
-        energyBreakdown.put(energyCategory, energyBreakdown.get(energyCategory).plus(increment));
+    private static void incrementEnergyCategory(EnergyCategory energyCategory, double increment) {
+        energyBreakdown.put(energyCategory, energyBreakdown.get(energyCategory) + increment);
     }
 
     private static void populateLigaments(
