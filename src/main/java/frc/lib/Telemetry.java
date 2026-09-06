@@ -9,6 +9,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N2;
+import edu.wpi.first.networktables.DoubleArrayPublisher;
 import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -30,7 +31,7 @@ import java.util.stream.Collectors;
 
 public class Telemetry {
 
-    private static enum EnergyCategory {
+    private static enum ElectricityCategory {
         SWERVE_DRIVE,
         SWERVE_STEER,
         FLYWHEEL,
@@ -47,27 +48,43 @@ public class Telemetry {
 
     private static final NetworkTableInstance networkTableInstance = NetworkTableInstance.getDefault();
 
-    private static final NetworkTable energyTable = networkTableInstance.getTable("Energy Usage");
-    private static final DoublePublisher batteryVoltagePublisher = energyTable
-        .getDoubleTopic("BatteryVoltage")
+    private static final NetworkTable electricityTable = networkTableInstance.getTable("Electricity");
+    private static final DoublePublisher batteryVoltagePublisher = electricityTable
+        .getDoubleTopic("Battery Voltage")
         .publish();
-    private static final DoublePublisher energyUsedPublisher = energyTable
-        .getDoubleTopic("Energy Used Total")
+    private static final DoublePublisher totalEnergyPublisher = electricityTable
+        .getDoubleTopic("Total Energy")
         .publish();
-    private static final NetworkTable energyBreakdownTable = energyTable.getSubTable("Energy Usage Breakdown");
-    private static final Map<EnergyCategory, DoublePublisher> energyBreakdownPublishers = new HashMap<
-        EnergyCategory,
+    private static final DoublePublisher totalCurrentPublisher = electricityTable
+        .getDoubleTopic("Total Current")
+        .publish();
+    private static final DoubleArrayPublisher allChannelCurrentsPublisher = electricityTable
+        .getDoubleArrayTopic("All Channel Currents")
+        .publish();
+    private static final NetworkTable energyBreakdownTable = electricityTable.getSubTable("Energy Breakdown");
+    private static final Map<ElectricityCategory, DoublePublisher> energyBreakdownPublishers = new HashMap<
+        ElectricityCategory,
         DoublePublisher
     >();
-    private static final Map<EnergyCategory, Double> energyBreakdown = new HashMap<EnergyCategory, Double>();
+    private static final Map<ElectricityCategory, Double> energyBreakdown = new HashMap<ElectricityCategory, Double>();
+    private static final NetworkTable currentBreakdownTable = electricityTable.getSubTable("Current Breakdown");
+    private static final Map<ElectricityCategory, DoublePublisher> currentBreakdownPublishers = new HashMap<
+        ElectricityCategory,
+        DoublePublisher
+    >();
+    private static final Map<ElectricityCategory, Double> currentBreakdown = new HashMap<ElectricityCategory, Double>();
 
     static {
-        for (EnergyCategory energyCategory : EnergyCategory.values()) {
-            String name = Arrays.stream(energyCategory.name().split("_"))
+        allChannelCurrentsPublisher.set(new double[powerDistribution.getNumChannels()]);
+
+        for (ElectricityCategory electricityCategory : ElectricityCategory.values()) {
+            String name = Arrays.stream(electricityCategory.name().split("_"))
                 .map(word -> word.substring(0, 1).toUpperCase() + word.substring(1).toLowerCase())
                 .collect(Collectors.joining(" "));
-            energyBreakdownPublishers.put(energyCategory, energyBreakdownTable.getDoubleTopic(name).publish());
-            energyBreakdown.put(energyCategory, 0.0);
+            energyBreakdownPublishers.put(electricityCategory, energyBreakdownTable.getDoubleTopic(name).publish());
+            energyBreakdown.put(electricityCategory, 0.0);
+            currentBreakdownPublishers.put(electricityCategory, currentBreakdownTable.getDoubleTopic(name).publish());
+            currentBreakdown.put(electricityCategory, 0.0);
         }
     }
 
@@ -170,48 +187,62 @@ public class Telemetry {
     private static void aggregateData() {
         double period = 0.02;
 
+        double swerveDriveCurrent = powerDistribution.getCurrent(0);
+        double swerveSteerCurrent = powerDistribution.getCurrent(0);
+        double flywheelCurrent = powerDistribution.getCurrent(0);
+        double hoodCurrent = powerDistribution.getCurrent(0);
+        double neckCurrent = powerDistribution.getCurrent(0);
+        double hopperCurrent = powerDistribution.getCurrent(0);
+        double intakePivotCurrent = powerDistribution.getCurrent(0);
+        double intakeRollerCurrent = powerDistribution.getCurrent(0);
+
         double powerDistributionVoltage = powerDistribution.getVoltage();
         // TODO: find channels
-        incrementEnergyCategory(
-            EnergyCategory.SWERVE_DRIVE,
-            period * powerDistributionVoltage * powerDistribution.getCurrent(0)
+        incrementEnergyBreakdown(
+            ElectricityCategory.SWERVE_DRIVE,
+            period * powerDistributionVoltage * swerveDriveCurrent
         );
-        incrementEnergyCategory(
-            EnergyCategory.SWERVE_STEER,
-            period * powerDistributionVoltage * powerDistribution.getCurrent(0)
+        incrementEnergyBreakdown(
+            ElectricityCategory.SWERVE_STEER,
+            period * powerDistributionVoltage * swerveSteerCurrent
         );
-        incrementEnergyCategory(
-            EnergyCategory.FLYWHEEL,
-            period * powerDistributionVoltage * powerDistribution.getCurrent(0)
+        incrementEnergyBreakdown(ElectricityCategory.FLYWHEEL, period * powerDistributionVoltage * flywheelCurrent);
+        incrementEnergyBreakdown(ElectricityCategory.HOOD, period * powerDistributionVoltage * hoodCurrent);
+        incrementEnergyBreakdown(ElectricityCategory.NECK, period * powerDistributionVoltage * neckCurrent);
+        incrementEnergyBreakdown(ElectricityCategory.HOPPER, period * powerDistributionVoltage * hopperCurrent);
+        incrementEnergyBreakdown(
+            ElectricityCategory.INTAKE_PIVOT,
+            period * powerDistributionVoltage * intakePivotCurrent
         );
-        incrementEnergyCategory(
-            EnergyCategory.HOOD,
-            period * powerDistributionVoltage * powerDistribution.getCurrent(0)
+        incrementEnergyBreakdown(
+            ElectricityCategory.INTAKE_ROLLER,
+            period * powerDistributionVoltage * intakeRollerCurrent
         );
-        incrementEnergyCategory(
-            EnergyCategory.NECK,
-            period * powerDistributionVoltage * powerDistribution.getCurrent(0)
-        );
-        incrementEnergyCategory(
-            EnergyCategory.HOPPER,
-            period * powerDistributionVoltage * powerDistribution.getCurrent(0)
-        );
-        incrementEnergyCategory(
-            EnergyCategory.INTAKE_PIVOT,
-            period * powerDistributionVoltage * powerDistribution.getCurrent(0)
-        );
-        incrementEnergyCategory(
-            EnergyCategory.INTAKE_ROLLER,
-            period * powerDistributionVoltage * powerDistribution.getCurrent(0)
-        );
+
+        currentBreakdown.put(ElectricityCategory.SWERVE_DRIVE, swerveDriveCurrent);
+        currentBreakdown.put(ElectricityCategory.SWERVE_STEER, swerveSteerCurrent);
+        currentBreakdown.put(ElectricityCategory.FLYWHEEL, flywheelCurrent);
+        currentBreakdown.put(ElectricityCategory.HOOD, hoodCurrent);
+        currentBreakdown.put(ElectricityCategory.NECK, neckCurrent);
+        currentBreakdown.put(ElectricityCategory.HOPPER, hopperCurrent);
+        currentBreakdown.put(ElectricityCategory.INTAKE_PIVOT, intakePivotCurrent);
+        currentBreakdown.put(ElectricityCategory.INTAKE_ROLLER, intakeRollerCurrent);
     }
 
     private static void logData() {
         batteryVoltagePublisher.set(RobotController.getBatteryVoltage());
-        energyUsedPublisher.set(energyBreakdown.values().stream().mapToDouble(Double::doubleValue).sum());
-        energyBreakdownPublishers.forEach((energyCategory, publisher) -> {
-            double energy = energyBreakdown.get(energyCategory);
+
+        totalEnergyPublisher.set(energyBreakdown.values().stream().mapToDouble(Double::doubleValue).sum());
+        totalCurrentPublisher.set(powerDistribution.getTotalCurrent());
+        allChannelCurrentsPublisher.set(powerDistribution.getAllCurrents());
+
+        energyBreakdownPublishers.forEach((electricityCategory, publisher) -> {
+            double energy = energyBreakdown.get(electricityCategory);
             publisher.set(energy);
+        });
+        currentBreakdownPublishers.forEach((electricityCategory, publisher) -> {
+            double current = currentBreakdown.get(electricityCategory);
+            publisher.set(current);
         });
 
         if (lastDrivetrainState != null) {
@@ -256,8 +287,8 @@ public class Telemetry {
         SignalLogger.writeDouble("DriveState/OdometryPeriod", drivetrainState.OdometryPeriod, "seconds");
     }
 
-    private static void incrementEnergyCategory(EnergyCategory energyCategory, double increment) {
-        energyBreakdown.put(energyCategory, energyBreakdown.get(energyCategory) + increment);
+    private static void incrementEnergyBreakdown(ElectricityCategory electricityCategory, double increment) {
+        energyBreakdown.put(electricityCategory, energyBreakdown.get(electricityCategory) + increment);
     }
 
     private static void populateLigaments(
