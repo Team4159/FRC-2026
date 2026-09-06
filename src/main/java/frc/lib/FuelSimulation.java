@@ -5,17 +5,22 @@ import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructArrayPublisher;
 import frc.robot.Constants.FieldConstants;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import org.littletonrobotics.junction.Logger;
 
 /*
 simplified version of FuelSim by Team 5000
 https://github.com/hammerheads5000/FuelSim
 */
 public class FuelSimulation {
+
+    private static final StructArrayPublisher<Translation3d> fuelSimulationPublisher = NetworkTableInstance.getDefault()
+        .getStructArrayTopic("Fuel Simulation", Translation3d.struct)
+        .publish();
 
     private static final double kSimulationStepPeriod = 0.005;
     private static final int kSimulationMaxStepsPerFrame = 20;
@@ -149,8 +154,7 @@ public class FuelSimulation {
     }
 
     public void output() {
-        Logger.recordOutput(
-            "Fuel Simulation/Fuels",
+        fuelSimulationPublisher.set(
             fuels
                 .stream()
                 .map(fuel -> fuel.position)

@@ -12,6 +12,7 @@ import choreo.trajectory.SwerveSample;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.ctre.phoenix6.swerve.SwerveRequest.ForwardPerspectiveValue;
+import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.Vector;
@@ -44,6 +45,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+@Logged
 public class Drivetrain extends CommandSwerveDrivetrain {
 
     public final SwerveRequest.FieldCentric fieldCentricDrive = new SwerveRequest.FieldCentric()
