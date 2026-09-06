@@ -45,7 +45,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-@Logged
 public class Drivetrain extends CommandSwerveDrivetrain {
 
     public final SwerveRequest.FieldCentric fieldCentricDrive = new SwerveRequest.FieldCentric()
