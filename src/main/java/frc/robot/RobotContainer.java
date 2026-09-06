@@ -14,8 +14,10 @@ import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.lib.ConfigurableAuto;
 import frc.lib.HIDRumble;
 import frc.lib.HIDRumble.RumbleRequest;
+import frc.lib.Telemetry;
 import frc.robot.Constants.FeederConstants.FeederState;
 import frc.robot.Constants.HopperConstants.HopperState;
 import frc.robot.Constants.IntakeConstants.IntakeState;
@@ -76,8 +78,6 @@ public class RobotContainer {
     private final AutoFactory autoFactory;
     private final ConfigurableAuto configurableAuto;
 
-    private final Telemetry logger = new Telemetry();
-
     public RobotContainer() {
         // Choreo Auto
         autoFactory = drivetrain.createAutoFactory();
@@ -95,7 +95,7 @@ public class RobotContainer {
         );
 
         // drivetrain telemetry
-        drivetrain.registerTelemetry(logger::telemeterize);
+        drivetrain.registerTelemetry(Telemetry::telemetrizeDrivetrain);
 
         // call the function that configures the robot bindings
         configureBindings();

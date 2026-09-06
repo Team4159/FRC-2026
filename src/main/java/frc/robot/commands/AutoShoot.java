@@ -15,8 +15,6 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
@@ -104,9 +102,9 @@ public class AutoShoot extends Command {
     private final double height = FieldConstants.HUB_Z - Units.inchesToMeters(20);
 
     /** used to push adjusted robot pose to advantagescope robot sim */
-    private StructPublisher<Pose2d> adjustedRobotPosePublisher = NetworkTableInstance.getDefault()
-        .getStructTopic("adjustedRobotPose", Pose2d.struct)
-        .publish();
+    // private StructPublisher<Pose2d> adjustedRobotPosePublisher = NetworkTableInstance.getDefault()
+    //     .getStructTopic("adjustedRobotPose", Pose2d.struct)
+    //     .publish();
 
     private Optional<CommandXboxController> feedbackController;
 
@@ -196,7 +194,7 @@ public class AutoShoot extends Command {
             desiredHoodAngle = getDesiredHoodPitch();
 
             // send adjusted robot pose to advantageScope(for sim testing)
-            adjustedRobotPosePublisher.set(adjustedRobotPose);
+            // adjustedRobotPosePublisher.set(adjustedRobotPose);
         }
 
         // get desired angular velocity and efficiency from lookup table

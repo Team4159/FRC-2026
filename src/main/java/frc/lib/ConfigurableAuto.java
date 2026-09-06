@@ -1,4 +1,4 @@
-package frc.robot;
+package frc.lib;
 
 import choreo.auto.AutoFactory;
 import choreo.auto.AutoRoutine;
@@ -11,9 +11,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
-import frc.lib.Elastic;
-import frc.lib.InstantCommandRunWhenDisabled;
-import frc.lib.PoseTrajectory;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.IntakeConstants.IntakeState;
 import frc.robot.commands.AutoShoot;
