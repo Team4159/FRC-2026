@@ -232,7 +232,7 @@ public class AutoShoot extends Command {
 
         // send tolerances to smart dashboard
         SmartDashboard.putBoolean("isAtPitch", shooter.isAtPitch());
-        SmartDashboard.putBoolean("isatspeed", shooter.isAtVelocity());
+        SmartDashboard.putBoolean("isAtVelocity", shooter.isAtVelocity());
         SmartDashboard.putBoolean("swerve isatangle", isAtDesiredRotation(Radians.of(desiredRobotAngle)));
 
         // if (!timer.hasElapsed(ShooterConstants.backwardsTime)){

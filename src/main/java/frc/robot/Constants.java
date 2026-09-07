@@ -57,30 +57,6 @@ import java.util.Set;
  */
 public final class Constants {
 
-    public static class ClimberConstants {
-
-        public static final double I_GAIN = 0;
-        public static final double D_GAIN = 0;
-        public static final double P_GAIN = 0;
-        public static final int CLIMBER_ONE_MOTOR_ID = 15;
-
-        // previously idClimberOne
-
-        // public static final int idClimberTwo = 10;
-
-        public static enum ClimberState {
-            CLIMB(0.25),
-            STOP(0.0),
-            DOWN(-0.25);
-
-            public final double dutyCycle;
-
-            private ClimberState(double dutyCycle) {
-                this.dutyCycle = dutyCycle;
-            }
-        }
-    }
-
     public static class HopperConstants {
 
         public static final int HOPPER_MOTOR_ID = 30;
@@ -101,7 +77,7 @@ public final class Constants {
 
     public static class FeederConstants {
 
-        public static final int FEEDER_MOTOR_ID = 20; // idk if this port is used yet plz check
+        public static final int FEEDER_MOTOR_ID = 20;
 
         public static enum FeederState {
             FEED(1.0),

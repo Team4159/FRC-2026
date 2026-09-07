@@ -21,8 +21,8 @@ public class Hopper extends SubsystemBase {
         hopperMotor.getConfigurator().apply(currentLimits);
     }
 
-    public void setHopperDutyCycle(double speed) {
-        hopperMotor.set(speed);
+    public void setHopperDutyCycle(double dutyCycle) {
+        hopperMotor.set(dutyCycle);
     }
 
     public void stopHopper() {

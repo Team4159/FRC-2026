@@ -21,14 +21,15 @@ import org.photonvision.targeting.PhotonTrackedTarget;
 
 public class PhotonVision extends SubsystemBase {
 
-    private Drivetrain drivetrain;
+    private final Drivetrain drivetrain;
     //IDK what the difference between welded and andymark is
-    private AprilTagFieldLayout aprilTagFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded);
-    //TODO: add other cameras later once we know where they are on the robot
-    private PhotonCamera leftShooterCam, rightShooterCam;
-    private PhotonPoseEstimator leftShooterEstimator, rightShooterEstimator;
-    private Matrix<N3, N1> kSingleTagStdDevs = PhotonVisionConstants.SINGLE_TAG_STANDARD_DEVIATION;
-    private Matrix<N3, N1> kMultiTagStdDevs = PhotonVisionConstants.MULTI_TAG_STANDARD_DEVIATION;
+    private final AprilTagFieldLayout aprilTagFieldLayout = AprilTagFieldLayout.loadField(
+        AprilTagFields.k2026RebuiltWelded
+    );
+    private final PhotonCamera leftShooterCam, rightShooterCam;
+    private final PhotonPoseEstimator leftShooterEstimator, rightShooterEstimator;
+    private final Matrix<N3, N1> kSingleTagStdDevs = PhotonVisionConstants.SINGLE_TAG_STANDARD_DEVIATION;
+    private final Matrix<N3, N1> kMultiTagStdDevs = PhotonVisionConstants.MULTI_TAG_STANDARD_DEVIATION;
 
     private final Field2d testField = new Field2d();
 
@@ -90,7 +91,6 @@ public class PhotonVision extends SubsystemBase {
             //multitag no longer defaults to single tag when no others are available so we have this
             if (!leftShooterEstimate.isPresent()) {
                 leftShooterEstimate = leftShooterEstimator.estimateLowestAmbiguityPose(leftShooterCamResult);
-            } else {
             }
             //check if estimate exists
             if (leftShooterEstimate.isPresent() && leftShooterCamResult.getBestTarget().getPoseAmbiguity() < 0.15) {
@@ -165,41 +165,39 @@ public class PhotonVision extends SubsystemBase {
         if (estimatedPose.isEmpty()) {
             // No pose input. Default to single-tag std devs
             return kSingleTagStdDevs;
-        } else {
-            // Pose present. Start running Heuristic
-            var estStdDevs = kSingleTagStdDevs;
-            int numTags = 0;
-            double avgDist = 0;
-
-            // Precalculation - see how many tags we found, and calculate an average-distance metric
-            for (var tgt : targets) {
-                var tagPose = photonEstimator.getFieldTags().getTagPose(tgt.getFiducialId());
-                if (tagPose.isEmpty()) continue;
-                numTags++;
-                avgDist += tagPose
-                    .get()
-                    .toPose2d()
-                    .getTranslation()
-                    .getDistance(estimatedPose.get().estimatedPose.toPose2d().getTranslation());
-            }
-
-            if (numTags == 0) {
-                // No tags visible. Default to single-tag std devs
-                return kSingleTagStdDevs;
-            } else {
-                // One or more tags visible, run the full heuristic.
-                avgDist /= numTags;
-                // Decrease std devs if multiple targets are visible
-                if (numTags > 1) estStdDevs = kMultiTagStdDevs;
-                // Increase std devs based on (average) distance
-                if (numTags == 1 && avgDist > 4) estStdDevs = VecBuilder.fill(
-                    Double.MAX_VALUE,
-                    Double.MAX_VALUE,
-                    Double.MAX_VALUE
-                );
-                else estStdDevs = estStdDevs.times(1 + (avgDist * avgDist) / 60);
-                return estStdDevs;
-            }
         }
+        // Pose present. Start running Heuristic
+        var estStdDevs = kSingleTagStdDevs;
+        int numTags = 0;
+        double avgDist = 0;
+
+        // Precalculation - see how many tags we found, and calculate an average-distance metric
+        for (var tgt : targets) {
+            var tagPose = photonEstimator.getFieldTags().getTagPose(tgt.getFiducialId());
+            if (tagPose.isEmpty()) continue;
+            numTags++;
+            avgDist += tagPose
+                .get()
+                .toPose2d()
+                .getTranslation()
+                .getDistance(estimatedPose.get().estimatedPose.toPose2d().getTranslation());
+        }
+
+        if (numTags == 0) {
+            // No tags visible. Default to single-tag std devs
+            return kSingleTagStdDevs;
+        }
+        // One or more tags visible, run the full heuristic.
+        avgDist /= numTags;
+        // Decrease std devs if multiple targets are visible
+        if (numTags > 1) estStdDevs = kMultiTagStdDevs;
+        // Increase std devs based on (average) distance
+        if (numTags == 1 && avgDist > 4) estStdDevs = VecBuilder.fill(
+            Double.MAX_VALUE,
+            Double.MAX_VALUE,
+            Double.MAX_VALUE
+        );
+        else estStdDevs = estStdDevs.times(1 + (avgDist * avgDist) / 60);
+        return estStdDevs;
     }
 }

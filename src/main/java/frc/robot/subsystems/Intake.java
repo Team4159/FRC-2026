@@ -28,8 +28,6 @@ public class Intake extends SubsystemBase {
 
     private final MotionMagicVoltage intakeMotionMagicVoltage;
 
-    // private final VelocityVoltage intakeVelocityVoltage;
-
     public Intake() {
         locationMotor = new TalonFX(IntakeConstants.ANGLE_MOTOR_ID);
         spinMotor = new TalonFX(IntakeConstants.SPIN_MOTOR_ID);
@@ -41,14 +39,13 @@ public class Intake extends SubsystemBase {
 
         intakeMotionMagicVoltage = new MotionMagicVoltage(0);
         setLocation(IntakeState.DOWN_OFF.angleLocation);
-        // intakeVelocityVoltage = new VelocityVoltage(0);
 
         CurrentLimitsConfigs rollerCurrentLimits = new CurrentLimitsConfigs()
             .withSupplyCurrentLimit(Amps.of(20))
             .withSupplyCurrentLimitEnable(true);
         spinMotor.getConfigurator().apply(rollerCurrentLimits);
 
-        rollerDutyCycle = 0;
+        rollerDutyCycle = 0.0;
     }
 
     public void setMotionMagic(MotionMagicConfigs motionMagicConfigs) {
@@ -84,7 +81,7 @@ public class Intake extends SubsystemBase {
 
     public class ChangeStates extends Command {
 
-        private IntakeState state;
+        private final IntakeState state;
 
         public ChangeStates(IntakeState state) {
             this.state = state;
@@ -124,8 +121,8 @@ public class Intake extends SubsystemBase {
 
     public class BounceIntake extends Command {
 
+        private final Timer timer;
         private IntakeState state;
-        private Timer timer;
 
         public BounceIntake() {
             addRequirements(Intake.this);

@@ -304,8 +304,8 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                 }
 
                 double vy =
-                    TRENCH_ASSIST_ALIGN_STRENGTH * Math.signum(errorY.magnitude()) * Math.abs(getInputSpeedX(true));
-                double influence = OperatorConstants.TRENCH_ASSIST_ALGIN_INFLUENCE * getInputSpeedY(true);
+                    TRENCH_ASSIST_ALIGN_STRENGTH * Math.signum(errorY.magnitude()) * Math.abs(getInputVelocityX(true));
+                double influence = OperatorConstants.TRENCH_ASSIST_ALGIN_INFLUENCE * getInputVelocityY(true);
                 boolean aligned =
                     localErrorY.baseUnitMagnitude() >=
                         -OperatorConstants.TRENCH_ASSIST_ALIGN_POSITION_INNER_TOLERANCE.baseUnitMagnitude() &&
@@ -433,11 +433,11 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         return getInputTranslation(fieldRelative).times(getMaxTranslationSpeed());
     }
 
-    public double getInputSpeedX(boolean fieldRelative) {
+    public double getInputVelocityX(boolean fieldRelative) {
         return getInputX(fieldRelative) * getMaxTranslationSpeed();
     }
 
-    public double getInputSpeedY(boolean fieldRelative) {
+    public double getInputVelocityY(boolean fieldRelative) {
         return getInputY(fieldRelative) * getMaxTranslationSpeed();
     }
 

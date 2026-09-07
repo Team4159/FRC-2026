@@ -62,7 +62,7 @@ public class TowerShoot extends Command {
         }
 
         SmartDashboard.putBoolean("isAtPitch", shooter.isAtPitch());
-        SmartDashboard.putBoolean("isatspeed", shooter.isAtVelocity());
+        SmartDashboard.putBoolean("isAtVelocity", shooter.isAtVelocity());
     }
 
     @Override

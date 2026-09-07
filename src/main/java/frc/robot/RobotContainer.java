@@ -52,15 +52,15 @@ public class RobotContainer {
     private final Trigger intakeTrigger = primaryController.leftTrigger(0.1);
     private final Trigger outtakeTrigger = primaryController.x();
 
-    private final Trigger autoShootTriggerPrototype = primaryController.rightTrigger(0.1); // do not use prototype
-    private final Trigger hubShootTriggerPrototype = primaryController.rightBumper(); // do not use prototype
+    private final Trigger autoShootTriggerBase = primaryController.rightTrigger(0.1);
+    private final Trigger hubShootTriggerBase = primaryController.rightBumper();
     private final Trigger autoShootTrigger, hubShootTrigger;
-    private final Trigger towerShootTrigger = autoShootTriggerPrototype.and(hubShootTriggerPrototype);
+    private final Trigger towerShootTrigger = autoShootTriggerBase.and(hubShootTriggerBase);
     private final Trigger autoLobTrigger = primaryController.a();
 
     {
-        autoShootTrigger = autoShootTriggerPrototype.and(towerShootTrigger.negate());
-        hubShootTrigger = hubShootTriggerPrototype.and(towerShootTrigger.negate());
+        autoShootTrigger = autoShootTriggerBase.and(towerShootTrigger.negate());
+        hubShootTrigger = hubShootTriggerBase.and(towerShootTrigger.negate());
     }
 
     // Subsystems
@@ -87,29 +87,17 @@ public class RobotContainer {
             new AutoShoot(drivetrain, shooter, hopper, intake, leds, true, Optional.empty())
         );
 
-        // rumble on collision
-        drivetrain.crashTrigger.onTrue(
-            Commands.runOnce(() ->
-                HIDRumble.rumble(primaryController.getHID(), new RumbleRequest(RumbleType.kRightRumble, 1, 0.5, 1))
-            )
-        );
-
-        // drivetrain telemetry
+        // drivetrain bindings
         drivetrain.registerTelemetry(Telemetry::telemetrizeDrivetrain);
+        RobotModeTriggers.disabled().whileTrue(drivetrain.new Drive(DriveMode.IDLE).ignoringDisable(true));
 
         // call the function that configures the robot bindings
         configureBindings();
     }
 
     private void configureBindings() {
-        // Note that X is defined as forward according to WPILib convention,
-        // and Y is defined as to the left according to WPILib convention.
         drivetrain.setDefaultCommand(drivetrain.new Drive(DriveMode.TELEOP));
-        // Idle while the robot is disabled. This ensures the configured
-        // neutral mode is applied to the drive motors while disabled.
-        RobotModeTriggers.disabled().whileTrue(drivetrain.new Drive(DriveMode.IDLE).ignoringDisable(true));
 
-        // Reset the field-centric heading on left bumper press.
         zeroTrigger.onTrue(
             Commands.runOnce(() -> {
                 HIDRumble.rumble(primaryController.getHID(), new RumbleRequest(RumbleType.kLeftRumble, 0.5, 0.25));

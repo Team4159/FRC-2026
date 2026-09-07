@@ -47,7 +47,7 @@ public class Shooter extends SubsystemBase {
     //the current manual angle setpoint in degrees
     private double manualAngle = 5;
 
-    private final Debouncer speedDebouncer = new Debouncer(0.2, DebounceType.kBoth);
+    private final Debouncer velocityDebouncer = new Debouncer(0.2, DebounceType.kBoth);
 
     public Shooter() {
         //initialize motors and CANCoder using the CANIDs in constants
@@ -90,7 +90,7 @@ public class Shooter extends SubsystemBase {
         //set the hood to the resting position
         //when making commands for the shooter the hood should always be set back to resting position when done so the robot can go under the trench
         restHood();
-        //set speed of the shooter wheels ot the resting velocity (makes it take less time to spin up and shoot, didn't cause any brownouts at Contra Costa but could use some more testing)
+        //set velocity of the shooter wheels ot the resting velocity (makes it take less time to spin up and shoot, didn't cause any brownouts at Contra Costa but could use some more testing)
         this.setVelocity(Constants.ShooterConstants.SHOOTER_RESTING_ANGULAR_VELOCITY);
 
         // leftTopShooterMotor.setControl(new StrictFollower(leaderShooterMotor.getDeviceID()));
@@ -157,7 +157,7 @@ public class Shooter extends SubsystemBase {
 
     /** @return true if the shooter motors are at the target velocity (within tolerance), false otherwise*/
     public boolean isAtVelocity() {
-        return speedDebouncer.calculate(
+        return velocityDebouncer.calculate(
             leftBottomShooterMotor
                 .getClosedLoopReference()
                 .isNear(
@@ -200,9 +200,9 @@ public class Shooter extends SubsystemBase {
         );
     }
 
-    /** @param speed the percentage (-1-1) of how much power is sent to the feeder motor*/
-    public void setFeederDutyCycle(double speed) {
-        feederMotor.set(speed);
+    /** @param dutyCycle the percentage (-1-1) of how much power is sent to the feeder motor*/
+    public void setFeederDutyCycle(double dutyCycle) {
+        feederMotor.set(dutyCycle);
     }
 
     /** stops the feeder */
@@ -263,8 +263,8 @@ public class Shooter extends SubsystemBase {
 
         @Override
         public void initialize() {
-            //set the shooter target speed to the desired angular velocity
-            //"Shooter.this" is not needed to use setSpeed, it can be accessed directly due to the command being a nested class of the Shooter subsystem
+            //set the shooter target velocity to the desired angular velocity
+            //"Shooter.this" is not needed to use setVelocity, it can be accessed directly due to the command being a nested class of the Shooter subsystem
             setVelocity(velocity);
         }
 
@@ -289,7 +289,7 @@ public class Shooter extends SubsystemBase {
 
         @Override
         public void initialize() {
-            //set the feeder speed to the percentage in the state object
+            //set the feeder dutyCycle to the percentage in the state object
             Shooter.this.setFeederDutyCycle(feederState.dutyCycle);
         }
 

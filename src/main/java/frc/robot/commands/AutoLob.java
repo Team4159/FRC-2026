@@ -190,7 +190,7 @@ public class AutoLob extends Command {
         shooter.adjustTrajectoryAngle(Radians.of(desiredHoodAngle));
 
         SmartDashboard.putBoolean("isAtPitch", shooter.isAtPitch());
-        SmartDashboard.putBoolean("isatspeed", shooter.isAtVelocity());
+        SmartDashboard.putBoolean("isAtVelocity", shooter.isAtVelocity());
         SmartDashboard.putBoolean("swerve isatangle", isAtDesiredRotation(Radians.of(desiredRobotAngle)));
         if (shooter.isAtPitch() && shooter.isAtVelocity() && isAtDesiredRotation(Radians.of(desiredRobotAngle))) {
             autoShootStatus = AutoShootStatus.SHOOT;
@@ -238,8 +238,8 @@ public class AutoLob extends Command {
         );
         //set ChassisSpeeds
         ChassisSpeeds chassisSpeeds = new ChassisSpeeds(
-            drivetrain.getInputSpeedX(true) * DrivetrainConstants.AUTO_SHOOT_INPUT_MULTIPLIER,
-            drivetrain.getInputSpeedY(true) * DrivetrainConstants.AUTO_SHOOT_INPUT_MULTIPLIER,
+            drivetrain.getInputVelocityX(true) * DrivetrainConstants.AUTO_SHOOT_INPUT_MULTIPLIER,
+            drivetrain.getInputVelocityY(true) * DrivetrainConstants.AUTO_SHOOT_INPUT_MULTIPLIER,
             omega
         );
 
