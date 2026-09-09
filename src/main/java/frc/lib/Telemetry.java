@@ -190,14 +190,14 @@ public class Telemetry {
     private static void aggregateData() {
         double period = 0.02;
 
-        double swerveDriveCurrent = powerDistribution.getCurrent(0);
-        double swerveSteerCurrent = powerDistribution.getCurrent(0);
-        double flywheelCurrent = powerDistribution.getCurrent(0);
-        double hoodCurrent = powerDistribution.getCurrent(0);
-        double neckCurrent = powerDistribution.getCurrent(0);
-        double hopperCurrent = powerDistribution.getCurrent(0);
-        double intakePivotCurrent = powerDistribution.getCurrent(0);
-        double intakeRollerCurrent = powerDistribution.getCurrent(0);
+        double swerveDriveCurrent = powerDistribution.getCurrent(12) + powerDistribution.getCurrent(7) + powerDistribution.getCurrent(18) + powerDistribution.getCurrent(0);
+        double swerveSteerCurrent = powerDistribution.getCurrent(11) + powerDistribution.getCurrent(8) + powerDistribution.getCurrent(19) + powerDistribution.getCurrent(1);
+        double flywheelCurrent = powerDistribution.getCurrent(5) + powerDistribution.getCurrent(6) + powerDistribution.getCurrent(13) + powerDistribution.getCurrent(14);
+        double hoodCurrent = powerDistribution.getCurrent(10);
+        double neckCurrent = powerDistribution.getCurrent(9);
+        double hopperCurrent = powerDistribution.getCurrent(4);
+        double intakePivotCurrent = powerDistribution.getCurrent(3);
+        double intakeRollerCurrent = powerDistribution.getCurrent(2);
 
         double powerDistributionVoltage = powerDistribution.getVoltage();
         // TODO: find channels
