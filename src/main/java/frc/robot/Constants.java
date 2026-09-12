@@ -100,10 +100,10 @@ public final class Constants {
 
         public static final Angle ANGLE_ENCODER_OFFSET = Degrees.of(0);
 
-        public static final double ANGLE_P_GAIN = 60;
-        public static final double ANGLE_I_GAIN = 1;
-        public static final double ANGLE_D_GAIN = 0;
-        public static final double ANGLE_G_GAIN = 0.07;
+        public static final double ANGLE_kP = 60;
+        public static final double ANGLE_kI = 1;
+        public static final double ANGLE_kD = 0;
+        public static final double ANGLE_kG = 0.07;
 
         // motion magic
         public static final double ANGLE_FAST_CRUISE_VELOCITY = 200;
@@ -129,10 +129,10 @@ public final class Constants {
 
         public static final TalonFXConfiguration ANGLE_CONFIG = new TalonFXConfiguration() {
             {
-                Slot0.kP = ANGLE_P_GAIN;
-                Slot0.kI = ANGLE_I_GAIN;
-                Slot0.kD = ANGLE_D_GAIN;
-                Slot0.kG = ANGLE_G_GAIN;
+                Slot0.kP = ANGLE_kP;
+                Slot0.kI = ANGLE_kI;
+                Slot0.kD = ANGLE_kD;
+                Slot0.kG = ANGLE_kG;
                 Slot0.withGravityType(GravityTypeValue.Arm_Cosine);
                 // abs encoder
                 Feedback.FeedbackRemoteSensorID = ANGLE_ENCODER_ID;
@@ -169,13 +169,13 @@ public final class Constants {
 
         /** Units: rad/s */
         public static final double COMPRESS_RATE = 1;
-        public static final double COMPRESS_P_GAIN = 1;
-        public static final double COMPRESS_I_GAIN = 0;
-        public static final double COMPRESS_D_GAIN = 0;
+        public static final double COMPRESS_kP = 1;
+        public static final double COMPRESS_kI = 0;
+        public static final double COMPRESS_kD = 0;
         public static final ProfiledPIDController COMPRESS_PID = new ProfiledPIDController(
-            COMPRESS_P_GAIN,
-            COMPRESS_I_GAIN,
-            COMPRESS_D_GAIN,
+            COMPRESS_kP,
+            COMPRESS_kI,
+            COMPRESS_kD,
             new TrapezoidProfile.Constraints(COMPRESS_RATE, 1)
         );
 
@@ -260,23 +260,23 @@ public final class Constants {
         public static final double MAX_TRANSLATION_SPEED = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
         public static final double MAX_ROTATION_SPEED = 2 * RotationsPerSecond.of(0.75).in(RadiansPerSecond);
 
-        public static final double POINT_P_GAIN = 5;
-        public static final double POINT_I_GAIN = 0.0;
-        public static final double POINT_D_GAIN = 0.0;
+        public static final double POINT_kP = 5;
+        public static final double POINT_kI = 0.0;
+        public static final double POINT_kD = 0.0;
         public static final double POINT_FEED_FORWARD = 0.0;
 
-        public static final double AIM_P_GAIN = 9;
-        public static final double AIM_I_GAIN = 0.1;
-        public static final double AIM_D_GAIN = 0.0;
+        public static final double AIM_kP = 9;
+        public static final double AIM_kI = 0.1;
+        public static final double AIM_kD = 0.0;
         public static final double AIM_FEED_FORWARD = 0.0;
 
         public static final Angle AUTO_SHOOT_TOLERANCE = Degrees.of(10);
         public static final double AUTO_SHOOT_INPUT_MULTIPLIER = 1;
 
         public static final PhoenixPIDController AUTO_SHOOT_ROTATION_CONTROLLER = new PhoenixPIDController(
-            AIM_P_GAIN,
-            AIM_I_GAIN,
-            AIM_D_GAIN
+            AIM_kP,
+            AIM_kI,
+            AIM_kD
         );
 
         static {
@@ -290,11 +290,11 @@ public final class Constants {
         public static final int HOOD_MOTOR_ID = Robot.isReal() ? 8 : 38;
 
         //Hood PID Values
-        public static final double HOOD_P_GAIN = 150;
-        public static final double HOOD_I_GAIN = 25;
-        public static final double HOOD_D_GAIN = 0;
-        public static final double HOOD_G_GAIN = 0.03;
-        // public static final double HOOD_S_GAIN = 5;
+        public static final double HOOD_kP = 150;
+        public static final double HOOD_kI = 25;
+        public static final double HOOD_kD = 0;
+        public static final double HOOD_kG = 0.03;
+        // public static final double HOOD_kS = 5;
 
         // hood absolute encoder (WCP throughbore)
         /** Hood encoder CAN ID */
@@ -337,13 +337,13 @@ public final class Constants {
         // hood motor conifg
         public static final TalonFXConfiguration HOOD_CONFIG = new TalonFXConfiguration() {
             {
-                Slot0.kP = ShooterConstants.HOOD_P_GAIN;
-                Slot0.kI = ShooterConstants.HOOD_I_GAIN;
-                Slot0.kD = ShooterConstants.HOOD_D_GAIN;
+                Slot0.kP = ShooterConstants.HOOD_kP;
+                Slot0.kI = ShooterConstants.HOOD_kI;
+                Slot0.kD = ShooterConstants.HOOD_kD;
                 // Slot0.kS = ShooterConstants.kHoodS;
                 // Slot0.kV = ShooterConstants.kHoodV;
                 // Slot0.kA = ShooterConstants.kHoodA;
-                Slot0.kG = ShooterConstants.HOOD_G_GAIN;
+                Slot0.kG = ShooterConstants.HOOD_kG;
                 Slot0.withGravityType(GravityTypeValue.Arm_Cosine);
                 MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
                 MotorOutput.NeutralMode = NeutralModeValue.Brake;
@@ -362,12 +362,12 @@ public final class Constants {
         // Shooter Motor Config and PID
         // public static final double kP = 35;
         // public static final double kI = 10;
-        public static final double SHOOTER_P_GAIN = 7.5;
-        public static final double SHOOTER_I_GAIN = 0;
-        public static final double SHOOTER_D_GAIN = 0;
-        public static final double SHOOTER_S_GAIN = 0;
-        public static final double SHOOTER_V_GAIN = 0.25;
-        public static final double SHOOTER_A_GAIN = 2.14;
+        public static final double SHOOTER_kP = 7.5;
+        public static final double SHOOTER_kI = 0;
+        public static final double SHOOTER_kD = 0;
+        public static final double SHOOTER_kS = 0;
+        public static final double SHOOTER_kV = 0.25;
+        public static final double SHOOTER_kA = 2.14;
 
         public static final double SHOOTER_CURRENT_LIMIT = 25;
         public static final double SHOOTER_RAMP_PERIOD = 0.2;
@@ -380,12 +380,12 @@ public final class Constants {
         // shooter motors config
         public static final TalonFXConfiguration RIGHT_SHOOTER_MOTORS_CONFIG = new TalonFXConfiguration() {
             {
-                Slot0.kP = ShooterConstants.SHOOTER_P_GAIN;
-                Slot0.kI = ShooterConstants.SHOOTER_I_GAIN;
-                Slot0.kD = ShooterConstants.SHOOTER_D_GAIN;
-                Slot0.kS = ShooterConstants.SHOOTER_S_GAIN;
-                Slot0.kV = ShooterConstants.SHOOTER_V_GAIN;
-                Slot0.kA = ShooterConstants.SHOOTER_A_GAIN;
+                Slot0.kP = ShooterConstants.SHOOTER_kP;
+                Slot0.kI = ShooterConstants.SHOOTER_kI;
+                Slot0.kD = ShooterConstants.SHOOTER_kD;
+                Slot0.kS = ShooterConstants.SHOOTER_kS;
+                Slot0.kV = ShooterConstants.SHOOTER_kV;
+                Slot0.kA = ShooterConstants.SHOOTER_kA;
                 CurrentLimits.SupplyCurrentLimitEnable = true;
                 CurrentLimits.SupplyCurrentLimit = SHOOTER_CURRENT_LIMIT;
                 MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
@@ -396,12 +396,12 @@ public final class Constants {
 
         public static final TalonFXConfiguration LEFT_SHOOTER_MOTORS_CONFIG = new TalonFXConfiguration() {
             {
-                Slot0.kP = ShooterConstants.SHOOTER_P_GAIN;
-                Slot0.kI = ShooterConstants.SHOOTER_I_GAIN;
-                Slot0.kD = ShooterConstants.SHOOTER_D_GAIN;
-                Slot0.kS = ShooterConstants.SHOOTER_S_GAIN;
-                Slot0.kV = ShooterConstants.SHOOTER_V_GAIN;
-                Slot0.kA = ShooterConstants.SHOOTER_A_GAIN;
+                Slot0.kP = ShooterConstants.SHOOTER_kP;
+                Slot0.kI = ShooterConstants.SHOOTER_kI;
+                Slot0.kD = ShooterConstants.SHOOTER_kD;
+                Slot0.kS = ShooterConstants.SHOOTER_kS;
+                Slot0.kV = ShooterConstants.SHOOTER_kV;
+                Slot0.kA = ShooterConstants.SHOOTER_kA;
                 CurrentLimits.SupplyCurrentLimitEnable = true;
                 CurrentLimits.SupplyCurrentLimit = SHOOTER_CURRENT_LIMIT;
                 MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
