@@ -9,6 +9,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.Constants.AutoConstants;
@@ -146,8 +147,7 @@ public class ConfigurableAuto {
         SmartDashboard.putData("Intake 2", intakeChooser2);
         SmartDashboard.putData("Shoot 2", shootChooser2);
         //SmartDashboard.putData("climb side", climbSideChooser);
-        //the InstantCommandRunWhenDisabled is exactly as it sounds, an instant command (literally copied and pasted from WPILIB) except modified so it can be run when disabled to generate the auto routine
-        SmartDashboard.putData("generate", new InstantCommandRunWhenDisabled(() -> generateRoutine(true)));
+        SmartDashboard.putData("generate", Commands.runOnce(() -> generateRoutine(true)).ignoringDisable(true));
     }
 
     /** @param display should the generated trajectory be added to the generatedRoutineDisplay as a trajectory
