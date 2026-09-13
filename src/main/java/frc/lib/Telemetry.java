@@ -19,6 +19,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableBuilderImpl;
@@ -188,11 +189,23 @@ public class Telemetry {
     }
 
     private static void aggregateData() {
-        double period = 0.02;
+        double period = TimedRobot.kDefaultPeriod;
 
-        double swerveDriveCurrent = powerDistribution.getCurrent(12) + powerDistribution.getCurrent(7) + powerDistribution.getCurrent(18) + powerDistribution.getCurrent(0);
-        double swerveSteerCurrent = powerDistribution.getCurrent(11) + powerDistribution.getCurrent(8) + powerDistribution.getCurrent(19) + powerDistribution.getCurrent(1);
-        double flywheelCurrent = powerDistribution.getCurrent(5) + powerDistribution.getCurrent(6) + powerDistribution.getCurrent(13) + powerDistribution.getCurrent(14);
+        double swerveDriveCurrent =
+            powerDistribution.getCurrent(12) +
+            powerDistribution.getCurrent(7) +
+            powerDistribution.getCurrent(18) +
+            powerDistribution.getCurrent(0);
+        double swerveSteerCurrent =
+            powerDistribution.getCurrent(11) +
+            powerDistribution.getCurrent(8) +
+            powerDistribution.getCurrent(19) +
+            powerDistribution.getCurrent(1);
+        double flywheelCurrent =
+            powerDistribution.getCurrent(5) +
+            powerDistribution.getCurrent(6) +
+            powerDistribution.getCurrent(13) +
+            powerDistribution.getCurrent(14);
         double hoodCurrent = powerDistribution.getCurrent(10);
         double neckCurrent = powerDistribution.getCurrent(9);
         double hopperCurrent = powerDistribution.getCurrent(4);
@@ -304,7 +317,7 @@ public class Telemetry {
         double lineWidth,
         Color8Bit color
     ) {
-        if (ligamentsTarget.length != mechanisms.length || mechanisms.length != rootPositions.length) {
+        if (mechanisms.length != ligamentsTarget.length || mechanisms.length != rootPositions.length) {
             throw new IllegalArgumentException("Array lengths must be equal");
         }
         for (int i = 0; i < ligamentsTarget.length; i++) {

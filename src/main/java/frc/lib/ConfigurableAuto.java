@@ -21,6 +21,7 @@ import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.LEDs;
 import frc.robot.subsystems.Shooter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Optional;
 
 public class ConfigurableAuto {
@@ -442,15 +443,13 @@ public class ConfigurableAuto {
         //make a WPILIB trajectory object (so it can be displayed on a field2d)
         edu.wpi.first.math.trajectory.Trajectory trajectory = new edu.wpi.first.math.trajectory.Trajectory();
         //loop though all the trajectories (these are not WPILIB trajectories but Choreo AutoTrajectories)
-        for (int i = 0; i < autoTrajectories.length; i++) {
+        for (AutoTrajectory autoTrajectory : autoTrajectories) {
             //get the raw trajectories from choreo (which is a Choreo class confusingly also called Trajectory 😭)
-            Trajectory<SwerveSample> choreoTrajectory = autoTrajectories[i].getRawTrajectory();
+            Trajectory<SwerveSample> choreoTrajectory = autoTrajectory.getRawTrajectory();
 
             //loop through the choreo trajectory to get an ArrayList of Pose2ds
             ArrayList<Pose2d> poses = new ArrayList<Pose2d>();
-            for (int j = 0; j < choreoTrajectory.getPoses().length; j++) {
-                poses.add(choreoTrajectory.getPoses()[j]);
-            }
+            Collections.addAll(poses, choreoTrajectory.getPoses());
 
             //make a new PoseTrajectory object with the array of Pose2ds
             //a PoseTrajectory is a WPILIB Trajectory with a custom constructor that allows it to be created off of an array of Pose2ds, yeah its janky but it works for the sole purpose of displaying trajectories on the Field2d

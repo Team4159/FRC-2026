@@ -58,7 +58,7 @@ public class HubTracker {
 
     public static Optional<Alliance> getAutoWinner() {
         String gameData = DriverStation.getGameSpecificMessage();
-        return switch (gameData.length() > 0 ? gameData.charAt(0) : ' ') {
+        return switch (gameData.isEmpty() ? gameData.charAt(0) : ' ') {
             case 'B' -> Optional.of(Alliance.Blue);
             case 'R' -> Optional.of(Alliance.Red);
             default -> Optional.empty();
