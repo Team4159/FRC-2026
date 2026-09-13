@@ -84,10 +84,8 @@ public class ConfigurableAuto {
         shootChooser2 = new SendableChooser<>();
         //climbSideChooser = new SendableChooser<>();
 
-        SmartDashboard.putData("Generated Routine Display", generatedRoutineDisplay);
-
         addChooserOptions();
-        displayChoosers();
+        displayWidgets();
     }
 
     /** adds options to the choosers
@@ -140,15 +138,16 @@ public class ConfigurableAuto {
     /**
      * displays the sendable chooser options for configuration and the generate button
      */
-    private void displayChoosers() {
+    private void displayWidgets() {
         // display on smartdashboard -> elastic
-        SmartDashboard.putData("side", sideChooser);
-        SmartDashboard.putData("Intake 1", intakeChooser1);
-        SmartDashboard.putData("Shoot 1", shootChooser1);
-        SmartDashboard.putData("Intake 2", intakeChooser2);
-        SmartDashboard.putData("Shoot 2", shootChooser2);
-        //SmartDashboard.putData("climb side", climbSideChooser);
-        SmartDashboard.putData("generate", Commands.runOnce(() -> generateRoutine(true)).ignoringDisable(true));
+        SmartDashboard.putData("Auto/Side", sideChooser);
+        SmartDashboard.putData("Auto/Intake 1", intakeChooser1);
+        SmartDashboard.putData("Auto/Shoot 1", shootChooser1);
+        SmartDashboard.putData("Auto/Intake 2", intakeChooser2);
+        SmartDashboard.putData("Auto/Shoot 2", shootChooser2);
+        //SmartDashboard.putData("Auto/Climb Side", climbSideChooser);
+        SmartDashboard.putData("Auto/Generate", Commands.runOnce(() -> generateRoutine(true)).ignoringDisable(true));
+        SmartDashboard.putData("Auto/Generated Routine Display", generatedRoutineDisplay);
     }
 
     /** @param display should the generated trajectory be added to the generatedRoutineDisplay as a trajectory

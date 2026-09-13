@@ -5,8 +5,6 @@ import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.networktables.DoubleArrayPublisher;
@@ -43,39 +41,35 @@ public class Telemetry {
         INTAKE_ROLLER,
     }
 
-    private static final double SWERVE_MODULE_SPREAD = 0.25;
+    private final double SWERVE_MODULE_SPREAD = 0.25;
 
-    private static final PowerDistribution powerDistribution = new PowerDistribution(1, ModuleType.kRev);
+    private final PowerDistribution powerDistribution = new PowerDistribution(1, ModuleType.kRev);
 
-    private static final NetworkTableInstance networkTableInstance = NetworkTableInstance.getDefault();
+    private final NetworkTableInstance networkTableInstance = NetworkTableInstance.getDefault();
 
-    private static final NetworkTable electricityTable = networkTableInstance.getTable("Electricity");
-    private static final DoublePublisher batteryVoltagePublisher = electricityTable
+    private final NetworkTable electricityTable = networkTableInstance.getTable("Electricity");
+    private final DoublePublisher batteryVoltagePublisher = electricityTable
         .getDoubleTopic("Battery Voltage")
         .publish();
-    private static final DoublePublisher totalEnergyPublisher = electricityTable
-        .getDoubleTopic("Total Energy")
-        .publish();
-    private static final DoublePublisher totalCurrentPublisher = electricityTable
-        .getDoubleTopic("Total Current")
-        .publish();
-    private static final DoubleArrayPublisher allChannelCurrentsPublisher = electricityTable
+    private final DoublePublisher totalEnergyPublisher = electricityTable.getDoubleTopic("Total Energy").publish();
+    private final DoublePublisher totalCurrentPublisher = electricityTable.getDoubleTopic("Total Current").publish();
+    private final DoubleArrayPublisher allChannelCurrentsPublisher = electricityTable
         .getDoubleArrayTopic("All Channel Currents")
         .publish();
-    private static final NetworkTable energyBreakdownTable = electricityTable.getSubTable("Energy Breakdown");
-    private static final Map<ElectricityCategory, DoublePublisher> energyBreakdownPublishers = new HashMap<
+    private final NetworkTable energyBreakdownTable = electricityTable.getSubTable("Energy Breakdown");
+    private final Map<ElectricityCategory, DoublePublisher> energyBreakdownPublishers = new HashMap<
         ElectricityCategory,
         DoublePublisher
     >();
-    private static final Map<ElectricityCategory, Double> energyBreakdown = new HashMap<ElectricityCategory, Double>();
-    private static final NetworkTable currentBreakdownTable = electricityTable.getSubTable("Current Breakdown");
-    private static final Map<ElectricityCategory, DoublePublisher> currentBreakdownPublishers = new HashMap<
+    private final Map<ElectricityCategory, Double> energyBreakdown = new HashMap<ElectricityCategory, Double>();
+    private final NetworkTable currentBreakdownTable = electricityTable.getSubTable("Current Breakdown");
+    private final Map<ElectricityCategory, DoublePublisher> currentBreakdownPublishers = new HashMap<
         ElectricityCategory,
         DoublePublisher
     >();
-    private static final Map<ElectricityCategory, Double> currentBreakdown = new HashMap<ElectricityCategory, Double>();
+    private final Map<ElectricityCategory, Double> currentBreakdown = new HashMap<ElectricityCategory, Double>();
 
-    static {
+    {
         allChannelCurrentsPublisher.set(new double[powerDistribution.getNumChannels()]);
 
         for (ElectricityCategory electricityCategory : ElectricityCategory.values()) {
@@ -89,23 +83,23 @@ public class Telemetry {
         }
     }
 
-    private static final NetworkTable subsystemTable = networkTableInstance.getTable("Subsystems");
-    private static final NetworkTable drivetrainTable = subsystemTable.getSubTable("Drivetrain");
-    private static final StructPublisher<Pose2d> drivetrainPosePublisher = drivetrainTable
+    private final NetworkTable subsystemTable = networkTableInstance.getTable("Subsystems");
+    private final NetworkTable drivetrainTable = subsystemTable.getSubTable("Drivetrain");
+    private final StructPublisher<Pose2d> drivetrainPosePublisher = drivetrainTable
         .getStructTopic("Pose", Pose2d.struct)
         .publish();
-    private static final Mechanism2d[] swerveModuleMechanisms = new Mechanism2d[] {
+    private final Mechanism2d[] swerveModuleMechanisms = new Mechanism2d[] {
         new Mechanism2d(1, 1),
         new Mechanism2d(1, 1),
         new Mechanism2d(1, 1),
         new Mechanism2d(1, 1),
     };
-    private static final MechanismLigament2d[] swerveModuleVelocityTargets = new MechanismLigament2d[4];
-    private static final MechanismLigament2d[] swerveModuleVelocityStates = new MechanismLigament2d[4];
-    private static final MechanismLigament2d[] swerveModuleAngleTargets = new MechanismLigament2d[4];
-    private static final MechanismLigament2d[] swerveModuleAngleStates = new MechanismLigament2d[4];
+    private final MechanismLigament2d[] swerveModuleVelocityTargets = new MechanismLigament2d[4];
+    private final MechanismLigament2d[] swerveModuleVelocityStates = new MechanismLigament2d[4];
+    private final MechanismLigament2d[] swerveModuleAngleTargets = new MechanismLigament2d[4];
+    private final MechanismLigament2d[] swerveModuleAngleStates = new MechanismLigament2d[4];
 
-    static {
+    {
         @SuppressWarnings("unchecked")
         Vector<N2>[] rootPositions = new Vector[] {
             VecBuilder.fill(0.5 - SWERVE_MODULE_SPREAD, 0.5 - SWERVE_MODULE_SPREAD),
@@ -165,9 +159,13 @@ public class Telemetry {
 
     private static boolean running = false;
 
-    private static SwerveDriveState lastDrivetrainState;
+    private SwerveDriveState lastDrivetrainState;
 
-    public static void start() {
+    public Telemetry() {
+        start();
+    }
+
+    public void start() {
         if (running) {
             return;
         }
@@ -180,7 +178,7 @@ public class Telemetry {
         SignalLogger.start();
     }
 
-    public static void run() {
+    public void update() {
         if (!running) {
             return;
         }
@@ -188,7 +186,30 @@ public class Telemetry {
         logData();
     }
 
-    private static void aggregateData() {
+    public void telemetrizeDrivetrain(SwerveDriveState drivetrainState) {
+        lastDrivetrainState = drivetrainState;
+
+        // SignalLogger.writeStruct("DriveState/Pose", Pose2d.struct, drivetrainState.Pose);
+        // SignalLogger.writeStruct("DriveState/Speeds", ChassisSpeeds.struct, drivetrainState.Speeds);
+        // SignalLogger.writeStructArray(
+        //     "DriveState/ModuleStates",
+        //     SwerveModuleState.struct,
+        //     drivetrainState.ModuleStates
+        // );
+        // SignalLogger.writeStructArray(
+        //     "DriveState/ModuleTargets",
+        //     SwerveModuleState.struct,
+        //     drivetrainState.ModuleTargets
+        // );
+        // SignalLogger.writeStructArray(
+        //     "DriveState/ModulePositions",
+        //     SwerveModulePosition.struct,
+        //     drivetrainState.ModulePositions
+        // );
+        // SignalLogger.writeDouble("DriveState/OdometryPeriod", drivetrainState.OdometryPeriod, "seconds");
+    }
+
+    private void aggregateData() {
         double period = TimedRobot.kDefaultPeriod;
 
         double swerveDriveCurrent =
@@ -245,7 +266,7 @@ public class Telemetry {
         currentBreakdown.put(ElectricityCategory.INTAKE_ROLLER, intakeRollerCurrent);
     }
 
-    private static void logData() {
+    private void logData() {
         batteryVoltagePublisher.set(RobotController.getBatteryVoltage());
 
         totalEnergyPublisher.set(energyBreakdown.values().stream().mapToDouble(Double::doubleValue).sum());
@@ -280,34 +301,11 @@ public class Telemetry {
         }
     }
 
-    public static void telemetrizeDrivetrain(SwerveDriveState drivetrainState) {
-        lastDrivetrainState = drivetrainState;
-
-        SignalLogger.writeStruct("DriveState/Pose", Pose2d.struct, drivetrainState.Pose);
-        SignalLogger.writeStruct("DriveState/Speeds", ChassisSpeeds.struct, drivetrainState.Speeds);
-        SignalLogger.writeStructArray(
-            "DriveState/ModuleStates",
-            SwerveModuleState.struct,
-            drivetrainState.ModuleStates
-        );
-        SignalLogger.writeStructArray(
-            "DriveState/ModuleTargets",
-            SwerveModuleState.struct,
-            drivetrainState.ModuleTargets
-        );
-        SignalLogger.writeStructArray(
-            "DriveState/ModulePositions",
-            SwerveModulePosition.struct,
-            drivetrainState.ModulePositions
-        );
-        SignalLogger.writeDouble("DriveState/OdometryPeriod", drivetrainState.OdometryPeriod, "seconds");
-    }
-
-    private static void incrementEnergyBreakdown(ElectricityCategory electricityCategory, double increment) {
+    private void incrementEnergyBreakdown(ElectricityCategory electricityCategory, double increment) {
         energyBreakdown.put(electricityCategory, energyBreakdown.get(electricityCategory) + increment);
     }
 
-    private static void populateLigaments(
+    private void populateLigaments(
         MechanismLigament2d[] ligamentsTarget,
         Mechanism2d[] mechanisms,
         Vector<N2>[] rootPositions,
@@ -326,6 +324,4 @@ public class Telemetry {
                 .append(new MechanismLigament2d(ligamentName, length, 0, lineWidth, color));
         }
     }
-
-    private Telemetry() {}
 }

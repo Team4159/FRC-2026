@@ -38,6 +38,8 @@ import java.util.Optional;
 
 public class RobotContainer {
 
+    private final Telemetry telemetry = new Telemetry();
+
     private final CommandXboxController primaryController = new CommandXboxController(
         OperatorConstants.PRIMARY_CONTROLLER_PORT
     );
@@ -88,7 +90,7 @@ public class RobotContainer {
         );
 
         // drivetrain bindings
-        drivetrain.registerTelemetry(Telemetry::telemetrizeDrivetrain);
+        drivetrain.registerTelemetry(telemetry::telemetrizeDrivetrain);
         RobotModeTriggers.disabled().whileTrue(drivetrain.new Drive(DriveMode.IDLE).ignoringDisable(true));
 
         // call the function that configures the robot bindings
@@ -150,5 +152,9 @@ public class RobotContainer {
          * cmd() is used to get the Choreo AutoRoutine object as a WPILIB Command object
          */
         return configurableAuto.getRoutine().cmd();
+    }
+
+    public void periodic() {
+        telemetry.update();
     }
 }
