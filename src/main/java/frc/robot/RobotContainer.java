@@ -14,7 +14,6 @@ import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.lib.ConfigurableAuto;
 import frc.lib.HIDRumble;
 import frc.lib.HIDRumble.RumbleRequest;
 import frc.lib.Telemetry;
