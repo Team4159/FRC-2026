@@ -35,12 +35,14 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.LEDPattern;
 import edu.wpi.first.wpilibj.util.Color;
 import frc.robot.generated.TunerConstants;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -231,7 +233,7 @@ public final class Constants {
         public static final Distance TRENCH_ASSIST_ALIGN_POSITION_INNER_TOLERANCE = Meters.of(0.05);
         public static final Distance TRENCH_ASSIST_ALIGN_POSITION_OUTER_TOLERANCE = Meters.of(0.15);
         public static final double TRENCH_ASSIST_ALIGN_STRENGTH = 0.8;
-        public static final double TRENCH_ASSIST_ALGIN_INFLUENCE = 0.2;
+        public static final double TRENCH_ASSIST_ALIGN_INFLUENCE = 0.2;
         public static final Distance TRENCH_ASSIST_FRONT_PROTRUSION_EXTENT = Inches.of(10.0);
 
         // drive mode constants
@@ -410,33 +412,38 @@ public final class Constants {
             }
         };
 
-        public static final AngularVelocity SHOOTER_ANGULAR_VELOCITY = RPM.of(2000);
-        public static final AngularVelocity SHOOTER_LOB_ANGULAR_VELOCITY = RPM.of(2000);
-        public static final AngularVelocity SHOOTER_RESTING_ANGULAR_VELOCITY = RPM.of(1000);
-        public static final AngularVelocity SHOOTER_HUB_ANGULAR_VELOCITY = RPM.of(2500);
-        public static final AngularVelocity SHOOTER_TOWER_ANGULAR_VELOCITY = RPM.of(3000);
+        public static enum ShooterSetpoint {
+            RESTING(RPM.of(2000.0)),
+            LOB(RPM.of(2000.0)),
+            FROM_HUB(RPM.of(2500.0), Degrees.of(75.0)),
+            FROM_TOWER(RPM.of(3000.0), Degrees.of(70.0));
 
-        public static final Angle HOOD_HUB_HOOD_PITCH = Degrees.of(75);
-        public static final Angle HOOD_TOWER_HOOD_PITCH = Degrees.of(70);
+            public final AngularVelocity angularVelocity;
+            public final Optional<Angle> pitch;
 
-        public static final double BACKWARDS_TIME = 0.05;
+            private ShooterSetpoint(AngularVelocity angularVelocity, Angle pitch) {
+                this.angularVelocity = angularVelocity;
+                this.pitch = Optional.of(pitch);
+            }
 
-        // Old equation stuff
-        /** units: m/s */
-        public static final double SHOOTER_LAUNCH_VELOCITY = Units.feetToMeters(29); // convert from ft/s to m/s
-        public static final double SHOOTER_RATIO = 1;
-        public static final double SHOOTER_HEIGHT = Units.inchesToMeters(40);
+            private ShooterSetpoint(AngularVelocity angularVelocity) {
+                this.angularVelocity = angularVelocity;
+                this.pitch = Optional.empty();
+            }
+        }
 
-        public static AngularVelocity SHOOTER_VELOCITY_TOLERANCE = RPM.of(100);
-        public static Angle HOOD_MAX_PITCH = Degrees.of(85);
-
-        public static final Distance SHOOTER_WHEEL_RADIUS = Inches.of(2);
-        public static final Distance SHOOTER_ROLLER_RADIUS = Inches.of(0.75);
-
-        public static final double ROTOR_TO_WHEEL_RATIO = 1;
-        public static final double ROTOR_TO_ROLLER_RATIO = 1.167;
+        public static final Time BACKWARDS_TIME = Seconds.of(0.05);
 
         public static final double SHOOTER_EFFICIENCY = 0.80;
+
+        public static final Distance SHOOTER_WHEEL_RADIUS = Inches.of(2.0);
+        public static final Distance SHOOTER_ROLLER_RADIUS = Inches.of(0.75);
+
+        public static final double ROTOR_TO_WHEEL_RATIO = 1.0;
+        public static final double ROTOR_TO_ROLLER_RATIO = 7.0 / 6.0;
+
+        public static AngularVelocity SHOOTER_VELOCITY_TOLERANCE = RPM.of(100.0);
+        public static Angle HOOD_MAX_PITCH = Degrees.of(85.0);
 
         // robot relative shooter offset
         // TODO implement in the calculation
@@ -453,6 +460,12 @@ public final class Constants {
                 this.ledStatus = ledStatus;
             }
         }
+
+        // Old equation stuff
+        // /** units: m/s */
+        // public static final double SHOOTER_LAUNCH_VELOCITY = Units.feetToMeters(29); // convert from ft/s to m/s
+        // public static final double SHOOTER_RATIO = 1;
+        // public static final double SHOOTER_HEIGHT = Units.inchesToMeters(40);
     }
 
     public static class PhotonVisionConstants {

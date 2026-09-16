@@ -305,7 +305,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
 
                 double vy =
                     TRENCH_ASSIST_ALIGN_STRENGTH * Math.signum(errorY.magnitude()) * Math.abs(getInputVelocityX(true));
-                double influence = OperatorConstants.TRENCH_ASSIST_ALGIN_INFLUENCE * getInputVelocityY(true);
+                double influence = OperatorConstants.TRENCH_ASSIST_ALIGN_INFLUENCE * getInputVelocityY(true);
                 boolean aligned =
                     localErrorY.baseUnitMagnitude() >=
                         -OperatorConstants.TRENCH_ASSIST_ALIGN_POSITION_INNER_TOLERANCE.baseUnitMagnitude() &&

@@ -25,6 +25,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.FeederConstants;
 import frc.robot.Constants.FeederConstants.FeederState;
 import frc.robot.Constants.ShooterConstants;
+import frc.robot.Constants.ShooterConstants.ShooterSetpoint;
 
 public class Shooter extends SubsystemBase {
 
@@ -117,16 +118,18 @@ public class Shooter extends SubsystemBase {
         );
     }
 
+    public void setVelocity(ShooterSetpoint shooterSetpoint) {
+        setVelocity(shooterSetpoint.angularVelocity);
+    }
+
     /** @return the estimated initial speed of the ball after being shot from the shooter in m/s*/
     public double getFuelVelocity() {
         double motorOmega = getShooterMotorVelocity().in(RadiansPerSecond);
 
-        double shooterOmega = motorOmega * ShooterConstants.SHOOTER_RATIO;
+        double shooterOmega = motorOmega * ShooterConstants.ROTOR_TO_WHEEL_RATIO;
 
-        double wheelTangentialSpeed =
-            shooterOmega * ShooterConstants.SHOOTER_WHEEL_RADIUS.in(Meters) * ShooterConstants.ROTOR_TO_WHEEL_RATIO;
-        double rollerTangentialSpeed =
-            shooterOmega * ShooterConstants.SHOOTER_ROLLER_RADIUS.in(Meters) * ShooterConstants.ROTOR_TO_ROLLER_RATIO;
+        double wheelTangentialSpeed = shooterOmega * ShooterConstants.SHOOTER_WHEEL_RADIUS.in(Meters);
+        double rollerTangentialSpeed = shooterOmega * ShooterConstants.SHOOTER_ROLLER_RADIUS.in(Meters);
 
         return (ShooterConstants.SHOOTER_EFFICIENCY * (wheelTangentialSpeed + rollerTangentialSpeed)) / 2.0;
     }
@@ -220,13 +223,20 @@ public class Shooter extends SubsystemBase {
         adjustHood(ShooterConstants.HOOD_RESTING_ANGLE);
     }
 
-    /** @param trajectoryAngle the desired launch angle of the fuel
+    /** @param pitch the desired launch angle of the fuel
      * adjusts the hood such to achieve the desired fuel launch angle
      */
-    public void adjustTrajectoryAngle(Angle trajectoryAngle) {
+    public void setPitch(Angle pitch) {
         //adjusthood is in terms of shooter angle where the angle of the shooter COM with respect to the horizontal is 0, to get this from trajectory angle must get the complement of the trajectory angle
         //subtract the hood offset which is the angle between the hood COM and the final hood roller
-        adjustHood(Degrees.of(90).minus(trajectoryAngle).minus(ShooterConstants.HOOD_ANGLE_OFFSET));
+        adjustHood(Degrees.of(90).minus(pitch).minus(ShooterConstants.HOOD_ANGLE_OFFSET));
+    }
+
+    public void setPitch(ShooterSetpoint shooterSetpoint) {
+        if (shooterSetpoint.pitch.isEmpty()) {
+            throw new IllegalArgumentException("Shooter setpoint pitch cannot be empty");
+        }
+        setPitch(shooterSetpoint.pitch.get());
     }
 
     /** @param adjustment how much to adjust by in degrees */
@@ -248,7 +258,7 @@ public class Shooter extends SubsystemBase {
     }
 
     public void restShooter() {
-        setVelocity(ShooterConstants.SHOOTER_RESTING_ANGULAR_VELOCITY);
+        setVelocity(ShooterSetpoint.RESTING);
     }
 
     /** A command to run the shooter motors at a given velocity */

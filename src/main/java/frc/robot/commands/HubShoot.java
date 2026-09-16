@@ -8,6 +8,7 @@ import frc.robot.Constants.FeederConstants.FeederState;
 import frc.robot.Constants.HopperConstants.HopperState;
 import frc.robot.Constants.IntakeConstants.IntakeState;
 import frc.robot.Constants.ShooterConstants;
+import frc.robot.Constants.ShooterConstants.ShooterSetpoint;
 import frc.robot.subsystems.Hopper;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
@@ -33,8 +34,8 @@ public class HubShoot extends Command {
 
     @Override
     public void initialize() {
-        shooter.setVelocity(ShooterConstants.SHOOTER_HUB_ANGULAR_VELOCITY);
-        shooter.adjustTrajectoryAngle(ShooterConstants.HOOD_HUB_HOOD_PITCH);
+        shooter.setVelocity(ShooterSetpoint.FROM_HUB);
+        shooter.setPitch(ShooterSetpoint.FROM_HUB);
         CommandScheduler.getInstance().schedule(intake.new BounceIntake());
 
         timer.reset();

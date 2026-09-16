@@ -19,7 +19,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.lib.AllianceUtil;
 import frc.lib.FuelSimulation;
-import frc.robot.Constants;
 import frc.robot.Constants.DrivetrainConstants;
 import frc.robot.Constants.FeederConstants.FeederState;
 import frc.robot.Constants.FieldConstants;
@@ -27,6 +26,7 @@ import frc.robot.Constants.HopperConstants.HopperState;
 import frc.robot.Constants.IntakeConstants.IntakeState;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.Constants.ShooterConstants.AutoShootStatus;
+import frc.robot.Constants.ShooterConstants.ShooterSetpoint;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Hopper;
 import frc.robot.subsystems.Intake;
@@ -118,7 +118,7 @@ public class AutoLob extends Command {
 
         timeOffset = MathSharedStore.getTimestamp();
 
-        shooter.setVelocity(ShooterConstants.SHOOTER_LOB_ANGULAR_VELOCITY);
+        shooter.setVelocity(ShooterSetpoint.LOB);
 
         timer.reset();
     }
@@ -126,9 +126,7 @@ public class AutoLob extends Command {
     @Override
     public void execute() {
         //recalculate lob position
-        this.target = drivetrain
-            .getState()
-            .Pose.nearest(Constants.FieldConstants.LOB_LOCATIONS.get(AllianceUtil.getAlliance()));
+        this.target = drivetrain.getState().Pose.nearest(FieldConstants.LOB_LOCATIONS.get(AllianceUtil.getAlliance()));
 
         //calculate desired pitch for hood angle
         double desiredHoodAngle = getDesiredHoodPitch();
@@ -187,7 +185,7 @@ public class AutoLob extends Command {
         rotateSwerve(desiredRobotAngle);
 
         //set the desired hood angle
-        shooter.adjustTrajectoryAngle(Radians.of(desiredHoodAngle));
+        shooter.setPitch(Radians.of(desiredHoodAngle));
 
         SmartDashboard.putBoolean("isAtPitch", shooter.isAtPitch());
         SmartDashboard.putBoolean("isAtVelocity", shooter.isAtVelocity());
@@ -231,7 +229,7 @@ public class AutoLob extends Command {
      */
     private void rotateSwerve(double desiredAngle) {
         //PID controller to calculate omega
-        double omega = Constants.DrivetrainConstants.AUTO_SHOOT_ROTATION_CONTROLLER.calculate(
+        double omega = DrivetrainConstants.AUTO_SHOOT_ROTATION_CONTROLLER.calculate(
             drivetrain.getState().Pose.getRotation().getRadians(),
             desiredAngle,
             Timer.getFPGATimestamp()
@@ -267,12 +265,12 @@ public class AutoLob extends Command {
         //the delta y for TOF would be the height
         //the equation then becomes 0 = -(1/2)g * TOF^2 + vy * TOF - height -> 0 = (1/2)g * TOF^2 - vy * TOF + height
         //then use quadratic formula and always add the radical to get the 2nd time the fuel is at the target height (so that it is on the way down)
-        double radical = Math.sqrt(Math.pow(vy, 2) - 2 * Constants.FieldConstants.GRAVITY * height);
+        double radical = Math.sqrt(Math.pow(vy, 2) - 2 * FieldConstants.GRAVITY * height);
         if (Double.isNaN(radical)) {
             return 0;
         }
         double numerator = vy + radical;
-        double time = numerator / Constants.FieldConstants.GRAVITY;
+        double time = numerator / FieldConstants.GRAVITY;
         SmartDashboard.putNumber("time of flight", time);
         return time;
     }
@@ -302,8 +300,8 @@ public class AutoLob extends Command {
             desiredPitch = Units.degreesToRadians(45);
             autoShootStatus = AutoShootStatus.OUTOFRANGE;
         }
-        // if(desiredPitch > Constants.ShooterConstants.maxPitch){
-        //     desiredPitch = Constants.ShooterConstants.maxPitch;
+        // if(desiredPitch > ShooterConstants.maxPitch){
+        //     desiredPitch = ShooterConstants.maxPitch;
         // }
         SmartDashboard.putNumber("autoaim desired pitch", Units.radiansToDegrees(desiredPitch));
         return desiredPitch;

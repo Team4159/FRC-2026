@@ -29,7 +29,6 @@ import frc.lib.FuelSimulation;
 import frc.lib.HIDRumble;
 import frc.lib.HIDRumble.RumbleRequest;
 import frc.lib.JoeLookupTable;
-import frc.robot.Constants;
 import frc.robot.Constants.DrivetrainConstants;
 import frc.robot.Constants.FeederConstants.FeederState;
 import frc.robot.Constants.FieldConstants;
@@ -153,7 +152,7 @@ public class AutoShoot extends Command {
     public void initialize() {
         // set adjusted robot pose to current robot pose initially
         // (need a baseline to get time from lookup table)
-        this.target = Constants.FieldConstants.HUB_LOCATIONS.get(AllianceUtil.getAlliance());
+        this.target = FieldConstants.HUB_LOCATIONS.get(AllianceUtil.getAlliance());
         adjustedRobotPose = drivetrain.getState().Pose;
         // used to simulate loss of shooter velocity over time for sim
         // timeOffset = MathSharedStore.getTimestamp();
@@ -227,7 +226,7 @@ public class AutoShoot extends Command {
         rotateSwerve(desiredRobotAngle);
 
         // set the desired hood angle
-        shooter.adjustTrajectoryAngle(desiredHoodAngle);
+        shooter.setPitch(desiredHoodAngle);
         shooter.setVelocity(desiredShooterAngularVelocity);
 
         // send tolerances to smart dashboard
@@ -301,7 +300,7 @@ public class AutoShoot extends Command {
         // aimFinished = false;
         // }
 
-        double omega = Constants.DrivetrainConstants.AUTO_SHOOT_ROTATION_CONTROLLER.calculate(
+        double omega = DrivetrainConstants.AUTO_SHOOT_ROTATION_CONTROLLER.calculate(
             drivetrain.getState().Pose.getRotation().getRadians(),
             desiredAngle,
             Timer.getFPGATimestamp()
@@ -340,16 +339,10 @@ public class AutoShoot extends Command {
     }
 
     private double getLaunchVelocity(AngularVelocity desiredMotorVelocity) {
-        double shooterOmega = desiredMotorVelocity.in(RadiansPerSecond) * ShooterConstants.SHOOTER_RATIO;
+        double shooterOmega = desiredMotorVelocity.in(RadiansPerSecond) * ShooterConstants.ROTOR_TO_WHEEL_RATIO;
 
-        double wheelTangentialSpeed =
-            shooterOmega *
-            ShooterConstants.SHOOTER_WHEEL_RADIUS.in(Meters) *
-            Constants.ShooterConstants.ROTOR_TO_WHEEL_RATIO;
-        double rollerTangentialSpeed =
-            shooterOmega *
-            ShooterConstants.SHOOTER_ROLLER_RADIUS.in(Meters) *
-            Constants.ShooterConstants.ROTOR_TO_ROLLER_RATIO;
+        double wheelTangentialSpeed = shooterOmega * ShooterConstants.SHOOTER_WHEEL_RADIUS.in(Meters);
+        double rollerTangentialSpeed = shooterOmega * ShooterConstants.SHOOTER_ROLLER_RADIUS.in(Meters);
 
         return (efficiency * (wheelTangentialSpeed + rollerTangentialSpeed)) / 2;
     }
@@ -394,12 +387,12 @@ public class AutoShoot extends Command {
         // (1/2)g * TOF^2 - vy * TOF + height
         // then use quadratic formula and always add the radical to get the 2nd time the
         // fuel is at the target height (so that it is on the way down)
-        double radical = Math.sqrt(Math.pow(vy, 2) - 2 * Constants.FieldConstants.GRAVITY * height);
+        double radical = Math.sqrt(Math.pow(vy, 2) - 2 * FieldConstants.GRAVITY * height);
         if (Double.isNaN(radical)) {
             return 0;
         }
         double numerator = vy + radical;
-        double time = numerator / Constants.FieldConstants.GRAVITY;
+        double time = numerator / FieldConstants.GRAVITY;
         SmartDashboard.putNumber("time of flight", time);
         return time;
     }
@@ -445,9 +438,7 @@ public class AutoShoot extends Command {
             desiredPitch = Units.degreesToRadians(45);
             autoShootStatus = AutoShootStatus.OUTOFRANGE;
         }
-        if (desiredPitch > Constants.ShooterConstants.HOOD_MAX_PITCH.in(Radians)) {
-            desiredPitch = Constants.ShooterConstants.HOOD_MAX_PITCH.in(Radians);
-        }
+        desiredPitch = Math.min(desiredPitch, ShooterConstants.HOOD_MAX_PITCH.in(Radians));
         SmartDashboard.putNumber("autoaim desired pitch", Units.radiansToDegrees(desiredPitch));
         return Radians.of(desiredPitch);
     }
@@ -455,7 +446,7 @@ public class AutoShoot extends Command {
     @Override
     public void end(boolean interrupted) {
         shooter.adjustHood(ShooterConstants.HOOD_RESTING_ANGLE);
-        shooter.setVelocity(Constants.ShooterConstants.SHOOTER_RESTING_ANGULAR_VELOCITY);
+        shooter.restShooter();
         shooter.setFeederDutyCycle(FeederState.STOP.dutyCycle);
         hopper.setHopperDutyCycle(HopperState.STOP.dutyCycle);
         CommandScheduler.getInstance().schedule(intake.new ChangeStates(IntakeState.DOWN_OFF));
