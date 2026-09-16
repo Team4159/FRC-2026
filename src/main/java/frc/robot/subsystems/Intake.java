@@ -159,7 +159,7 @@ public class Intake extends SubsystemBase {
         }
 
         private boolean isNear(IntakeState state) {
-            return getPivotAngle().isNear(state.angleLocation, Degrees.of(1));
+            return getPivotAngle().isNear(state.angleLocation, Degrees.of(5));
         }
     }
 }
