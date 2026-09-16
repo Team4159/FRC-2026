@@ -238,12 +238,12 @@ public class Telemetry {
             powerDistribution.getCurrent(14);
         double hoodCurrent = powerDistribution.getCurrent(10);
         double neckCurrent = powerDistribution.getCurrent(9);
-        double hopperCurrent = powerDistribution.getCurrent(4);
-        double intakePivotCurrent = powerDistribution.getCurrent(3);
-        double intakeRollerCurrent = powerDistribution.getCurrent(2);
+        double hopperCurrent = powerDistribution.getCurrent(16);
+        double intakePivotCurrent = powerDistribution.getCurrent(4);
+        double intakeRollerCurrent = powerDistribution.getCurrent(3);
 
         double powerDistributionVoltage = powerDistribution.getVoltage();
-        // TODO: find channels
+        
         incrementEnergyBreakdown(
             ElectricityCategory.SWERVE_DRIVE,
             period * powerDistributionVoltage * swerveDriveCurrent
