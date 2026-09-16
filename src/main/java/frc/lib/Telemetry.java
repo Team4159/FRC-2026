@@ -42,6 +42,7 @@ public class Telemetry {
     }
 
     private final double SWERVE_MODULE_SPREAD = 0.25;
+    private final double JOULES_TO_WATT_HOURS = 1.0 / 3600.0;
 
     private final PowerDistribution powerDistribution = new PowerDistribution(1, ModuleType.kRev);
 
@@ -49,12 +50,14 @@ public class Telemetry {
 
     private final NetworkTable electricityTable = networkTableInstance.getTable("Electricity");
     private final DoublePublisher batteryVoltagePublisher = electricityTable
-        .getDoubleTopic("Battery Voltage")
+        .getDoubleTopic("Battery Voltage (V)")
         .publish();
-    private final DoublePublisher totalEnergyPublisher = electricityTable.getDoubleTopic("Total Energy").publish();
-    private final DoublePublisher totalCurrentPublisher = electricityTable.getDoubleTopic("Total Current").publish();
+    private final DoublePublisher totalEnergyPublisher = electricityTable.getDoubleTopic("Total Energy (Wh)").publish();
+    private final DoublePublisher totalCurrentPublisher = electricityTable
+        .getDoubleTopic("Total Current (A)")
+        .publish();
     private final DoubleArrayPublisher allChannelCurrentsPublisher = electricityTable
-        .getDoubleArrayTopic("All Channel Currents")
+        .getDoubleArrayTopic("All Channel Currents (A)")
         .publish();
     private final NetworkTable energyBreakdownTable = electricityTable.getSubTable("Energy Breakdown");
     private final Map<ElectricityCategory, DoublePublisher> energyBreakdownPublishers = new HashMap<
@@ -76,9 +79,15 @@ public class Telemetry {
             String name = Arrays.stream(electricityCategory.name().split("_"))
                 .map(word -> word.substring(0, 1).toUpperCase() + word.substring(1).toLowerCase())
                 .collect(Collectors.joining(" "));
-            energyBreakdownPublishers.put(electricityCategory, energyBreakdownTable.getDoubleTopic(name).publish());
+            energyBreakdownPublishers.put(
+                electricityCategory,
+                energyBreakdownTable.getDoubleTopic(name + " (Wh)").publish()
+            );
             energyBreakdown.put(electricityCategory, 0.0);
-            currentBreakdownPublishers.put(electricityCategory, currentBreakdownTable.getDoubleTopic(name).publish());
+            currentBreakdownPublishers.put(
+                electricityCategory,
+                currentBreakdownTable.getDoubleTopic(name + " (A)").publish()
+            );
             currentBreakdown.put(electricityCategory, 0.0);
         }
     }
@@ -269,7 +278,9 @@ public class Telemetry {
     private void logData() {
         batteryVoltagePublisher.set(RobotController.getBatteryVoltage());
 
-        totalEnergyPublisher.set(energyBreakdown.values().stream().mapToDouble(Double::doubleValue).sum());
+        totalEnergyPublisher.set(
+            energyBreakdown.values().stream().mapToDouble(Double::doubleValue).sum() * JOULES_TO_WATT_HOURS
+        );
         totalCurrentPublisher.set(powerDistribution.getTotalCurrent());
         allChannelCurrentsPublisher.set(powerDistribution.getAllCurrents());
 
@@ -301,8 +312,11 @@ public class Telemetry {
         }
     }
 
-    private void incrementEnergyBreakdown(ElectricityCategory electricityCategory, double increment) {
-        energyBreakdown.put(electricityCategory, energyBreakdown.get(electricityCategory) + increment);
+    private void incrementEnergyBreakdown(ElectricityCategory electricityCategory, double incrementJoules) {
+        energyBreakdown.put(
+            electricityCategory,
+            energyBreakdown.get(electricityCategory) + incrementJoules * JOULES_TO_WATT_HOURS
+        );
     }
 
     private void populateLigaments(
