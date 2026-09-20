@@ -3,7 +3,6 @@ package frc.robot.operator;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.Constants.OperatorConstants;
 
 public class SingleXboxOperatorModality implements OperatorModality {
 
@@ -14,7 +13,7 @@ public class SingleXboxOperatorModality implements OperatorModality {
     private final Trigger towerShoot;
 
     public SingleXboxOperatorModality(int port) {
-        xbox = new CommandXboxController(OperatorConstants.PRIMARY_CONTROLLER_PORT);
+        xbox = new CommandXboxController(port);
         autoShootBase = xbox.rightTrigger(0.1);
         hubShootBase = xbox.rightBumper();
         towerShoot = autoShootBase.and(hubShootBase);
