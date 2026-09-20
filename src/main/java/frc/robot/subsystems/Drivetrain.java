@@ -27,7 +27,6 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.AllianceUtil;
 import frc.lib.PoseUtil;
@@ -39,6 +38,7 @@ import frc.robot.Constants.OperatorConstants.DriveMode;
 import frc.robot.commands.AutoShoot;
 import frc.robot.generated.CommandSwerveDrivetrain;
 import frc.robot.generated.TunerConstants;
+import frc.robot.operator.OperatorModality;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -78,11 +78,9 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     public final Trigger slipTrigger = new Trigger(this::isSlipping);
     private final LinearFilter slippingBucketFilter = LinearFilter.movingAverage(25);
 
-    private final Supplier<Double> inputX;
-    private final Supplier<Double> inputY;
-    private final Supplier<Double> inputRotationVelocity;
-    private final Supplier<Double> inputRotationX;
-    private final Supplier<Double> inputRotationY;
+    private final Supplier<Double> inputDriveX;
+    private final Supplier<Double> inputDriveY;
+    private final Supplier<Double> inputRotation;
 
     private final ChassisSpeeds estimatedRealChassisSpeeds = new ChassisSpeeds(
         0,
@@ -123,7 +121,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     private boolean autoPathAutoShootMode = false;
     private AutoShoot autoShootCommand;
 
-    public Drivetrain(CommandXboxController controller) {
+    public Drivetrain(OperatorModality operatorModality) {
         super(
             TunerConstants.DrivetrainConstants,
             TunerConstants.FrontLeft,
@@ -131,11 +129,9 @@ public class Drivetrain extends CommandSwerveDrivetrain {
             TunerConstants.BackLeft,
             TunerConstants.BackRight
         );
-        this.inputX = () -> -controller.getLeftY();
-        this.inputY = () -> -controller.getLeftX();
-        this.inputRotationVelocity = () -> -controller.getRightX();
-        this.inputRotationX = () -> -controller.getRightY();
-        this.inputRotationY = () -> -controller.getRightX();
+        this.inputDriveX = () -> operatorModality.driveX();
+        this.inputDriveY = () -> operatorModality.driveY();
+        this.inputRotation = () -> operatorModality.rotation();
     }
 
     @Override
@@ -180,7 +176,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
             }
 
             Translation2d inputSpeedTranslation;
-            double inputSpeedRotation = getInputRotationVelocity() * maxRotationSpeed;
+            double inputSpeedRotation = getInputRotation() * maxRotationSpeed;
             if (getDriveFlagValue(DriveFlag.MANUAL_ALIGN)) {
                 Translation2d input = getInputTranslation(true);
                 double x = 0;
@@ -205,7 +201,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                 getInputTranslation(true).getNorm() >= INTAKE_ROTATION_INPUT_DEADZONE
             ) {
                 Angle angle;
-                int angleSign = (int) Math.signum(getInputRotationVelocity());
+                int angleSign = (int) Math.signum(getInputRotation());
                 if (angleSign > 0) {
                     angle = Degrees.of(45.0);
                 } else if (angleSign < 0) {
@@ -442,7 +438,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     }
 
     public double getInputSpeedRotation() {
-        return getInputRotationVelocity() * getMaxRotationSpeed();
+        return getInputRotation() * getMaxRotationSpeed();
     }
 
     /**
@@ -452,7 +448,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
      *         applied
      */
     public Translation2d getRawInputTranslation(boolean fieldRelative) {
-        Translation2d rawInput = new Translation2d(inputX.get(), inputY.get());
+        Translation2d rawInput = new Translation2d(inputDriveX.get(), inputDriveY.get());
         if (fieldRelative && isInverted()) {
             rawInput = rawInput.times(-1);
         }
@@ -511,32 +507,17 @@ public class Drivetrain extends CommandSwerveDrivetrain {
      *         to 1. no deadzone is applied
      */
     public double getRawInputRotationVelocity() {
-        return inputRotationVelocity.get();
+        return inputRotation.get();
     }
 
     /**
      * @return the field relative rotation input (-right joystick x), from range -1
      *         to 1. a deadzone and quadratic are applied for better control.
      */
-    public double getInputRotationVelocity() {
+    public double getInputRotation() {
         double rawInput = getRawInputRotationVelocity();
         double filteredInput = MathUtil.applyDeadband(Math.abs(rawInput), PRIMARY_ROTATION_DEADBAND, 1);
         return Math.abs(Math.pow(filteredInput, PRIMARY_ROTATION_EXPONENT)) * Math.signum(rawInput);
-    }
-
-    public Rotation2d getRawInputRotation() {
-        return new Rotation2d(inputRotationX.get(), inputRotationY.get());
-    }
-
-    public Optional<Rotation2d> getInputRotation() {
-        if (Math.hypot(inputRotationX.get(), inputRotationY.get()) < PRIMARY_ROTATION_DEADBAND) {
-            return Optional.empty();
-        }
-        Rotation2d filteredInput = getRawInputRotation();
-        if (isInverted()) {
-            filteredInput = filteredInput.plus(Rotation2d.k180deg);
-        }
-        return Optional.of(filteredInput);
     }
 
     /**
@@ -633,11 +614,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
      *         has been reached
      */
     public boolean isDriveIdle() {
-        boolean noInputRotation = true;
-        if (externalDesiredRotation.isPresent()) {
-            noInputRotation = getInputRotation().isEmpty();
-        }
-        return getInputTranslation(false).getNorm() == 0.0 && getInputRotationVelocity() == 0.0 && noInputRotation;
+        return getInputTranslation(false).getNorm() == 0.0 && getInputRotation() == 0.0;
     }
 
     public boolean isAtDesiredRotation() {

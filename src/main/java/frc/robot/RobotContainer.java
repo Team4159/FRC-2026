@@ -11,9 +11,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
-import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.HIDRumble;
 import frc.lib.HIDRumble.RumbleRequest;
 import frc.lib.Telemetry;
@@ -27,6 +25,7 @@ import frc.robot.commands.AutoLob;
 import frc.robot.commands.AutoShoot;
 import frc.robot.commands.HubShoot;
 import frc.robot.commands.TowerShoot;
+import frc.robot.operator.SingleXboxOperatorModality;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Hopper;
 import frc.robot.subsystems.Intake;
@@ -39,37 +38,16 @@ public class RobotContainer {
 
     private final Telemetry telemetry = new Telemetry();
 
-    private final CommandXboxController primaryController = new CommandXboxController(
+    private final SingleXboxOperatorModality operatorModality = new SingleXboxOperatorModality(
         OperatorConstants.PRIMARY_CONTROLLER_PORT
     );
-    // private final CommandXboxController secondaryController = new CommandXboxController(
-    //     OperatorConstants.kSecondaryControllerPort
-    // );
-
-    private final Trigger zeroTrigger = primaryController.back();
-    private final Trigger slowModeTrigger = primaryController.leftBumper();
-    private final Trigger driverAssistToggleTrigger = primaryController.y();
-
-    private final Trigger intakeTrigger = primaryController.leftTrigger(0.1);
-    private final Trigger outtakeTrigger = primaryController.x();
-
-    private final Trigger autoShootTriggerBase = primaryController.rightTrigger(0.1);
-    private final Trigger hubShootTriggerBase = primaryController.rightBumper();
-    private final Trigger autoShootTrigger, hubShootTrigger;
-    private final Trigger towerShootTrigger = autoShootTriggerBase.and(hubShootTriggerBase);
-    private final Trigger autoLobTrigger = primaryController.a();
-
-    {
-        autoShootTrigger = autoShootTriggerBase.and(towerShootTrigger.negate());
-        hubShootTrigger = hubShootTriggerBase.and(towerShootTrigger.negate());
-    }
 
     // Subsystems
     private final Intake intake = new Intake();
     private final Shooter shooter = new Shooter();
     private final Hopper hopper = new Hopper();
     private final LEDs leds = new LEDs();
-    private final Drivetrain drivetrain = new Drivetrain(primaryController);
+    private final Drivetrain drivetrain = new Drivetrain(operatorModality);
 
     @SuppressWarnings("unused")
     // periodic function inside photon vision class used to send vision data
@@ -99,51 +77,67 @@ public class RobotContainer {
     private void configureBindings() {
         drivetrain.setDefaultCommand(drivetrain.new Drive(DriveMode.TELEOP));
 
-        zeroTrigger.onTrue(
+        operatorModality.zero().onTrue(
             Commands.runOnce(() -> {
-                HIDRumble.rumble(primaryController.getHID(), new RumbleRequest(RumbleType.kLeftRumble, 0.5, 0.25));
+                HIDRumble.rumble(operatorModality.getHID(), new RumbleRequest(RumbleType.kLeftRumble, 0.5, 0.25));
                 drivetrain.seedFieldCentric();
             })
         );
 
-        // test mode
-        primaryController.y().and(DriverStation::isTest).whileTrue(drivetrain.new Drive(DriveMode.BRAKE));
-        primaryController.b().and(DriverStation::isTest).whileTrue(drivetrain.new Drive(DriveMode.POINT));
-
         // teleop mode
-        slowModeTrigger.and(DriverStation::isTeleop).whileTrue(drivetrain.new DriveFlagToggler(DriveFlag.SLOW_MODE));
-        driverAssistToggleTrigger.and(DriverStation::isTeleop).onTrue(
-            Commands.runOnce(() -> {
-                HIDRumble.rumble(primaryController.getHID(), new RumbleRequest(RumbleType.kLeftRumble, 0.5, 0.25));
-                drivetrain.setDriveFlagValue(
-                    DriveFlag.DRIVE_ASSIST,
-                    !drivetrain.getDriveFlagValue(DriveFlag.DRIVE_ASSIST)
-                );
-            })
-        );
-        autoShootTrigger
+        operatorModality
+            .slowMode()
             .and(DriverStation::isTeleop)
-            .whileTrue(new AutoShoot(drivetrain, shooter, hopper, intake, leds, false, Optional.of(primaryController)));
-        hubShootTrigger.and(DriverStation::isTeleop).whileTrue(new HubShoot(shooter, intake, hopper));
-        towerShootTrigger.and(DriverStation::isTeleop).whileTrue(new TowerShoot(shooter, intake, hopper));
-        autoLobTrigger
+            .whileTrue(drivetrain.new DriveFlagToggler(DriveFlag.SLOW_MODE));
+        operatorModality
+            .driverAssist()
+            .and(DriverStation::isTeleop)
+            .onTrue(
+                Commands.runOnce(() -> {
+                    HIDRumble.rumble(operatorModality.getHID(), new RumbleRequest(RumbleType.kLeftRumble, 0.5, 0.25));
+                    drivetrain.setDriveFlagValue(
+                        DriveFlag.DRIVE_ASSIST,
+                        !drivetrain.getDriveFlagValue(DriveFlag.DRIVE_ASSIST)
+                    );
+                })
+            );
+        operatorModality
+            .autoShoot()
+            .and(DriverStation::isTeleop)
+            .whileTrue(
+                new AutoShoot(drivetrain, shooter, hopper, intake, leds, false, Optional.of(operatorModality.getHID()))
+            );
+        operatorModality
+            .hubShoot()
+            .and(DriverStation::isTeleop)
+            .whileTrue(new HubShoot(shooter, intake, hopper));
+        operatorModality
+            .towerShoot()
+            .and(DriverStation::isTeleop)
+            .whileTrue(new TowerShoot(shooter, intake, hopper));
+        operatorModality
+            .autoLob()
             .and(DriverStation::isTeleop)
             .whileTrue(new AutoLob(drivetrain, shooter, hopper, intake, leds, false));
 
-        intakeTrigger.whileTrue(
-            new ParallelCommandGroup(
-                intake.new ChangeStates(IntakeState.DOWN_ON),
-                hopper.new ChangeState(HopperState.FEED)
-            )
-        ); // .onFalse(intake.new
+        operatorModality
+            .intake()
+            .whileTrue(
+                new ParallelCommandGroup(
+                    intake.new ChangeStates(IntakeState.DOWN_ON),
+                    hopper.new ChangeState(HopperState.FEED)
+                )
+            ); // .onFalse(intake.new
         // ChangeStates(IntakeState.BOUNCE_UP));
-        outtakeTrigger.whileTrue(
-            new ParallelCommandGroup(
-                intake.new ChangeStates(IntakeState.DOWN_REV),
-                hopper.new ChangeState(HopperState.REVERSE),
-                shooter.new ChangeState(FeederState.UNJAM)
-            )
-        );
+        operatorModality
+            .outtake()
+            .whileTrue(
+                new ParallelCommandGroup(
+                    intake.new ChangeStates(IntakeState.DOWN_REV),
+                    hopper.new ChangeState(HopperState.REVERSE),
+                    shooter.new ChangeState(FeederState.UNJAM)
+                )
+            );
     }
 
     public Command getAutonomousCommand() {

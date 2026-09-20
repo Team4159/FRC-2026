@@ -17,13 +17,13 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.lib.AllianceUtil;
 import frc.lib.FuelSimulation;
 import frc.lib.HIDRumble;
@@ -105,7 +105,7 @@ public class AutoShoot extends Command {
     //     .getStructTopic("adjustedRobotPose", Pose2d.struct)
     //     .publish();
 
-    private Optional<CommandXboxController> feedbackController;
+    private Optional<GenericHID> feedbackHID;
 
     private AngularVelocity desiredShooterAngularVelocity = RPM.of(0);
     private double efficiency = 1;
@@ -129,14 +129,14 @@ public class AutoShoot extends Command {
         Intake intake,
         LEDs leds,
         boolean autonomousMode,
-        Optional<CommandXboxController> feedbackController
+        Optional<GenericHID> feedbackHID
     ) {
         this.drivetrain = drivetrain;
         this.shooter = shooter;
         this.hopper = hopper;
         this.intake = intake;
         this.leds = leds;
-        this.feedbackController = feedbackController;
+        this.feedbackHID = feedbackHID;
 
         autoShootStatus = AutoShootStatus.WAITING;
         ledStatusSupplier = () -> {
@@ -204,11 +204,8 @@ public class AutoShoot extends Command {
         // check if in range, return if out of range
         if (getDistanceFromHub() > JoeLookupTableConstants.MAX_DISTANCE.in(Meters)) {
             autoShootStatus = AutoShootStatus.OUTOFRANGE;
-            if (feedbackController.isPresent()) {
-                HIDRumble.rumble(
-                    feedbackController.get().getHID(),
-                    new RumbleRequest(RumbleType.kLeftRumble, 0.5, 0.25)
-                );
+            if (feedbackHID.isPresent()) {
+                HIDRumble.rumble(feedbackHID.get(), new RumbleRequest(RumbleType.kLeftRumble, 0.5, 0.25));
             }
             CommandScheduler.getInstance().cancel(this);
             return;
