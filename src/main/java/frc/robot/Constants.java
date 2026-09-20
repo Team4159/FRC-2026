@@ -211,6 +211,7 @@ public final class Constants {
         public static final double PRIMARY_ROTATION_EXPONENT = 2.0;
         public static final double PRIMARY_TRANSLATION_RADIUS = 0.99;
         public static final double PRIMARY_ROTATION_RADIUS = 0.99;
+        public static final double PRIMARY_TRIGGER_THRESHOLD = 0.1;
 
         public static enum DriveMode {
             TELEOP,

@@ -39,7 +39,8 @@ public class RobotContainer {
     private final Telemetry telemetry = new Telemetry();
 
     private final SingleXboxOperatorModality operatorModality = new SingleXboxOperatorModality(
-        OperatorConstants.PRIMARY_CONTROLLER_PORT
+        OperatorConstants.PRIMARY_CONTROLLER_PORT,
+        OperatorConstants.PRIMARY_TRIGGER_THRESHOLD
     );
 
     // Subsystems

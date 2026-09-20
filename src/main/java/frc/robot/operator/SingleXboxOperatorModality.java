@@ -7,14 +7,16 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 public class SingleXboxOperatorModality implements OperatorModality {
 
     private final CommandXboxController xbox;
+    private final double triggerThreshold;
 
     private final Trigger autoShootBase, autoShoot;
     private final Trigger hubShootBase, hubShoot;
     private final Trigger towerShoot;
 
-    public SingleXboxOperatorModality(int port) {
-        xbox = new CommandXboxController(port);
-        autoShootBase = xbox.rightTrigger(0.1);
+    public SingleXboxOperatorModality(int port, double triggerThreshold) {
+        this.xbox = new CommandXboxController(port);
+        this.triggerThreshold = triggerThreshold;
+        autoShootBase = xbox.rightTrigger(triggerThreshold);
         hubShootBase = xbox.rightBumper();
         towerShoot = autoShootBase.and(hubShootBase);
         autoShoot = autoShootBase.and(towerShoot.negate());
@@ -53,7 +55,7 @@ public class SingleXboxOperatorModality implements OperatorModality {
 
     @Override
     public Trigger intake() {
-        return xbox.leftTrigger(0.1);
+        return xbox.leftTrigger(triggerThreshold);
     }
 
     @Override
