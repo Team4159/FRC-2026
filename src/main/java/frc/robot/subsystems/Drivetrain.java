@@ -25,6 +25,7 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -140,10 +141,10 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         Translation2d displacement = currentPose.getTranslation().minus(lastPose.getTranslation());
         lastPose = currentPose;
         estimatedRealChassisSpeeds.vxMetersPerSecond = estimatedRealChassisSpeedXFilter.calculate(
-            displacement.getX() / 0.02
+            displacement.getX() / TimedRobot.kDefaultPeriod
         );
         estimatedRealChassisSpeeds.vyMetersPerSecond = estimatedRealChassisSpeedYFilter.calculate(
-            displacement.getY() / 0.02
+            displacement.getY() / TimedRobot.kDefaultPeriod
         );
         estimatedRealChassisSpeeds.omegaRadiansPerSecond = getPigeon2().getAngularVelocityYWorld().getValueAsDouble();
         isSlipping();
