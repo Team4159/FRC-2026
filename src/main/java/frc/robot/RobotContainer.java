@@ -123,6 +123,7 @@ public class RobotContainer {
 
         operatorModality
             .intake()
+            .and(DriverStation::isTeleop)
             .whileTrue(
                 new ParallelCommandGroup(
                     intake.new ChangeStates(IntakeState.DOWN_ON),
@@ -132,6 +133,7 @@ public class RobotContainer {
         // ChangeStates(IntakeState.BOUNCE_UP));
         operatorModality
             .outtake()
+            .and(DriverStation::isTeleop)
             .whileTrue(
                 new ParallelCommandGroup(
                     intake.new ChangeStates(IntakeState.DOWN_REV),
