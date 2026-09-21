@@ -16,8 +16,8 @@ public class SingleXboxOperatorModality implements OperatorModality {
     public SingleXboxOperatorModality(int port, double triggerThreshold) {
         this.xbox = new CommandXboxController(port);
         this.triggerThreshold = triggerThreshold;
-        autoShootBase = xbox.rightTrigger(triggerThreshold);
-        hubShootBase = xbox.rightBumper();
+        autoShootBase = xbox.rightBumper();
+        hubShootBase = xbox.rightTrigger(triggerThreshold);
         towerShoot = autoShootBase.and(hubShootBase);
         autoShoot = autoShootBase.and(towerShoot.negate());
         hubShoot = hubShootBase.and(towerShoot.negate());
