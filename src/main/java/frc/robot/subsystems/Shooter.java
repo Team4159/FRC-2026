@@ -291,12 +291,12 @@ public class Shooter extends SubsystemBase {
     /** ChangeState just changes the feeder state (only feeder uses enum states because the rest of the shooter has to dynamically change with auto aim rather than have discrete setpoints)
      * the name is still misleading and should be changed to ChangeFeederState to be more clear
      */
-    public class ChangeState extends Command {
+    public class ChangeFeederState extends Command {
 
         private FeederState feederState;
 
         /** @param feederState the desired feeder state */
-        public ChangeState(FeederState feederState) {
+        public ChangeFeederState(FeederState feederState) {
             this.feederState = feederState;
         }
 

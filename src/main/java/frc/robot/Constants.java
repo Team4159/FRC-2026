@@ -184,10 +184,9 @@ public final class Constants {
         public static enum IntakeState {
             DOWN_ON(Degrees.of(-9), 1),
             DOWN_OFF(Degrees.of(-9), 0),
-            DOWN_REV(Degrees.of(-9), -1),
+            DOWN_REVERSE(Degrees.of(-9), -1),
             UP_OFF(Degrees.of(120), 0),
-            BOUNCE_UP(Degrees.of(60), 0),
-            STOP(Degrees.of(120), 0);
+            BOUNCE_UP(Degrees.of(60), 0);
 
             public final Angle angleLocation;
             public final double spinDutyCycle;

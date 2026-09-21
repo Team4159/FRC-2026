@@ -45,22 +45,27 @@ public class SingleXboxOperatorModality implements OperatorModality {
 
     @Override
     public Trigger slowMode() {
-        return xbox.leftBumper();
+        return xbox.leftTrigger(triggerThreshold);
     }
 
     @Override
     public Trigger driverAssist() {
-        return xbox.y();
+        return xbox.a();
     }
 
     @Override
     public Trigger intake() {
-        return xbox.leftTrigger(triggerThreshold);
+        return xbox.leftBumper();
     }
 
     @Override
     public Trigger outtake() {
         return xbox.x();
+    }
+
+    @Override
+    public Trigger retractIntake() {
+        return xbox.b();
     }
 
     @Override
@@ -80,7 +85,7 @@ public class SingleXboxOperatorModality implements OperatorModality {
 
     @Override
     public Trigger autoLob() {
-        return xbox.a();
+        return autoShoot;
     }
 
     public XboxController getHID() {

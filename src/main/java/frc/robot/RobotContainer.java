@@ -12,8 +12,10 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
+import frc.lib.AllianceUtil;
 import frc.lib.HIDRumble;
 import frc.lib.HIDRumble.RumbleRequest;
+import frc.lib.PoseUtil;
 import frc.lib.Telemetry;
 import frc.robot.Constants.FeederConstants.FeederState;
 import frc.robot.Constants.HopperConstants.HopperState;
@@ -105,6 +107,7 @@ public class RobotContainer {
         operatorModality
             .autoShoot()
             .and(DriverStation::isTeleop)
+            .and(() -> PoseUtil.isPoseInAllianceZone(AllianceUtil.getAlliance(), drivetrain.getState().Pose))
             .whileTrue(
                 new AutoShoot(drivetrain, shooter, hopper, intake, leds, false, Optional.of(operatorModality.getHID()))
             );
@@ -119,10 +122,12 @@ public class RobotContainer {
         operatorModality
             .autoLob()
             .and(DriverStation::isTeleop)
+            .and(() -> !PoseUtil.isPoseInAllianceZone(AllianceUtil.getAlliance(), drivetrain.getState().Pose))
             .whileTrue(new AutoLob(drivetrain, shooter, hopper, intake, leds, false));
 
         operatorModality
             .intake()
+            .and(DriverStation::isTeleop)
             .whileTrue(
                 new ParallelCommandGroup(
                     intake.new ChangeStates(IntakeState.DOWN_ON),
@@ -132,11 +137,21 @@ public class RobotContainer {
         // ChangeStates(IntakeState.BOUNCE_UP));
         operatorModality
             .outtake()
+            .and(DriverStation::isTeleop)
             .whileTrue(
                 new ParallelCommandGroup(
-                    intake.new ChangeStates(IntakeState.DOWN_REV),
+                    intake.new ChangeStates(IntakeState.DOWN_REVERSE),
                     hopper.new ChangeState(HopperState.REVERSE),
-                    shooter.new ChangeState(FeederState.UNJAM)
+                    shooter.new ChangeFeederState(FeederState.UNJAM)
+                )
+            );
+        operatorModality
+            .retractIntake()
+            .onTrue(
+                new ParallelCommandGroup(
+                    intake.new ChangeStates(IntakeState.UP_OFF),
+                    hopper.new ChangeState(HopperState.STOP),
+                    shooter.new ChangeFeederState(FeederState.STOP)
                 )
             );
     }

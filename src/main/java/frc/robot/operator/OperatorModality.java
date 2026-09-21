@@ -19,6 +19,8 @@ public interface OperatorModality {
 
     Trigger outtake();
 
+    Trigger retractIntake();
+
     Trigger autoShoot();
 
     Trigger hubShoot();

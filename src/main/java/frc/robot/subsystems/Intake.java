@@ -96,7 +96,7 @@ public class Intake extends SubsystemBase {
 
         @Override
         public void end(boolean interrupt) {
-            Intake.this.setSpinDutyCycle(IntakeState.STOP.spinDutyCycle);
+            Intake.this.setSpinDutyCycle(IntakeState.UP_OFF.spinDutyCycle);
             rollerDutyCycle = 0;
         }
     }
