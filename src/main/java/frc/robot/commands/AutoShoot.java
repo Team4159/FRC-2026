@@ -306,8 +306,8 @@ public class AutoShoot extends Command {
         if (!aimFinished) {
             // PID controller to calculate omega
             // set ChassisSpeeds
-            System.out.println("drivetrain getInputX: " + drivetrain.getInputX(true));
-            System.out.println("drivetrain getInputY: " + drivetrain.getInputY(true));
+            // System.out.println("drivetrain getInputX: " + drivetrain.getInputX(true));
+            // System.out.println("drivetrain getInputY: " + drivetrain.getInputY(true));
             ChassisSpeeds chassisSpeeds = new ChassisSpeeds(
                 drivetrain.getInputX(true) * DrivetrainConstants.AUTO_SHOOT_INPUT_MULTIPLIER,
                 drivetrain.getInputY(true) * DrivetrainConstants.AUTO_SHOOT_INPUT_MULTIPLIER,

@@ -609,7 +609,8 @@ public final class Constants {
     public static class AutoConstants {
 
         /** units: seconds */
-        public static final double SHOOT_TIME = 4;
+        public static final double SHOOT_TIME = 4.0;
+        public static final double END_TOLERANCE = 0.05;
 
         public static final APConstraints AUTOPILOT_CONSTRAINTS = new APConstraints()
             .withAcceleration(7.0)

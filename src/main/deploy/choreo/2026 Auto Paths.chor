@@ -14,22 +14,22 @@
    "maxAccel":{
     "dimension":"LinAcc",
     "var":{
-     "exp":"5 m / s ^ 2",
-     "val":5.0
+     "exp":"7 m / s ^ 2",
+     "val":7.0
     }
    },
    "maxIntakeVelocity":{
     "dimension":"LinVel",
     "var":{
-     "exp":"1.5 m / s",
-     "val":1.5
+     "exp":"2 m / s",
+     "val":2.0
     }
    },
-   "maxVelo":{
+   "maxVelocity":{
     "dimension":"LinVel",
     "var":{
-     "exp":"4 m / s",
-     "val":4.0
+     "exp":"5 m / s",
+     "val":5.0
     }
    }
   },
@@ -116,6 +116,20 @@
     "heading":{
      "exp":"0 deg",
      "val":0.0
+    }
+   },
+   "innerIntakeEnd":{
+    "x":{
+     "exp":"8.05668258667 m",
+     "val":8.05668258667
+    },
+    "y":{
+     "exp":"2.220947027206421 m",
+     "val":2.220947027206421
+    },
+    "heading":{
+     "exp":"-1.5707963267948966 rad",
+     "val":-1.5707963267948966
     }
    },
    "lClimb":{
@@ -228,6 +242,20 @@
     "heading":{
      "exp":"360 deg - rmIntakeEnd.heading",
      "val":4.483185307179586
+    }
+   },
+   "outerIntakeEnd":{
+    "x":{
+     "exp":"8.27 m",
+     "val":8.27
+    },
+    "y":{
+     "exp":"2.73 m",
+     "val":2.73
+    },
+    "heading":{
+     "exp":"1.5707963268 rad",
+     "val":1.5707963268
     }
    },
    "outpost":{

@@ -6,14 +6,17 @@ import choreo.auto.AutoTrajectory;
 import choreo.trajectory.SwerveSample;
 import choreo.trajectory.Trajectory;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
+import frc.lib.AllianceUtil;
 import frc.lib.Elastic;
 import frc.lib.PoseTrajectory;
+import frc.lib.PoseUtil;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.IntakeConstants.IntakeState;
 import frc.robot.commands.AutoShoot;
@@ -25,6 +28,7 @@ import frc.robot.subsystems.Shooter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Optional;
+import java.util.function.BooleanSupplier;
 
 public class ConfigurableAuto {
 
@@ -101,8 +105,8 @@ public class ConfigurableAuto {
         sideChooser.addOption("Left", "L");
         sideChooser.addOption("Right", "R");
         sideChooser.addOption("Mid", "M");
-        sideChooser.addOption("Mid Left", "ML");
-        sideChooser.addOption("Mid Right", "MR");
+        // sideChooser.addOption("Mid Left", "ML");
+        // sideChooser.addOption("Mid Right", "MR");
         sideChooser.setDefaultOption("None", "None");
 
         // intake chooser 1
@@ -110,8 +114,10 @@ public class ConfigurableAuto {
         intakeChooser1.addOption("Far", "FarIntake");
         intakeChooser1.addOption("Mid", "MidIntake");
         intakeChooser1.addOption("Close", "CloseIntake");
+        intakeChooser1.addOption("Outer Sweep", "OuterIntake");
+        intakeChooser1.addOption("Inner Sweep", "InnerIntake");
         //this option is only for middle and middle right autos
-        intakeChooser1.addOption("Outpost (for middle auto)", "OutpostIntake");
+        // intakeChooser1.addOption("Outpost (for middle auto)", "OutpostIntake");
         intakeChooser1.setDefaultOption("None", "None");
 
         // shoot chooser 1
@@ -125,6 +131,8 @@ public class ConfigurableAuto {
         intakeChooser2.addOption("Far", "FarIntake");
         intakeChooser2.addOption("Mid", "MidIntake");
         intakeChooser2.addOption("Close", "CloseIntake");
+        intakeChooser2.addOption("Outer Sweep", "OuterIntake");
+        intakeChooser2.addOption("Inner Sweep", "InnerIntake");
         intakeChooser2.setDefaultOption("None", "None");
 
         // shoot chooser 2
@@ -177,17 +185,6 @@ public class ConfigurableAuto {
         final String shoot1 = shootChooser1.getSelected();
         final String intake2 = intakeChooser2.getSelected();
         final String shoot2 = shootChooser2.getSelected();
-        //final String climbSide = climbSideChooser.getSelected();
-
-        //for auto beach recovery (unused, not enough testing time)
-        // final AutoRecoverySide autoRecoverySide;
-        // if (direction.equals("L")) {
-        //     autoRecoverySide = AutoRecoverySide.LEFT;
-        // } else if (direction.equals("R")) {
-        //     autoRecoverySide = AutoRecoverySide.RIGHT;
-        // } else {
-        //     autoRecoverySide = AutoRecoverySide.MIDDLE;
-        // }
 
         //if the direction has a capital "M" then it is a mid auto (ML, M, or MR)
         if (direction.contains("M")) {
@@ -226,20 +223,15 @@ public class ConfigurableAuto {
                 if (display) {
                     updateField(startToIntakeTraj, intakeToShootTraj);
                 }
-
-                //save the routine in the generatedRoutine member
                 generatedRoutine = routine;
-
                 displayGenerationStatus(startToIntakeTraj, intakeToShootTraj);
 
                 return routine;
             }
 
             final String startToShootName = direction + "StartToShoot";
-            //final String shootToClimbName = direction + "ShootTo" + climbSide + "Climb";
 
             final AutoTrajectory startToShootTraj = routine.trajectory(startToShootName);
-            //final AutoTrajectory shootToClimbTraj = routine.trajectory(shootToClimbName);
 
             routine.active().onTrue(
                 //resetOdometry() at the start sets the robot inital position to the start point of the 1st trajectory
@@ -250,119 +242,66 @@ public class ConfigurableAuto {
                     .andThen(startToShootTraj.cmd())
                     //auto aim(autonomous mode is false because the point of autonomous mode is for SOTM it will use choreo for translation of the swerve and the auto aim for rotation but this is stationary)
                     .andThen(new AutoShoot(drivetrain, shooter, hopper, intake, leds, false, Optional.empty()))
-                    // .andThen(shootToClimbTraj.cmd())
-                    // .andThen(new AutoAlign(drivetrain, towerAlignGoal,
-                    // primaryRobotRelativeTrigger))
             );
 
             if (display) {
                 updateField(startToShootTraj);
             }
-
             generatedRoutine = routine;
-
             displayGenerationStatus(startToShootTraj);
 
             return routine;
         }
 
         //create the names of the trajectories from the sendable chooser data concatenated together along with other words like "To" so it matches the names of the choreo trajectories
-        final String startToIntake1Name = direction + "StartTo" + direction + intake1;
-        final String intake1ToShoot1Name = direction + intake1 + "To" + direction + shoot1;
-        final String shoot1ToIntake2Name = direction + shoot1 + "To" + direction + intake2;
-        final String intake2ToShoot2Name = direction + intake2 + "To" + direction + shoot2;
+        final String startToIntake1Name = "StartTo" + intake1;
+        final String intake1ToShoot1Name = intake1 + "To" + shoot1;
+        final String shoot1ToIntake2Name = shoot1 + "To" + intake2;
+        final String intake2ToShoot2Name = intake2 + "To" + shoot2;
 
         //load the AutoTrajectories using the names
-        final AutoTrajectory startToIntake1Traj = routine.trajectory(startToIntake1Name);
-        final AutoTrajectory intake1ToShoot1Traj = routine.trajectory(intake1ToShoot1Name);
-        final AutoTrajectory shoot1ToIntake2Traj = routine.trajectory(shoot1ToIntake2Name);
-        final AutoTrajectory intake2ToShoot2Traj = routine.trajectory(intake2ToShoot2Name);
+        AutoTrajectory startToIntake1Traj = routine.trajectory(startToIntake1Name);
+        AutoTrajectory intake1ToShoot1Traj = routine.trajectory(intake1ToShoot1Name);
+        AutoTrajectory shoot1ToIntake2Traj = routine.trajectory(shoot1ToIntake2Name);
+        AutoTrajectory intake2ToShoot2Traj = routine.trajectory(intake2ToShoot2Name);
+        if (direction.contains("L")) {
+            startToIntake1Traj = startToIntake1Traj.mirrorY();
+            intake1ToShoot1Traj = intake1ToShoot1Traj.mirrorY();
+            shoot1ToIntake2Traj = shoot1ToIntake2Traj.mirrorY();
+            intake2ToShoot2Traj = intake2ToShoot2Traj.mirrorY();
+        }
 
-        //commented climb logic
-        // if shoot1 is climb, disregard shoot1tointake2 and intake2toshoot2
-        // if (shoot1.contains("Climb")) {
-        //     final AutoTrajectory shoot1ToClimbTraj = routine.trajectory(direction + "ShootTo" + climbSide + "Climb");
-        //     routine.active().onTrue(
-        //             startToIntake1Traj.resetOdometry()
-        //                     .andThen(startToIntake1Traj.cmd())
-        //                     .andThen(intake1ToShoot1Traj.cmd())
-        //                     .andThen(new ParallelDeadlineGroup(
-        //                             new WaitCommand(AutoConstants.ShootTime),
-        //                             new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())))
-        //                     .andThen(shoot1ToClimbTraj.cmd()));
-
-        //     displayGenerationStatus(startToIntake1Traj, intake1ToShoot1Traj, shoot1ToClimbTraj);
-
-        //     if (display) {
-        //         updateField(startToIntake1Traj, intake1ToShoot1Traj, shoot1ToClimbTraj);
-        //     }
-        // }
-
-        // else if (shoot2.contains("Climb")) {
-        //     final AutoTrajectory shoot2ToClimbTraj = routine.trajectory(direction + "ShootTo" + climbSide + "Climb");
-        //     routine.active().onTrue(
-        //             startToIntake1Traj.resetOdometry()
-        //                     .andThen(startToIntake1Traj.cmd())
-        //                     .andThen(intake1ToShoot1Traj.cmd())
-        //                     //.andThen(new AutoRecovery(drivetrain, shooter, intake, AutoRecoveryMode.SWEEP, autoRecoverySide,
-        //                             //intake1ToShoot1Traj.getFinalPose().get().getTranslation()))
-        //                     .andThen(new ParallelDeadlineGroup(
-        //                             new WaitCommand(AutoConstants.ShootTime),
-        //                             new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())))
-        //                     .andThen(shoot1ToIntake2Traj.cmd())
-        //                     .andThen(intake2ToShoot2Traj.cmd())
-        //                     // .andThen(new AutoRecovery(drivetrain, shooter, intake, AutoRecoveryMode.SWEEP, autoRecoverySide,
-        //                     //         intake2ToShoot2Traj.getFinalPose().get().getTranslation()))
-        //                     .andThen(new ParallelDeadlineGroup(
-        //                             new WaitCommand(AutoConstants.ShootTime),
-        //                             new AutoAim(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())))
-        //                     .andThen(shoot2ToClimbTraj.cmd()));
-
-        //     displayGenerationStatus(startToIntake1Traj, intake1ToShoot1Traj, shoot1ToIntake2Traj, intake2ToShoot2Traj,
-        //             shoot2ToClimbTraj);
-
-        //     if (display) {
-        //         updateField(startToIntake1Traj, intake1ToShoot1Traj, shoot1ToIntake2Traj, intake2ToShoot2Traj,
-        //                 shoot2ToClimbTraj);
-        //     }
-        // } else {
         routine.active().onTrue(
             //resetOdometry() at the start sets the robot inital position to the start point of the 1st trajectory
             startToIntake1Traj
                 .resetOdometry()
                 //start -> intake 1
-                .andThen(startToIntake1Traj.cmd())
+                .andThen(startToIntake1Traj.cmd().until(atTrajectoryEnd(startToIntake1Traj.getFinalPose().get())))
                 //intake 1 -> shoot 1
-                .andThen(intake1ToShoot1Traj.cmd())
-                // .andThen(new AutoRecovery(drivetrain, shooter, intake, AutoRecoveryMode.SWEEP, autoRecoverySide,
-                //         intake1ToShoot1Traj.getFinalPose().get().getTranslation()))
-                //timeout on the first auto aim otherwise it will never end (auto aim never finishes) and this needs to finish in order to move on to the next cycle
-                //deadline group terminates auto aim when the time runs out
                 .andThen(
-                    new ParallelDeadlineGroup(
-                        new WaitCommand(AutoConstants.SHOOT_TIME),
+                    intake1ToShoot1Traj
+                        .cmd()
+                        // .andThen(new AutoRecovery(drivetrain, shooter, intake, AutoRecoveryMode.SWEEP, autoRecoverySide,
+                        //         intake1ToShoot1Traj.getFinalPose().get().getTranslation()))
+                        //timeout on the first auto aim otherwise it will never end (auto aim never finishes) and this needs to finish in order to move on to the next cycle
+                        //deadline group terminates auto aim when the time runs out
+                        .andThen(
+                            new ParallelDeadlineGroup(
+                                new WaitCommand(AutoConstants.SHOOT_TIME),
+                                //auto aim(autonomous mode is false because the point of autonomous mode is for SOTM it will use choreo for translation of the swerve and the auto aim for rotation but this is stationary)
+                                new AutoShoot(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())
+                            )
+                        )
+                        //shoot 1 -> intake 2
+                        .andThen(
+                            shoot1ToIntake2Traj.cmd().until(atTrajectoryEnd(startToIntake1Traj.getFinalPose().get()))
+                        )
+                        //intake 2 -> shoot 2
+                        .andThen(intake2ToShoot2Traj.cmd())
                         //auto aim(autonomous mode is false because the point of autonomous mode is for SOTM it will use choreo for translation of the swerve and the auto aim for rotation but this is stationary)
-                        new AutoShoot(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())
-                    )
+                        .andThen(new AutoShoot(drivetrain, shooter, hopper, intake, leds, false, Optional.empty()))
                 )
-                //shoot 1 -> intake 2
-                .andThen(shoot1ToIntake2Traj.cmd())
-                //intake 2 -> shoot 2
-                .andThen(intake2ToShoot2Traj.cmd())
-                // .andThen(new AutoRecovery(drivetrain, shooter, intake, AutoRecoveryMode.SWEEP, autoRecoverySide,
-                //         intake2ToShoot2Traj.getFinalPose().get().getTranslation()))
-                //auto aim(autonomous mode is false because the point of autonomous mode is for SOTM it will use choreo for translation of the swerve and the auto aim for rotation but this is stationary)
-                .andThen(new AutoShoot(drivetrain, shooter, hopper, intake, leds, false, Optional.empty()))
         );
-
-        //elastic notifications
-        displayGenerationStatus(startToIntake1Traj, intake1ToShoot1Traj, shoot1ToIntake2Traj, intake2ToShoot2Traj);
-
-        //if the display boolean is true display the trajectories
-        if (display) {
-            updateField(startToIntake1Traj, intake1ToShoot1Traj, shoot1ToIntake2Traj, intake2ToShoot2Traj);
-        }
-        //}
 
         //choreo marker behavior
         //used to tell robot when to intake and stop intaking based on markers in the intake trajectories
@@ -372,8 +311,11 @@ public class ConfigurableAuto {
         shoot1ToIntake2Traj.atTime("intake").onTrue(intake.new ChangeStates(IntakeState.DOWN_ON));
         shoot1ToIntake2Traj.atTime("stopIntake").onTrue(intake.new ChangeStates(IntakeState.DOWN_OFF));
 
-        // store the routine so don't need to generate at the start of auto
+        if (display) {
+            updateField(startToIntake1Traj, intake1ToShoot1Traj, shoot1ToIntake2Traj, intake2ToShoot2Traj);
+        }
         generatedRoutine = routine;
+        displayGenerationStatus(startToIntake1Traj, intake1ToShoot1Traj, shoot1ToIntake2Traj, intake2ToShoot2Traj);
 
         return routine;
     }
@@ -398,6 +340,7 @@ public class ConfigurableAuto {
         for (AutoTrajectory trajectory : trajectories) {
             //if a trajectory is empty (it could not be loaded from choreo because it doesnt exist)
             if (trajectory.getRawTrajectory().getPoses().length == 0) {
+                errors = true;
                 //get the name of the invalid trajectory
                 String invalidTrajectoryName = trajectory.getRawTrajectory().name();
                 //send an error message that says the name of the trajectory, this error is likely caused by an invalid combination of trajectories inputted into the sendable choosers
@@ -449,8 +392,13 @@ public class ConfigurableAuto {
             Trajectory<SwerveSample> choreoTrajectory = autoTrajectory.getRawTrajectory();
 
             //loop through the choreo trajectory to get an ArrayList of Pose2ds
-            ArrayList<Pose2d> poses = new ArrayList<Pose2d>();
+            ArrayList<Pose2d> poses = new ArrayList<>();
             Collections.addAll(poses, choreoTrajectory.getPoses());
+            if (AllianceUtil.getAlliance().equals(Alliance.Red)) {
+                for (int i = 0; i < poses.size(); i++) {
+                    poses.set(i, PoseUtil.flipPoseAlongMiddleXY(poses.get(i)));
+                }
+            }
 
             //make a new PoseTrajectory object with the array of Pose2ds
             //a PoseTrajectory is a WPILIB Trajectory with a custom constructor that allows it to be created off of an array of Pose2ds, yeah its janky but it works for the sole purpose of displaying trajectories on the Field2d
@@ -460,5 +408,11 @@ public class ConfigurableAuto {
         }
         //display the trajectory on the Field2d (generatedRoutineDisplay)
         generatedRoutineDisplay.getObject("traj").setTrajectory(trajectory);
+    }
+
+    public BooleanSupplier atTrajectoryEnd(Pose2d end) {
+        return () ->
+            drivetrain.getState().Pose.getTranslation().getDistance(end.getTranslation()) <=
+            AutoConstants.END_TOLERANCE;
     }
 }

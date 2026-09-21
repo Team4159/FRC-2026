@@ -140,8 +140,8 @@ public class Intake extends SubsystemBase {
         @Override
         public void execute() {
             boolean alternate = isNear(state) || timer.get() > 1;
-            System.out.println(alternate);
-            System.out.println(timer.get());
+            // System.out.println(alternate);
+            // System.out.println(timer.get());
             if (state == IntakeState.DOWN_OFF && alternate) {
                 setLocation(IntakeState.BOUNCE_UP.angleLocation);
                 state = IntakeState.BOUNCE_UP;
