@@ -147,6 +147,7 @@ public class RobotContainer {
             );
         operatorModality
             .retractIntake()
+            .and(DriverStation::isTeleop)
             .onTrue(
                 new ParallelCommandGroup(
                     intake.new ChangeStates(IntakeState.UP_OFF),
