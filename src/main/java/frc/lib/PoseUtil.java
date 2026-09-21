@@ -36,6 +36,13 @@ public final class PoseUtil {
         return pose.getX() <= FieldConstants.ALLIANCE_WIDTH.baseUnitMagnitude();
     }
 
+    public static final boolean isPoseBehindAllianceTrenches(Alliance alliance, Pose2d pose) {
+        if (alliance == Alliance.Red) {
+            pose = flipPoseAlongMiddleXY(pose);
+        }
+        return pose.getX() <= FieldConstants.TRENCH_X.baseUnitMagnitude();
+    }
+
     public static final boolean isPoseOnLeft(Pose2d pose) {
         return pose.getY() >= FieldConstants.ALLIANCE_HEIGHT.baseUnitMagnitude() / 2;
     }

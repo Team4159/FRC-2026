@@ -107,7 +107,7 @@ public class RobotContainer {
         operatorModality
             .autoShoot()
             .and(DriverStation::isTeleop)
-            .and(() -> PoseUtil.isPoseInAllianceZone(AllianceUtil.getAlliance(), drivetrain.getState().Pose))
+            .and(() -> PoseUtil.isPoseBehindAllianceTrenches(AllianceUtil.getAlliance(), drivetrain.getState().Pose))
             .whileTrue(
                 new AutoShoot(drivetrain, shooter, hopper, intake, leds, false, Optional.of(operatorModality.getHID()))
             );
@@ -122,7 +122,7 @@ public class RobotContainer {
         operatorModality
             .autoLob()
             .and(DriverStation::isTeleop)
-            .and(() -> !PoseUtil.isPoseInAllianceZone(AllianceUtil.getAlliance(), drivetrain.getState().Pose))
+            .and(() -> !PoseUtil.isPoseBehindAllianceTrenches(AllianceUtil.getAlliance(), drivetrain.getState().Pose))
             .whileTrue(new AutoLob(drivetrain, shooter, hopper, intake, leds, false));
 
         operatorModality
