@@ -59,8 +59,6 @@ public class Shooter extends SubsystemBase {
         rightTopShooterMotor = new TalonFX(ShooterConstants.SHOOTER_RIGHT_TOP_MOTOR_ID);
         rightBottomShooterMotor = new TalonFX(ShooterConstants.SHOOTER_RIGHT_BOTTOM_MOTOR_ID);
 
-        //leaderShooterMotor = leftBottomShooterMotor;
-
         //these should no longer be necessary with the other configs applied after this but i (Trevor Choy) left it in because i was worried about breaking something at comp lol
         leftBottomShooterMotor
             .getConfigurator()
@@ -182,7 +180,8 @@ public class Shooter extends SubsystemBase {
         SmartDashboard.putNumber("hood position", Units.rotationsToDegrees(hoodMotor.getPosition().getValueAsDouble()));
         SmartDashboard.putNumber("hood target position", hoodMotionMagic.Position);
         SmartDashboard.putNumber("manual hood target", manualAngle);
-        SmartDashboard.putNumber("shooter velocity", leftBottomShooterMotor.getVelocity().getValue().in(RPM));
+        SmartDashboard.putNumber("shooter velocity", getShooterMotorVelocity().in(RPM));
+        SmartDashboard.putNumber("shooter velocity target", shooterVelocityVoltage.getVelocityMeasure().in(RPM));
 
         SmartDashboard.putNumber(
             "bottom left shooter motor current",
