@@ -21,7 +21,6 @@ import com.therekrab.autopilot.APTarget;
 import com.therekrab.autopilot.Autopilot;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
-import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -30,7 +29,6 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -168,18 +166,6 @@ public final class Constants {
 
         // public static final double kLocationGearRatio = 1.0 / 2.0;
         public static final double SPIN_GEAR_RATIO = 1.0 / 5.0;
-
-        /** Units: rad/s */
-        public static final double COMPRESS_RATE = 1;
-        public static final double COMPRESS_kP = 1;
-        public static final double COMPRESS_kI = 0;
-        public static final double COMPRESS_kD = 0;
-        public static final ProfiledPIDController COMPRESS_PID = new ProfiledPIDController(
-            COMPRESS_kP,
-            COMPRESS_kI,
-            COMPRESS_kD,
-            new TrapezoidProfile.Constraints(COMPRESS_RATE, 1)
-        );
 
         public static enum IntakeState {
             DOWN_ON(Degrees.of(-9), 1),
