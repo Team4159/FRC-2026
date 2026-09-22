@@ -28,7 +28,6 @@ import frc.robot.subsystems.Shooter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Optional;
-import java.util.function.BooleanSupplier;
 
 public class ConfigurableAuto {
 
@@ -38,13 +37,13 @@ public class ConfigurableAuto {
     shoot choosers were originally relevant for if the robot should climb after shooting, this is no longer the case. now it can be used to select the bump auto mode (which is closer for more accurate shooting) but it was unreliable (not enough testing) and currently only exists for left side far and close intaking
 
     these choosers are just of type String and they will correspond to the trajectory names for the configurable system to work properly*/
-    private SendableChooser<String> sideChooser, intakeChooser1, shootChooser1, intakeChooser2, shootChooser2;
+    private final SendableChooser<String> sideChooser, intakeChooser1, shootChooser1, intakeChooser2, shootChooser2;
     //climb chooser and everything related to climb has been commented but it was originally used to select which side to climb on
     //climbSideChooser;
 
     /** this field is on the auto tab of elastic to display the auto path once it is generated
     the term "generated" here is not actually generating the choreo paths themselves, but it does take awhile to load each individual path on roborio which is why it needs to be "generated" before the match starts*/
-    private Field2d generatedRoutineDisplay = new Field2d();
+    private final Field2d generatedRoutineDisplay = new Field2d();
 
     /** AutoFactory used by choreo to make AutoRoutine objects that uses the swerve functions specified
     basically it is how swerve path following functions are implemented
@@ -88,10 +87,102 @@ public class ConfigurableAuto {
         shootChooser1 = new SendableChooser<>();
         intakeChooser2 = new SendableChooser<>();
         shootChooser2 = new SendableChooser<>();
-        //climbSideChooser = new SendableChooser<>();
 
         addChooserOptions();
         displayWidgets();
+    }
+
+    /**
+     * returns the generated routine if it exists otherwise it generates the routine
+     * and returns it
+     */
+    public AutoRoutine getRoutine() {
+        if (generatedRoutine == null) {
+            generatedRoutine = generateRoutine(true);
+        }
+        return generatedRoutine;
+    }
+
+    /**
+     * throws an elastic error message if 1 or more of the paths dont exist
+     *
+     * @return true if there is at least 1 missing path, false if all paths exist
+     */
+    private boolean checkForErrors(AutoTrajectory... trajectories) {
+        boolean errors = false;
+        //loop through all trajectories
+        for (AutoTrajectory trajectory : trajectories) {
+            //if a trajectory is empty (it could not be loaded from choreo because it doesnt exist)
+            if (trajectory.getRawTrajectory().getPoses().length != 0) {
+                continue;
+            }
+            errors = true;
+            //get the name of the invalid trajectory
+            String invalidTrajectoryName = trajectory.getRawTrajectory().name();
+            //send an error message that says the name of the trajectory, this error is likely caused by an invalid combination of trajectories inputted into the sendable choosers
+            Elastic.Notification notification = new Elastic.Notification(
+                Elastic.NotificationLevel.ERROR,
+                "Auto Path Generation Failed",
+                invalidTrajectoryName + " is invalid with current settings"
+            );
+            Elastic.sendNotification(notification);
+        }
+        return errors;
+    }
+
+    /** displays the generation status elastic notification of the given trajectories */
+    private void displayGenerationStatus(AutoTrajectory... trajectories) {
+        //check all trajectories for errors
+        if (checkForErrors(trajectories)) {
+            //send an info notification saying the trajectory was generated with errors (checkForErrors() already sends actual error type messages)
+            Elastic.Notification notification = new Elastic.Notification(
+                Elastic.NotificationLevel.INFO,
+                "Auto Path Generated With Errors",
+                "this just means some paths are missing/invalid"
+            );
+            Elastic.sendNotification(notification);
+        } else {
+            //if all the trajectories are good just say auto path generated
+            Elastic.Notification notification = new Elastic.Notification(
+                Elastic.NotificationLevel.INFO,
+                "Auto Path Generated",
+                ""
+            );
+            Elastic.sendNotification(notification);
+        }
+    }
+
+    /**
+     * displays an autoroutine on smartdashboard
+     *
+     * @param trajectories the Choreo AutoTrajectories that make up the routine
+     *                     desired to be displayed
+     */
+    private void updateField(AutoTrajectory... autoTrajectories) {
+        //make a WPILIB trajectory object (so it can be displayed on a field2d)
+        edu.wpi.first.math.trajectory.Trajectory trajectory = new edu.wpi.first.math.trajectory.Trajectory();
+        //loop though all the trajectories (these are not WPILIB trajectories but Choreo AutoTrajectories)
+        for (AutoTrajectory autoTrajectory : autoTrajectories) {
+            //get the raw trajectories from choreo (which is a Choreo class confusingly also called Trajectory 😭)
+            Trajectory<SwerveSample> choreoTrajectory = autoTrajectory.getRawTrajectory();
+
+            //loop through the choreo trajectory to get an ArrayList of Pose2ds
+            ArrayList<Pose2d> poses = new ArrayList<>();
+            Collections.addAll(poses, choreoTrajectory.getPoses());
+            if (AllianceUtil.getAlliance().equals(Alliance.Red)) {
+                for (int i = 0; i < poses.size(); i++) {
+                    poses.set(i, PoseUtil.flipPoseAlongMiddleXY(poses.get(i)));
+                }
+            }
+
+            //make a new PoseTrajectory object with the array of Pose2ds
+            //a PoseTrajectory is a WPILIB Trajectory with a custom constructor that allows it to be created off of an array of Pose2ds, yeah its janky but it works for the sole purpose of displaying trajectories on the Field2d
+            PoseTrajectory pt = new PoseTrajectory(poses);
+            //concatenate the PoseTrajectory to the regular WPILIB trajectory(works because PoseTrajectory class is derived from the WPILIB trajectory)
+            trajectory = trajectory.concatenate(pt);
+        }
+        //display the trajectory on the Field2d (generatedRoutineDisplay)
+        generatedRoutineDisplay.getObject("traj").setTrajectory(trajectory);
     }
 
     /** adds options to the choosers
@@ -101,19 +192,10 @@ public class ConfigurableAuto {
      * last year we updated the options of choosers that came after each time a chooser is updated, but due to how elastic works it never changed the display and made the change in options unclear to the drivers
      */
     private void addChooserOptions() {
-        // side chooser
         addSideOptions(sideChooser);
-
-        // intake chooser 1
         addIntakeOptions(intakeChooser1);
-
-        // shoot chooser 1
         addShootOptions(shootChooser1);
-
-        // intake chooser 2
         addIntakeOptions(intakeChooser2);
-
-        // shoot chooser 2
         addShootOptions(shootChooser2);
     }
 
@@ -127,7 +209,6 @@ public class ConfigurableAuto {
         SmartDashboard.putData("Auto/Shoot 1", shootChooser1);
         SmartDashboard.putData("Auto/Intake 2", intakeChooser2);
         SmartDashboard.putData("Auto/Shoot 2", shootChooser2);
-        //SmartDashboard.putData("Auto/Climb Side", climbSideChooser);
         SmartDashboard.putData("Auto/Generate", Commands.runOnce(() -> generateRoutine(true)).ignoringDisable(true));
         SmartDashboard.putData("Auto/Generated Routine Display", generatedRoutineDisplay);
     }
@@ -165,99 +246,6 @@ public class ConfigurableAuto {
         return generateStandardRoutine(routine, display);
     }
 
-    /**
-     * returns the generated routine if it exists otherwise it generates the routine
-     * and returns it
-     */
-    public AutoRoutine getRoutine() {
-        if (generatedRoutine == null) {
-            return generateRoutine(true);
-        }
-        return generatedRoutine;
-    }
-
-    /**
-     * throws an elastic error message if 1 or more of the paths dont exist
-     *
-     * @return true if there is at least 1 missing path, false if all paths exist
-     */
-    public boolean checkForErrors(AutoTrajectory... trajectories) {
-        boolean errors = false;
-        //loop through all trajectories
-        for (AutoTrajectory trajectory : trajectories) {
-            //if a trajectory is empty (it could not be loaded from choreo because it doesnt exist)
-            if (trajectory.getRawTrajectory().getPoses().length != 0) {
-                continue;
-            }
-            errors = true;
-            //get the name of the invalid trajectory
-            String invalidTrajectoryName = trajectory.getRawTrajectory().name();
-            //send an error message that says the name of the trajectory, this error is likely caused by an invalid combination of trajectories inputted into the sendable choosers
-            Elastic.Notification notification = new Elastic.Notification(
-                Elastic.NotificationLevel.ERROR,
-                "Auto Path Generation Failed",
-                invalidTrajectoryName + " is invalid with current settings"
-            );
-            Elastic.sendNotification(notification);
-        }
-        return errors;
-    }
-
-    /** displays the generation status elastic notification of the given trajectories */
-    public void displayGenerationStatus(AutoTrajectory... trajectories) {
-        //check all trajectories for errors
-        if (checkForErrors(trajectories)) {
-            //send an info notification saying the trajectory was generated with errors (checkForErrors() already sends actual error type messages)
-            Elastic.Notification notification = new Elastic.Notification(
-                Elastic.NotificationLevel.INFO,
-                "Auto Path Generated With Errors",
-                "this just means some paths are missing/invalid"
-            );
-            Elastic.sendNotification(notification);
-        } else {
-            //if all the trajectories are good just say auto path generated
-            Elastic.Notification notification = new Elastic.Notification(
-                Elastic.NotificationLevel.INFO,
-                "Auto Path Generated",
-                ""
-            );
-            Elastic.sendNotification(notification);
-        }
-    }
-
-    /**
-     * displays an autoroutine on smartdashboard
-     *
-     * @param trajectories the Choreo AutoTrajectories that make up the routine
-     *                     desired to be displayed
-     */
-    public void updateField(AutoTrajectory... autoTrajectories) {
-        //make a WPILIB trajectory object (so it can be displayed on a field2d)
-        edu.wpi.first.math.trajectory.Trajectory trajectory = new edu.wpi.first.math.trajectory.Trajectory();
-        //loop though all the trajectories (these are not WPILIB trajectories but Choreo AutoTrajectories)
-        for (AutoTrajectory autoTrajectory : autoTrajectories) {
-            //get the raw trajectories from choreo (which is a Choreo class confusingly also called Trajectory 😭)
-            Trajectory<SwerveSample> choreoTrajectory = autoTrajectory.getRawTrajectory();
-
-            //loop through the choreo trajectory to get an ArrayList of Pose2ds
-            ArrayList<Pose2d> poses = new ArrayList<>();
-            Collections.addAll(poses, choreoTrajectory.getPoses());
-            if (AllianceUtil.getAlliance().equals(Alliance.Red)) {
-                for (int i = 0; i < poses.size(); i++) {
-                    poses.set(i, PoseUtil.flipPoseAlongMiddleXY(poses.get(i)));
-                }
-            }
-
-            //make a new PoseTrajectory object with the array of Pose2ds
-            //a PoseTrajectory is a WPILIB Trajectory with a custom constructor that allows it to be created off of an array of Pose2ds, yeah its janky but it works for the sole purpose of displaying trajectories on the Field2d
-            PoseTrajectory pt = new PoseTrajectory(poses);
-            //concatenate the PoseTrajectory to the regular WPILIB trajectory(works because PoseTrajectory class is derived from the WPILIB trajectory)
-            trajectory = trajectory.concatenate(pt);
-        }
-        //display the trajectory on the Field2d (generatedRoutineDisplay)
-        generatedRoutineDisplay.getObject("traj").setTrajectory(trajectory);
-    }
-
     private AutoRoutine generateOutpostRoutine(AutoRoutine routine, boolean display) {
         // TODO: there are currently no outpost routines
         final String direction = sideChooser.getSelected();
@@ -271,16 +259,15 @@ public class ConfigurableAuto {
         final AutoTrajectory intakeToShootTraj = routine.trajectory(intakeToShootName);
 
         //routine.active().onTrue() runs at the start of the auto
-        routine.active().onTrue(
-            //resetOdometry() at the start sets the robot inital position to the start point of the 1st trajectory
-            startToIntakeTraj
-                .resetOdometry()
-                //start -> outpost intake
-                .andThen(startToIntakeTraj.cmd())
-                //outpost intake -> shooting position
-                .andThen(intakeToShootTraj.cmd())
-                .andThen(getAutoShoot())
-        );
+        routine
+            .active()
+            .onTrue(
+                startToIntakeTraj
+                    .resetOdometry()
+                    .andThen(startToIntakeTraj.cmd())
+                    .andThen(intakeToShootTraj.cmd())
+                    .andThen(getAutoShoot())
+            );
 
         //choreo marker behavior
         //used to tell robot when to intake and stop intaking based on markers in the intake trajectories
@@ -291,10 +278,9 @@ public class ConfigurableAuto {
         if (display) {
             updateField(startToIntakeTraj, intakeToShootTraj);
         }
-        generatedRoutine = routine;
         displayGenerationStatus(startToIntakeTraj, intakeToShootTraj);
 
-        return generatedRoutine;
+        return routine;
     }
 
     private AutoRoutine generateMiddleRoutine(AutoRoutine routine, boolean display) {
@@ -303,23 +289,16 @@ public class ConfigurableAuto {
 
         final AutoTrajectory startToShootTraj = routine.trajectory(startToShootName);
 
-        routine.active().onTrue(
-            //resetOdometry() at the start sets the robot inital position to the start point of the 1st trajectory
-            startToShootTraj
-                .resetOdometry()
-                //start -> shooting postion
-                //the regular mid auto just scores the preloads
-                .andThen(startToShootTraj.cmd())
-                .andThen(getAutoShoot())
-        );
+        routine
+            .active()
+            .onTrue(startToShootTraj.resetOdometry().andThen(startToShootTraj.cmd()).andThen(getAutoShoot()));
 
         if (display) {
             updateField(startToShootTraj);
         }
-        generatedRoutine = routine;
         displayGenerationStatus(startToShootTraj);
 
-        return generatedRoutine;
+        return routine;
     }
 
     private AutoRoutine generateStandardRoutine(AutoRoutine routine, boolean display) {
@@ -352,20 +331,11 @@ public class ConfigurableAuto {
             //resetOdometry() at the start sets the robot inital position to the start point of the 1st trajectory
             startToIntake1Traj
                 .resetOdometry()
-                //start -> intake 1
                 .andThen(startToIntake1Traj.cmd())
-                //intake 1 -> shoot 1
                 .andThen(shooter::revShooter)
                 .andThen(intake1ToShoot1Traj.cmd())
-                .andThen(
-                    new ParallelDeadlineGroup(
-                        new WaitCommand(AutoConstants.SHOOT_TIME),
-                        getAutoShoot()
-                    )
-                )
-                //shoot 1 -> intake 2
+                .andThen(new ParallelDeadlineGroup(new WaitCommand(AutoConstants.SHOOT_TIME), getAutoShoot()))
                 .andThen(shoot1ToIntake2Traj.cmd())
-                //intake 2 -> shoot 2
                 .andThen(shooter::revShooter)
                 .andThen(intake2ToShoot2Traj.cmd())
                 .andThen(getAutoShoot())
@@ -382,10 +352,9 @@ public class ConfigurableAuto {
         if (display) {
             updateField(startToIntake1Traj, intake1ToShoot1Traj, shoot1ToIntake2Traj, intake2ToShoot2Traj);
         }
-        generatedRoutine = routine;
         displayGenerationStatus(startToIntake1Traj, intake1ToShoot1Traj, shoot1ToIntake2Traj, intake2ToShoot2Traj);
 
-        return generatedRoutine;
+        return routine;
     }
 
     private AutoShoot getAutoShoot() {
