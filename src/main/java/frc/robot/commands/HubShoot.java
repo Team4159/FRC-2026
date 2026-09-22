@@ -4,14 +4,14 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.robot.Constants.FeederConstants.FeederState;
-import frc.robot.Constants.HopperConstants.HopperState;
-import frc.robot.Constants.IntakeConstants.IntakeState;
-import frc.robot.Constants.ShooterConstants;
-import frc.robot.Constants.ShooterConstants.ShooterSetpoint;
-import frc.robot.subsystems.Hopper;
-import frc.robot.subsystems.Intake;
-import frc.robot.subsystems.Shooter;
+import frc.robot.subsystems.hopper.Hopper;
+import frc.robot.subsystems.hopper.HopperConstants.HopperState;
+import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.IntakeConstants.IntakeState;
+import frc.robot.subsystems.shooter.FeederConstants.FeederState;
+import frc.robot.subsystems.shooter.Shooter;
+import frc.robot.subsystems.shooter.ShooterConstants;
+import frc.robot.subsystems.shooter.ShooterConstants.ShooterSetpoint;
 
 public class HubShoot extends Command {
 

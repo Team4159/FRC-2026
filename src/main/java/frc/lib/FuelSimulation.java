@@ -7,7 +7,7 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
-import frc.robot.Constants.FieldConstants;
+import frc.robot.Constants.PhysicsConstants;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,7 +25,7 @@ public class FuelSimulation {
     private static final double kSimulationStepPeriod = 0.005;
     private static final int kSimulationMaxStepsPerFrame = 20;
     private static final double kSimulationTimeScale = 1.0;
-    private static final Translation3d kGravity = new Translation3d(0, 0, -FieldConstants.GRAVITY);
+    private static final Translation3d kGravity = new Translation3d(0, 0, -PhysicsConstants.GRAVITY);
     private static final double kAirDensity = 1.2;
     private static final double kFuelRadius = 0.15;
     // private static final double kFuelMass = Units.lbsToKilograms((0.5 + 0.448) / 2.0);

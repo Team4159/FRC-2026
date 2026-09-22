@@ -22,7 +22,7 @@ import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableBuilderImpl;
 import edu.wpi.first.wpilibj.util.Color8Bit;
-import frc.robot.Constants.DrivetrainConstants;
+import frc.robot.subsystems.drivetrain.DrivetrainConstants;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -243,7 +243,7 @@ public class Telemetry {
         double intakeRollerCurrent = powerDistribution.getCurrent(3);
 
         double powerDistributionVoltage = powerDistribution.getVoltage();
-        
+
         incrementEnergyBreakdown(
             ElectricityCategory.SWERVE_DRIVE,
             period * powerDistributionVoltage * swerveDriveCurrent
@@ -278,9 +278,7 @@ public class Telemetry {
     private void logData() {
         batteryVoltagePublisher.set(RobotController.getBatteryVoltage());
 
-        totalEnergyPublisher.set(
-            energyBreakdown.values().stream().mapToDouble(Double::doubleValue).sum()
-        );
+        totalEnergyPublisher.set(energyBreakdown.values().stream().mapToDouble(Double::doubleValue).sum());
         totalCurrentPublisher.set(powerDistribution.getTotalCurrent());
         allChannelCurrentsPublisher.set(powerDistribution.getAllCurrents());
 

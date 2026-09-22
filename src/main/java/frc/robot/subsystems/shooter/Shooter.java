@@ -1,4 +1,4 @@
-package frc.robot.subsystems;
+package frc.robot.subsystems.shooter;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
@@ -22,10 +22,8 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants.FeederConstants;
-import frc.robot.Constants.FeederConstants.FeederState;
-import frc.robot.Constants.ShooterConstants;
-import frc.robot.Constants.ShooterConstants.ShooterSetpoint;
+import frc.robot.subsystems.shooter.FeederConstants.FeederState;
+import frc.robot.subsystems.shooter.ShooterConstants.ShooterSetpoint;
 
 public class Shooter extends SubsystemBase {
 

@@ -18,13 +18,12 @@ import frc.lib.Elastic;
 import frc.lib.PoseTrajectory;
 import frc.lib.PoseUtil;
 import frc.robot.Constants.AutoConstants;
-import frc.robot.Constants.IntakeConstants.IntakeState;
 import frc.robot.commands.AutoShoot;
-import frc.robot.subsystems.Drivetrain;
-import frc.robot.subsystems.Hopper;
-import frc.robot.subsystems.Intake;
-import frc.robot.subsystems.LEDs;
-import frc.robot.subsystems.Shooter;
+import frc.robot.subsystems.drivetrain.Drivetrain;
+import frc.robot.subsystems.hopper.Hopper;
+import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.IntakeConstants.IntakeState;
+import frc.robot.subsystems.shooter.Shooter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Optional;
@@ -54,7 +53,6 @@ public class ConfigurableAuto {
     private final Shooter shooter;
     private final Intake intake;
     private final Hopper hopper;
-    private final LEDs leds;
 
     /** the routine that is saved after generation */
     private AutoRoutine generatedRoutine;
@@ -62,14 +60,7 @@ public class ConfigurableAuto {
     /** @param factory the Choreo AutoFactory object
      * the rest should be self explanatory
      */
-    public ConfigurableAuto(
-        AutoFactory factory,
-        Drivetrain drivetrain,
-        Shooter shooter,
-        Intake intake,
-        Hopper hopper,
-        LEDs leds
-    ) {
+    public ConfigurableAuto(AutoFactory factory, Drivetrain drivetrain, Shooter shooter, Intake intake, Hopper hopper) {
         // auto factory
         this.factory = factory;
 
@@ -78,7 +69,6 @@ public class ConfigurableAuto {
         this.shooter = shooter;
         this.intake = intake;
         this.hopper = hopper;
-        this.leds = leds;
 
         // sendable choosers
         // initialize the sendablechooser objects
@@ -359,7 +349,7 @@ public class ConfigurableAuto {
 
     private AutoShoot getAutoShoot() {
         //auto aim(autonomous mode is false because the point of autonomous mode is for SOTM it will use choreo for translation of the swerve and the auto aim for rotation but this is stationary)
-        return new AutoShoot(drivetrain, shooter, hopper, intake, leds, false, Optional.empty());
+        return new AutoShoot(drivetrain, shooter, hopper, intake, false, Optional.empty());
     }
 
     private void addSideOptions(SendableChooser<String> sideChooser) {

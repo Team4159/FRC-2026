@@ -19,26 +19,24 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.lib.AllianceUtil;
 import frc.lib.FuelSimulation;
-import frc.robot.Constants.DrivetrainConstants;
-import frc.robot.Constants.FeederConstants.FeederState;
 import frc.robot.Constants.FieldConstants;
-import frc.robot.Constants.HopperConstants.HopperState;
-import frc.robot.Constants.IntakeConstants.IntakeState;
-import frc.robot.Constants.ShooterConstants;
-import frc.robot.Constants.ShooterConstants.AutoShootStatus;
-import frc.robot.Constants.ShooterConstants.ShooterSetpoint;
-import frc.robot.subsystems.Drivetrain;
-import frc.robot.subsystems.Hopper;
-import frc.robot.subsystems.Intake;
-import frc.robot.subsystems.LEDs;
-import frc.robot.subsystems.LEDs.LEDStatusSupplier;
-import frc.robot.subsystems.Shooter;
+import frc.robot.Constants.PhysicsConstants;
+import frc.robot.subsystems.drivetrain.Drivetrain;
+import frc.robot.subsystems.drivetrain.DrivetrainConstants;
+import frc.robot.subsystems.hopper.Hopper;
+import frc.robot.subsystems.hopper.HopperConstants.HopperState;
+import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.IntakeConstants.IntakeState;
+import frc.robot.subsystems.shooter.FeederConstants.FeederState;
+import frc.robot.subsystems.shooter.Shooter;
+import frc.robot.subsystems.shooter.ShooterConstants;
+import frc.robot.subsystems.shooter.ShooterConstants.AutoShootStatus;
+import frc.robot.subsystems.shooter.ShooterConstants.ShooterSetpoint;
 
 public class AutoLob extends Command {
 
     //Subsystems
     private final Drivetrain drivetrain;
-    private final LEDs leds;
     private final Shooter shooter;
     private final Hopper hopper;
     private final Intake intake;
@@ -59,8 +57,6 @@ public class AutoLob extends Command {
 
     /** stores auto aim statuses (SHOOT, WAITING, OUTOFRANGE) and corresponding LEDStatus*/
     private AutoShootStatus autoShootStatus;
-    /** LED status supplier used for changing the LED status */
-    private LEDStatusSupplier ledStatusSupplier;
 
     /** The height difference between the robot and hub. Currently it is a constant (final) but may change later to allow for shooting while climbing.*/
     private final double height = 0;
@@ -82,26 +78,15 @@ public class AutoLob extends Command {
      * it will also no longer require the drivetrain because a different command will be running for the auto path control to work
      * otherwise this constructor without the doublesuppliers will set the robot translation velocities to 0, it is designed to be used for auto
      */
-    public AutoLob(
-        Drivetrain drivetrain,
-        Shooter shooter,
-        Hopper hopper,
-        Intake intake,
-        LEDs leds,
-        boolean autonomousMode
-    ) {
+    public AutoLob(Drivetrain drivetrain, Shooter shooter, Hopper hopper, Intake intake, boolean autonomousMode) {
         this.drivetrain = drivetrain;
         this.shooter = shooter;
         this.hopper = hopper;
-        this.leds = leds;
         this.intake = intake;
 
         this.timer = new Timer();
 
         autoShootStatus = AutoShootStatus.WAITING;
-        ledStatusSupplier = () -> {
-            return autoShootStatus.ledStatus;
-        };
         this.autonomousMode = autonomousMode;
         if (!autonomousMode) addRequirements(drivetrain);
     }
@@ -113,7 +98,6 @@ public class AutoLob extends Command {
         //this.target = Constants.FieldConstants.hubLocations.get(AllianceUtil.getAlliance());
         adjustedRobotPose = drivetrain.getState().Pose;
 
-        CommandScheduler.getInstance().schedule(leds.new ChangeLEDStatusSupplier(ledStatusSupplier));
         CommandScheduler.getInstance().schedule(intake.new BounceIntake());
 
         timeOffset = MathSharedStore.getTimestamp();
@@ -265,12 +249,12 @@ public class AutoLob extends Command {
         //the delta y for TOF would be the height
         //the equation then becomes 0 = -(1/2)g * TOF^2 + vy * TOF - height -> 0 = (1/2)g * TOF^2 - vy * TOF + height
         //then use quadratic formula and always add the radical to get the 2nd time the fuel is at the target height (so that it is on the way down)
-        double radical = Math.sqrt(Math.pow(vy, 2) - 2 * FieldConstants.GRAVITY * height);
+        double radical = Math.sqrt(Math.pow(vy, 2) - 2 * PhysicsConstants.GRAVITY * height);
         if (Double.isNaN(radical)) {
             return 0;
         }
         double numerator = vy + radical;
-        double time = numerator / FieldConstants.GRAVITY;
+        double time = numerator / PhysicsConstants.GRAVITY;
         SmartDashboard.putNumber("time of flight", time);
         return time;
     }
@@ -288,17 +272,17 @@ public class AutoLob extends Command {
             (Math.pow(launchVelocity, 2) +
                 Math.sqrt(
                     Math.pow(launchVelocity, 4) -
-                        Math.pow(FieldConstants.GRAVITY * distance, 2) -
-                        2 * FieldConstants.GRAVITY * height * Math.pow(launchVelocity, 2)
+                        Math.pow(PhysicsConstants.GRAVITY * distance, 2) -
+                        2 * PhysicsConstants.GRAVITY * height * Math.pow(launchVelocity, 2)
                 )) /
-                (FieldConstants.GRAVITY * distance)
+                (PhysicsConstants.GRAVITY * distance)
         );
 
         if (Double.isNaN(desiredPitch)) {
             //equation can only return angles from 45-90 deg (in radians of course), anything lower than that will be NaN
             //the minimum possible hood angle on the physical shooter is 45, so no additional calculation is needed, just set to 45
             desiredPitch = Units.degreesToRadians(45);
-            autoShootStatus = AutoShootStatus.OUTOFRANGE;
+            autoShootStatus = AutoShootStatus.OUT_OF_RANGE;
         }
         // if(desiredPitch > ShooterConstants.maxPitch){
         //     desiredPitch = ShooterConstants.maxPitch;

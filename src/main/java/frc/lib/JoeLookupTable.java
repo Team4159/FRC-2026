@@ -7,8 +7,8 @@ import static edu.wpi.first.units.Units.RPM;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.robot.Constants.JoeLookupTableConstants;
-import frc.robot.Constants.JoeLookupTableConstants.LookupTablePoint;
+import frc.robot.subsystems.shooter.JoeLookupTableConstants;
+import frc.robot.subsystems.shooter.JoeLookupTableConstants.LookupTablePoint;
 import java.util.Set;
 
 public class JoeLookupTable {

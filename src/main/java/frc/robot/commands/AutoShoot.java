@@ -5,7 +5,6 @@ import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
-import static frc.robot.Constants.DrivetrainConstants.AUTO_SHOOT_TOLERANCE;
 
 import edu.wpi.first.math.MathSharedStore;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -29,28 +28,26 @@ import frc.lib.FuelSimulation;
 import frc.lib.HIDRumble;
 import frc.lib.HIDRumble.RumbleRequest;
 import frc.lib.JoeLookupTable;
-import frc.robot.Constants.DrivetrainConstants;
-import frc.robot.Constants.FeederConstants.FeederState;
 import frc.robot.Constants.FieldConstants;
-import frc.robot.Constants.HopperConstants.HopperState;
-import frc.robot.Constants.IntakeConstants.IntakeState;
-import frc.robot.Constants.JoeLookupTableConstants;
-import frc.robot.Constants.JoeLookupTableConstants.LookupTablePoint;
-import frc.robot.Constants.ShooterConstants;
-import frc.robot.Constants.ShooterConstants.AutoShootStatus;
-import frc.robot.subsystems.Drivetrain;
-import frc.robot.subsystems.Hopper;
-import frc.robot.subsystems.Intake;
-import frc.robot.subsystems.LEDs;
-import frc.robot.subsystems.LEDs.LEDStatusSupplier;
-import frc.robot.subsystems.Shooter;
+import frc.robot.Constants.PhysicsConstants;
+import frc.robot.subsystems.drivetrain.Drivetrain;
+import frc.robot.subsystems.drivetrain.DrivetrainConstants;
+import frc.robot.subsystems.hopper.Hopper;
+import frc.robot.subsystems.hopper.HopperConstants.HopperState;
+import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.IntakeConstants.IntakeState;
+import frc.robot.subsystems.shooter.FeederConstants.FeederState;
+import frc.robot.subsystems.shooter.JoeLookupTableConstants;
+import frc.robot.subsystems.shooter.JoeLookupTableConstants.LookupTablePoint;
+import frc.robot.subsystems.shooter.Shooter;
+import frc.robot.subsystems.shooter.ShooterConstants;
+import frc.robot.subsystems.shooter.ShooterConstants.AutoShootStatus;
 import java.util.Optional;
 
 public class AutoShoot extends Command {
 
     // Subsystems
     private final Drivetrain drivetrain;
-    private final LEDs leds;
     private final Shooter shooter;
     private final Hopper hopper;
     private final Intake intake;
@@ -91,8 +88,6 @@ public class AutoShoot extends Command {
      * LEDStatus
      */
     private AutoShootStatus autoShootStatus;
-    /** LED status supplier used for changing the LED status */
-    private LEDStatusSupplier ledStatusSupplier;
 
     // advantagescope sim
     /** keeps track of when the last fuel was shot during sim */
@@ -127,7 +122,6 @@ public class AutoShoot extends Command {
         Shooter shooter,
         Hopper hopper,
         Intake intake,
-        LEDs leds,
         boolean autonomousMode,
         Optional<GenericHID> feedbackHID
     ) {
@@ -135,13 +129,9 @@ public class AutoShoot extends Command {
         this.shooter = shooter;
         this.hopper = hopper;
         this.intake = intake;
-        this.leds = leds;
         this.feedbackHID = feedbackHID;
 
         autoShootStatus = AutoShootStatus.WAITING;
-        ledStatusSupplier = () -> {
-            return autoShootStatus.ledStatus;
-        };
         this.autonomousMode = autonomousMode;
         if (!autonomousMode) addRequirements(drivetrain, shooter, hopper);
 
@@ -157,7 +147,6 @@ public class AutoShoot extends Command {
         // used to simulate loss of shooter velocity over time for sim
         // timeOffset = MathSharedStore.getTimestamp();
 
-        CommandScheduler.getInstance().schedule(leds.new ChangeLEDStatusSupplier(ledStatusSupplier));
         CommandScheduler.getInstance().schedule(intake.new BounceIntake());
 
         aimFinished = false;
@@ -203,7 +192,7 @@ public class AutoShoot extends Command {
 
         // check if in range, return if out of range
         if (getDistanceFromHub() > JoeLookupTableConstants.MAX_DISTANCE.in(Meters)) {
-            autoShootStatus = AutoShootStatus.OUTOFRANGE;
+            autoShootStatus = AutoShootStatus.OUT_OF_RANGE;
             if (feedbackHID.isPresent()) {
                 HIDRumble.rumble(feedbackHID.get(), new RumbleRequest(RumbleType.kLeftRumble, 0.5, 0.25));
             }
@@ -384,18 +373,22 @@ public class AutoShoot extends Command {
         // (1/2)g * TOF^2 - vy * TOF + height
         // then use quadratic formula and always add the radical to get the 2nd time the
         // fuel is at the target height (so that it is on the way down)
-        double radical = Math.sqrt(Math.pow(vy, 2) - 2 * FieldConstants.GRAVITY * height);
+        double radical = Math.sqrt(Math.pow(vy, 2) - 2 * PhysicsConstants.GRAVITY * height);
         if (Double.isNaN(radical)) {
             return 0;
         }
         double numerator = vy + radical;
-        double time = numerator / FieldConstants.GRAVITY;
+        double time = numerator / PhysicsConstants.GRAVITY;
         SmartDashboard.putNumber("time of flight", time);
         return time;
     }
 
     private boolean isAtDesiredRotation(Angle angle) {
-        return drivetrain.getState().Pose.getRotation().getMeasure().isNear(angle, AUTO_SHOOT_TOLERANCE);
+        return drivetrain
+            .getState()
+            .Pose.getRotation()
+            .getMeasure()
+            .isNear(angle, DrivetrainConstants.AUTO_SHOOT_TOLERANCE);
     }
 
     /** Units: meters */
@@ -421,10 +414,10 @@ public class AutoShoot extends Command {
             (Math.pow(launchVelocity, 2) +
                 Math.sqrt(
                     Math.pow(launchVelocity, 4) -
-                        Math.pow(FieldConstants.GRAVITY * distance, 2) -
-                        2 * FieldConstants.GRAVITY * height * Math.pow(launchVelocity, 2)
+                        Math.pow(PhysicsConstants.GRAVITY * distance, 2) -
+                        2 * PhysicsConstants.GRAVITY * height * Math.pow(launchVelocity, 2)
                 )) /
-                (FieldConstants.GRAVITY * distance)
+                (PhysicsConstants.GRAVITY * distance)
         );
 
         if (Double.isNaN(desiredPitch)) {
@@ -433,7 +426,7 @@ public class AutoShoot extends Command {
             // the minimum possible hood angle on the physical shooter is 45, so no
             // additional calculation is needed, just set to 45
             desiredPitch = Units.degreesToRadians(45);
-            autoShootStatus = AutoShootStatus.OUTOFRANGE;
+            autoShootStatus = AutoShootStatus.OUT_OF_RANGE;
         }
         desiredPitch = Math.min(desiredPitch, ShooterConstants.HOOD_MAX_PITCH.in(Radians));
         SmartDashboard.putNumber("autoaim desired pitch", Units.radiansToDegrees(desiredPitch));

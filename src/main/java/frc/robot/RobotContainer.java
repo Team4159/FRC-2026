@@ -17,23 +17,22 @@ import frc.lib.HIDRumble;
 import frc.lib.HIDRumble.RumbleRequest;
 import frc.lib.PoseUtil;
 import frc.lib.Telemetry;
-import frc.robot.Constants.FeederConstants.FeederState;
-import frc.robot.Constants.HopperConstants.HopperState;
-import frc.robot.Constants.IntakeConstants.IntakeState;
-import frc.robot.Constants.OperatorConstants;
-import frc.robot.Constants.OperatorConstants.DriveFlag;
-import frc.robot.Constants.OperatorConstants.DriveMode;
 import frc.robot.commands.AutoLob;
 import frc.robot.commands.AutoShoot;
 import frc.robot.commands.HubShoot;
 import frc.robot.commands.TowerShoot;
+import frc.robot.operator.OperatorConstants;
+import frc.robot.operator.OperatorConstants.DriveFlag;
+import frc.robot.operator.OperatorConstants.DriveMode;
 import frc.robot.operator.SingleXboxOperatorModality;
-import frc.robot.subsystems.Drivetrain;
-import frc.robot.subsystems.Hopper;
-import frc.robot.subsystems.Intake;
-import frc.robot.subsystems.LEDs;
-import frc.robot.subsystems.PhotonVision;
-import frc.robot.subsystems.Shooter;
+import frc.robot.subsystems.drivetrain.Drivetrain;
+import frc.robot.subsystems.hopper.Hopper;
+import frc.robot.subsystems.hopper.HopperConstants.HopperState;
+import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.IntakeConstants.IntakeState;
+import frc.robot.subsystems.shooter.FeederConstants.FeederState;
+import frc.robot.subsystems.shooter.Shooter;
+import frc.robot.subsystems.vision.PhotonVision;
 import java.util.Optional;
 
 public class RobotContainer {
@@ -49,7 +48,6 @@ public class RobotContainer {
     private final Intake intake = new Intake();
     private final Shooter shooter = new Shooter();
     private final Hopper hopper = new Hopper();
-    private final LEDs leds = new LEDs();
     private final Drivetrain drivetrain = new Drivetrain(operatorModality);
 
     @SuppressWarnings("unused")
@@ -64,9 +62,9 @@ public class RobotContainer {
         // Choreo Auto
         autoFactory = drivetrain.createAutoFactory();
         CommandScheduler.getInstance().schedule(autoFactory.warmupCmd()); // warmup command so auto starts instantly
-        configurableAuto = new ConfigurableAuto(autoFactory, drivetrain, shooter, intake, hopper, leds);
+        configurableAuto = new ConfigurableAuto(autoFactory, drivetrain, shooter, intake, hopper);
         drivetrain.setAutonomousAutoShootCommand(
-            new AutoShoot(drivetrain, shooter, hopper, intake, leds, true, Optional.empty())
+            new AutoShoot(drivetrain, shooter, hopper, intake, true, Optional.empty())
         );
 
         // drivetrain bindings
@@ -109,7 +107,7 @@ public class RobotContainer {
             .and(DriverStation::isTeleop)
             .and(() -> PoseUtil.isPoseBehindAllianceTrenches(AllianceUtil.getAlliance(), drivetrain.getState().Pose))
             .whileTrue(
-                new AutoShoot(drivetrain, shooter, hopper, intake, leds, false, Optional.of(operatorModality.getHID()))
+                new AutoShoot(drivetrain, shooter, hopper, intake, false, Optional.of(operatorModality.getHID()))
             );
         operatorModality
             .hubShoot()
@@ -123,7 +121,7 @@ public class RobotContainer {
             .autoLob()
             .and(DriverStation::isTeleop)
             .and(() -> !PoseUtil.isPoseBehindAllianceTrenches(AllianceUtil.getAlliance(), drivetrain.getState().Pose))
-            .whileTrue(new AutoLob(drivetrain, shooter, hopper, intake, leds, false));
+            .whileTrue(new AutoLob(drivetrain, shooter, hopper, intake, false));
 
         operatorModality
             .intake()

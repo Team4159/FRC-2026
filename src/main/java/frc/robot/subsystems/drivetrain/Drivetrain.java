@@ -1,10 +1,10 @@
-package frc.robot.subsystems;
+package frc.robot.subsystems.drivetrain;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
-import static frc.robot.Constants.DrivetrainConstants.*;
-import static frc.robot.Constants.OperatorConstants.*;
+import static frc.robot.operator.OperatorConstants.*;
+import static frc.robot.subsystems.drivetrain.DrivetrainConstants.*;
 
 import choreo.Choreo.TrajectoryLogger;
 import choreo.auto.AutoFactory;
@@ -32,14 +32,14 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.AllianceUtil;
 import frc.lib.PoseUtil;
 import frc.robot.Constants.FieldConstants;
-import frc.robot.Constants.HopperConstants;
-import frc.robot.Constants.OperatorConstants;
-import frc.robot.Constants.OperatorConstants.DriveFlag;
-import frc.robot.Constants.OperatorConstants.DriveMode;
 import frc.robot.commands.AutoShoot;
 import frc.robot.generated.CommandSwerveDrivetrain;
 import frc.robot.generated.TunerConstants;
+import frc.robot.operator.OperatorConstants;
+import frc.robot.operator.OperatorConstants.DriveFlag;
+import frc.robot.operator.OperatorConstants.DriveMode;
 import frc.robot.operator.OperatorModality;
+import frc.robot.subsystems.hopper.HopperConstants;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
