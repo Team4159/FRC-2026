@@ -279,7 +279,7 @@ public class Telemetry {
         batteryVoltagePublisher.set(RobotController.getBatteryVoltage());
 
         totalEnergyPublisher.set(
-            energyBreakdown.values().stream().mapToDouble(Double::doubleValue).sum() * JOULES_TO_WATT_HOURS
+            energyBreakdown.values().stream().mapToDouble(Double::doubleValue).sum()
         );
         totalCurrentPublisher.set(powerDistribution.getTotalCurrent());
         allChannelCurrentsPublisher.set(powerDistribution.getAllCurrents());

@@ -261,6 +261,10 @@ public class Shooter extends SubsystemBase {
         setVelocity(ShooterSetpoint.RESTING);
     }
 
+    public void revShooter() {
+        setVelocity(ShooterSetpoint.REV);
+    }
+
     /** A command to run the shooter motors at a given velocity */
     public class ChangeVelocity extends Command {
 

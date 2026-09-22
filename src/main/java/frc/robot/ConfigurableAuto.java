@@ -102,47 +102,19 @@ public class ConfigurableAuto {
      */
     private void addChooserOptions() {
         // side chooser
-        sideChooser.addOption("Left", "L");
-        sideChooser.addOption("Right", "R");
-        sideChooser.addOption("Mid", "M");
-        // sideChooser.addOption("Mid Left", "ML");
-        // sideChooser.addOption("Mid Right", "MR");
-        sideChooser.setDefaultOption("None", "None");
+        addSideOptions(sideChooser);
 
         // intake chooser 1
-        intakeChooser1.addOption("Line", "LineIntake");
-        intakeChooser1.addOption("Far", "FarIntake");
-        intakeChooser1.addOption("Mid", "MidIntake");
-        intakeChooser1.addOption("Close", "CloseIntake");
-        intakeChooser1.addOption("Outer Sweep", "OuterIntake");
-        intakeChooser1.addOption("Inner Sweep", "InnerIntake");
-        //this option is only for middle and middle right autos
-        // intakeChooser1.addOption("Outpost (for middle auto)", "OutpostIntake");
-        intakeChooser1.setDefaultOption("None", "None");
+        addIntakeOptions(intakeChooser1);
 
         // shoot chooser 1
-        shootChooser1.addOption("Shoot", "Shoot");
-        // shootChooser1.addOption("Shoot Bump", "ShootBump");
-        //shootChooser1.addOption("Shoot and Climb", "Climb");
-        shootChooser1.setDefaultOption("None", "None");
+        addShootOptions(shootChooser1);
 
         // intake chooser 2
-        intakeChooser2.addOption("Line", "LineIntake");
-        intakeChooser2.addOption("Far", "FarIntake");
-        intakeChooser2.addOption("Mid", "MidIntake");
-        intakeChooser2.addOption("Close", "CloseIntake");
-        intakeChooser2.addOption("Outer Sweep", "OuterIntake");
-        intakeChooser2.addOption("Inner Sweep", "InnerIntake");
-        intakeChooser2.setDefaultOption("None", "None");
+        addIntakeOptions(intakeChooser2);
 
         // shoot chooser 2
-        shootChooser2.addOption("Shoot", "Shoot");
-        // shootChooser2.addOption("Shoot Bump", "ShootBump");
-        //shootChooser2.addOption("Shoot and Climb", "Climb");
-        shootChooser2.setDefaultOption("None", "None");
-
-        // climbSideChooser.setDefaultOption("Left", "L");
-        // climbSideChooser.addOption("Right", "R");
+        addShootOptions(shootChooser2);
     }
 
     /**
@@ -167,10 +139,8 @@ public class ConfigurableAuto {
     private AutoRoutine generateRoutine(boolean display) {
         final AutoRoutine routine = factory.newRoutine("Generated Auto");
 
-        final String direction = sideChooser.getSelected();
-
         // if the direction is none return the default routine (does absolutely nothing) and send a special notification to let the drivers know they selected a useless auto (could be good if auto is cooked though)
-        if (direction.equals("None")) {
+        if (sideChooser.getSelected().equals("None")) {
             Elastic.Notification notification = new Elastic.Notification(
                 Elastic.NotificationLevel.INFO,
                 "Empty auto generated",
@@ -180,144 +150,19 @@ public class ConfigurableAuto {
             return routine;
         }
 
-        //get all the chooser results as strings to make things cleaner
-        final String intake1 = intakeChooser1.getSelected();
-        final String shoot1 = shootChooser1.getSelected();
-        final String intake2 = intakeChooser2.getSelected();
-        final String shoot2 = shootChooser2.getSelected();
-
         //if the direction has a capital "M" then it is a mid auto (ML, M, or MR)
-        if (direction.contains("M")) {
+        if (sideChooser.getSelected().contains("M")) {
             // check if the 1st intake has "Outpost"
             //if so generate an outpost auto
             // outpost auto
-            if (intake1.contains("Outpost")) {
-                //these are the names of the trajectories
-                //for the outpost auto the only configurable part is the start point though
-                final String startToIntakeName = direction + "StartToMROutpostIntake";
-                final String intakeToShootName = "MROutpostIntakeToMRShoot";
-
-                //load the trajectories with the names
-                final AutoTrajectory startToIntakeTraj = routine.trajectory(startToIntakeName);
-                final AutoTrajectory intakeToShootTraj = routine.trajectory(intakeToShootName);
-
-                //routine.active().onTrue() runs at the start of the auto
-                routine.active().onTrue(
-                    //resetOdometry() at the start sets the robot inital position to the start point of the 1st trajectory
-                    startToIntakeTraj
-                        .resetOdometry()
-                        //start -> outpost intake
-                        .andThen(startToIntakeTraj.cmd())
-                        //outpost intake -> shooting position
-                        .andThen(intakeToShootTraj.cmd())
-                        //auto aim(autonomous mode is false because the point of autonomous mode is for SOTM it will use choreo for translation of the swerve and the auto aim for rotation but this is stationary)
-                        .andThen(new AutoShoot(drivetrain, shooter, hopper, intake, leds, false, Optional.empty()))
-                );
-
-                //choreo marker behavior
-                //used to tell robot when to intake and stop intaking based on markers in the intake trajectories
-                startToIntakeTraj.atTime("intake").onTrue(intake.new ChangeStates(IntakeState.DOWN_ON));
-                startToIntakeTraj.atTime("stopIntake").onTrue(intake.new ChangeStates(IntakeState.DOWN_OFF));
-
-                //update the display field if the display boolean is true
-                if (display) {
-                    updateField(startToIntakeTraj, intakeToShootTraj);
-                }
-                generatedRoutine = routine;
-                displayGenerationStatus(startToIntakeTraj, intakeToShootTraj);
-
-                return routine;
+            if (intakeChooser1.getSelected().contains("Outpost")) {
+                return generateOutpostRoutine(routine, display);
             }
 
-            final String startToShootName = direction + "StartToShoot";
-
-            final AutoTrajectory startToShootTraj = routine.trajectory(startToShootName);
-
-            routine.active().onTrue(
-                //resetOdometry() at the start sets the robot inital position to the start point of the 1st trajectory
-                startToShootTraj
-                    .resetOdometry()
-                    //start -> shooting postion
-                    //the regular mid auto just scores the preloads
-                    .andThen(startToShootTraj.cmd())
-                    //auto aim(autonomous mode is false because the point of autonomous mode is for SOTM it will use choreo for translation of the swerve and the auto aim for rotation but this is stationary)
-                    .andThen(new AutoShoot(drivetrain, shooter, hopper, intake, leds, false, Optional.empty()))
-            );
-
-            if (display) {
-                updateField(startToShootTraj);
-            }
-            generatedRoutine = routine;
-            displayGenerationStatus(startToShootTraj);
-
-            return routine;
+            return generateMiddleRoutine(routine, display);
         }
 
-        //create the names of the trajectories from the sendable chooser data concatenated together along with other words like "To" so it matches the names of the choreo trajectories
-        final String startToIntake1Name = "StartTo" + intake1;
-        final String intake1ToShoot1Name = intake1 + "To" + shoot1;
-        final String shoot1ToIntake2Name = shoot1 + "To" + intake2;
-        final String intake2ToShoot2Name = intake2 + "To" + shoot2;
-
-        //load the AutoTrajectories using the names
-        AutoTrajectory startToIntake1Traj = routine.trajectory(startToIntake1Name);
-        AutoTrajectory intake1ToShoot1Traj = routine.trajectory(intake1ToShoot1Name);
-        AutoTrajectory shoot1ToIntake2Traj = routine.trajectory(shoot1ToIntake2Name);
-        AutoTrajectory intake2ToShoot2Traj = routine.trajectory(intake2ToShoot2Name);
-        if (direction.contains("L")) {
-            startToIntake1Traj = startToIntake1Traj.mirrorY();
-            intake1ToShoot1Traj = intake1ToShoot1Traj.mirrorY();
-            shoot1ToIntake2Traj = shoot1ToIntake2Traj.mirrorY();
-            intake2ToShoot2Traj = intake2ToShoot2Traj.mirrorY();
-        }
-
-        routine.active().onTrue(
-            //resetOdometry() at the start sets the robot inital position to the start point of the 1st trajectory
-            startToIntake1Traj
-                .resetOdometry()
-                //start -> intake 1
-                .andThen(startToIntake1Traj.cmd().until(atTrajectoryEnd(startToIntake1Traj.getFinalPose().get())))
-                //intake 1 -> shoot 1
-                .andThen(
-                    intake1ToShoot1Traj
-                        .cmd()
-                        // .andThen(new AutoRecovery(drivetrain, shooter, intake, AutoRecoveryMode.SWEEP, autoRecoverySide,
-                        //         intake1ToShoot1Traj.getFinalPose().get().getTranslation()))
-                        //timeout on the first auto aim otherwise it will never end (auto aim never finishes) and this needs to finish in order to move on to the next cycle
-                        //deadline group terminates auto aim when the time runs out
-                        .andThen(
-                            new ParallelDeadlineGroup(
-                                new WaitCommand(AutoConstants.SHOOT_TIME),
-                                //auto aim(autonomous mode is false because the point of autonomous mode is for SOTM it will use choreo for translation of the swerve and the auto aim for rotation but this is stationary)
-                                new AutoShoot(drivetrain, shooter, hopper, intake, leds, false, Optional.empty())
-                            )
-                        )
-                        //shoot 1 -> intake 2
-                        .andThen(
-                            shoot1ToIntake2Traj.cmd().until(atTrajectoryEnd(startToIntake1Traj.getFinalPose().get()))
-                        )
-                        //intake 2 -> shoot 2
-                        .andThen(intake2ToShoot2Traj.cmd())
-                        //auto aim(autonomous mode is false because the point of autonomous mode is for SOTM it will use choreo for translation of the swerve and the auto aim for rotation but this is stationary)
-                        .andThen(new AutoShoot(drivetrain, shooter, hopper, intake, leds, false, Optional.empty()))
-                )
-        );
-
-        //choreo marker behavior
-        //used to tell robot when to intake and stop intaking based on markers in the intake trajectories
-        startToIntake1Traj.atTime("intake").onTrue(intake.new ChangeStates(IntakeState.DOWN_ON));
-        startToIntake1Traj.atTime("stopIntake").onTrue(intake.new ChangeStates(IntakeState.DOWN_OFF));
-
-        shoot1ToIntake2Traj.atTime("intake").onTrue(intake.new ChangeStates(IntakeState.DOWN_ON));
-        shoot1ToIntake2Traj.atTime("stopIntake").onTrue(intake.new ChangeStates(IntakeState.DOWN_OFF));
-
-        if (display) {
-            updateField(startToIntake1Traj, intake1ToShoot1Traj, shoot1ToIntake2Traj, intake2ToShoot2Traj);
-        }
-        generatedRoutine = routine;
-        displayGenerationStatus(startToIntake1Traj, intake1ToShoot1Traj, shoot1ToIntake2Traj, intake2ToShoot2Traj);
-
-        return routine;
+        return generateStandardRoutine(routine, display);
     }
 
     /**
@@ -325,7 +170,9 @@ public class ConfigurableAuto {
      * and returns it
      */
     public AutoRoutine getRoutine() {
-        if (generatedRoutine == null) return generateRoutine(true);
+        if (generatedRoutine == null) {
+            return generateRoutine(true);
+        }
         return generatedRoutine;
     }
 
@@ -339,18 +186,19 @@ public class ConfigurableAuto {
         //loop through all trajectories
         for (AutoTrajectory trajectory : trajectories) {
             //if a trajectory is empty (it could not be loaded from choreo because it doesnt exist)
-            if (trajectory.getRawTrajectory().getPoses().length == 0) {
-                errors = true;
-                //get the name of the invalid trajectory
-                String invalidTrajectoryName = trajectory.getRawTrajectory().name();
-                //send an error message that says the name of the trajectory, this error is likely caused by an invalid combination of trajectories inputted into the sendable choosers
-                Elastic.Notification notification = new Elastic.Notification(
-                    Elastic.NotificationLevel.ERROR,
-                    "Auto Path Generation Failed",
-                    invalidTrajectoryName + " is invalid with current settings"
-                );
-                Elastic.sendNotification(notification);
+            if (trajectory.getRawTrajectory().getPoses().length != 0) {
+                continue;
             }
+            errors = true;
+            //get the name of the invalid trajectory
+            String invalidTrajectoryName = trajectory.getRawTrajectory().name();
+            //send an error message that says the name of the trajectory, this error is likely caused by an invalid combination of trajectories inputted into the sendable choosers
+            Elastic.Notification notification = new Elastic.Notification(
+                Elastic.NotificationLevel.ERROR,
+                "Auto Path Generation Failed",
+                invalidTrajectoryName + " is invalid with current settings"
+            );
+            Elastic.sendNotification(notification);
         }
         return errors;
     }
@@ -410,9 +258,166 @@ public class ConfigurableAuto {
         generatedRoutineDisplay.getObject("traj").setTrajectory(trajectory);
     }
 
-    public BooleanSupplier atTrajectoryEnd(Pose2d end) {
-        return () ->
-            drivetrain.getState().Pose.getTranslation().getDistance(end.getTranslation()) <=
-            AutoConstants.END_TOLERANCE;
+    private AutoRoutine generateOutpostRoutine(AutoRoutine routine, boolean display) {
+        // TODO: there are currently no outpost routines
+        final String direction = sideChooser.getSelected();
+        //these are the names of the trajectories
+        //for the outpost auto the only configurable part is the start point though
+        final String startToIntakeName = direction + "StartToMROutpostIntake";
+        final String intakeToShootName = "MROutpostIntakeToMRShoot";
+
+        //load the trajectories with the names
+        final AutoTrajectory startToIntakeTraj = routine.trajectory(startToIntakeName);
+        final AutoTrajectory intakeToShootTraj = routine.trajectory(intakeToShootName);
+
+        //routine.active().onTrue() runs at the start of the auto
+        routine.active().onTrue(
+            //resetOdometry() at the start sets the robot inital position to the start point of the 1st trajectory
+            startToIntakeTraj
+                .resetOdometry()
+                //start -> outpost intake
+                .andThen(startToIntakeTraj.cmd())
+                //outpost intake -> shooting position
+                .andThen(intakeToShootTraj.cmd())
+                .andThen(getAutoShoot())
+        );
+
+        //choreo marker behavior
+        //used to tell robot when to intake and stop intaking based on markers in the intake trajectories
+        startToIntakeTraj.atTime("intake").onTrue(intake.new ChangeStates(IntakeState.DOWN_ON));
+        startToIntakeTraj.atTime("stopIntake").onTrue(intake.new ChangeStates(IntakeState.DOWN_OFF));
+
+        //update the display field if the display boolean is true
+        if (display) {
+            updateField(startToIntakeTraj, intakeToShootTraj);
+        }
+        generatedRoutine = routine;
+        displayGenerationStatus(startToIntakeTraj, intakeToShootTraj);
+
+        return generatedRoutine;
+    }
+
+    private AutoRoutine generateMiddleRoutine(AutoRoutine routine, boolean display) {
+        final String direction = sideChooser.getSelected();
+        final String startToShootName = direction + "StartToShoot";
+
+        final AutoTrajectory startToShootTraj = routine.trajectory(startToShootName);
+
+        routine.active().onTrue(
+            //resetOdometry() at the start sets the robot inital position to the start point of the 1st trajectory
+            startToShootTraj
+                .resetOdometry()
+                //start -> shooting postion
+                //the regular mid auto just scores the preloads
+                .andThen(startToShootTraj.cmd())
+                .andThen(getAutoShoot())
+        );
+
+        if (display) {
+            updateField(startToShootTraj);
+        }
+        generatedRoutine = routine;
+        displayGenerationStatus(startToShootTraj);
+
+        return generatedRoutine;
+    }
+
+    private AutoRoutine generateStandardRoutine(AutoRoutine routine, boolean display) {
+        final String direction = sideChooser.getSelected();
+        //get all the chooser results as strings to make things cleaner
+        final String intake1 = intakeChooser1.getSelected();
+        final String shoot1 = shootChooser1.getSelected();
+        final String intake2 = intakeChooser2.getSelected();
+        final String shoot2 = shootChooser2.getSelected();
+
+        //create the names of the trajectories from the sendable chooser data concatenated together along with other words like "To" so it matches the names of the choreo trajectories
+        final String startToIntake1Name = "StartTo" + intake1;
+        final String intake1ToShoot1Name = intake1 + "To" + shoot1;
+        final String shoot1ToIntake2Name = shoot1 + "To" + intake2;
+        final String intake2ToShoot2Name = intake2 + "To" + shoot2;
+
+        //load the AutoTrajectories using the names
+        AutoTrajectory startToIntake1Traj = routine.trajectory(startToIntake1Name);
+        AutoTrajectory intake1ToShoot1Traj = routine.trajectory(intake1ToShoot1Name);
+        AutoTrajectory shoot1ToIntake2Traj = routine.trajectory(shoot1ToIntake2Name);
+        AutoTrajectory intake2ToShoot2Traj = routine.trajectory(intake2ToShoot2Name);
+        if (direction.contains("L")) {
+            startToIntake1Traj = startToIntake1Traj.mirrorY();
+            intake1ToShoot1Traj = intake1ToShoot1Traj.mirrorY();
+            shoot1ToIntake2Traj = shoot1ToIntake2Traj.mirrorY();
+            intake2ToShoot2Traj = intake2ToShoot2Traj.mirrorY();
+        }
+
+        routine.active().onTrue(
+            //resetOdometry() at the start sets the robot inital position to the start point of the 1st trajectory
+            startToIntake1Traj
+                .resetOdometry()
+                //start -> intake 1
+                .andThen(startToIntake1Traj.cmd())
+                //intake 1 -> shoot 1
+                .andThen(shooter::revShooter)
+                .andThen(intake1ToShoot1Traj.cmd())
+                .andThen(
+                    new ParallelDeadlineGroup(
+                        new WaitCommand(AutoConstants.SHOOT_TIME),
+                        getAutoShoot()
+                    )
+                )
+                //shoot 1 -> intake 2
+                .andThen(shoot1ToIntake2Traj.cmd())
+                //intake 2 -> shoot 2
+                .andThen(shooter::revShooter)
+                .andThen(intake2ToShoot2Traj.cmd())
+                .andThen(getAutoShoot())
+        );
+
+        //choreo marker behavior
+        //used to tell robot when to intake and stop intaking based on markers in the intake trajectories
+        startToIntake1Traj.atTime("intake").onTrue(intake.new ChangeStates(IntakeState.DOWN_ON));
+        startToIntake1Traj.atTime("stopIntake").onTrue(intake.new ChangeStates(IntakeState.DOWN_OFF));
+
+        shoot1ToIntake2Traj.atTime("intake").onTrue(intake.new ChangeStates(IntakeState.DOWN_ON));
+        shoot1ToIntake2Traj.atTime("stopIntake").onTrue(intake.new ChangeStates(IntakeState.DOWN_OFF));
+
+        if (display) {
+            updateField(startToIntake1Traj, intake1ToShoot1Traj, shoot1ToIntake2Traj, intake2ToShoot2Traj);
+        }
+        generatedRoutine = routine;
+        displayGenerationStatus(startToIntake1Traj, intake1ToShoot1Traj, shoot1ToIntake2Traj, intake2ToShoot2Traj);
+
+        return generatedRoutine;
+    }
+
+    private AutoShoot getAutoShoot() {
+        //auto aim(autonomous mode is false because the point of autonomous mode is for SOTM it will use choreo for translation of the swerve and the auto aim for rotation but this is stationary)
+        return new AutoShoot(drivetrain, shooter, hopper, intake, leds, false, Optional.empty());
+    }
+
+    private void addSideOptions(SendableChooser<String> sideChooser) {
+        sideChooser.addOption("Left", "L");
+        sideChooser.addOption("Right", "R");
+        sideChooser.addOption("Mid", "M");
+        // sideChooser.addOption("Mid Left", "ML");
+        // sideChooser.addOption("Mid Right", "MR");
+        sideChooser.setDefaultOption("None", "None");
+    }
+
+    private void addIntakeOptions(SendableChooser<String> intakeChooser) {
+        intakeChooser.addOption("Line", "LineIntake");
+        intakeChooser.addOption("Far", "FarIntake");
+        intakeChooser.addOption("Mid", "MidIntake");
+        intakeChooser.addOption("Close", "CloseIntake");
+        intakeChooser.addOption("Outer Sweep", "OuterIntake");
+        intakeChooser.addOption("Inner Sweep", "InnerIntake");
+        //this option is only for middle and middle right autos
+        // intakeChooser.addOption("Outpost (for middle auto)", "OutpostIntake");
+        intakeChooser.setDefaultOption("None", "None");
+    }
+
+    private void addShootOptions(SendableChooser<String> shootChooser) {
+        shootChooser.addOption("Shoot", "Shoot");
+        // shootChooser.addOption("Shoot Bump", "ShootBump");
+        //shootChooser.addOption("Shoot and Climb", "Climb");
+        shootChooser.setDefaultOption("None", "None");
     }
 }

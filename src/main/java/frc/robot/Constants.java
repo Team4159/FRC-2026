@@ -413,7 +413,8 @@ public final class Constants {
         };
 
         public static enum ShooterSetpoint {
-            RESTING(RPM.of(2000.0)),
+            RESTING(RPM.of(0.0)),
+            REV(RPM.of(1000.0)),
             LOB(RPM.of(2000.0)),
             FROM_HUB(RPM.of(2500.0), Degrees.of(75.0)),
             FROM_TOWER(RPM.of(3000.0), Degrees.of(70.0));
@@ -608,8 +609,7 @@ public final class Constants {
     public static class AutoConstants {
 
         /** units: seconds */
-        public static final double SHOOT_TIME = 4.0;
-        public static final double END_TOLERANCE = 0.05;
+        public static final double SHOOT_TIME = 3.5;
 
         public static final APConstraints AUTOPILOT_CONSTRAINTS = new APConstraints()
             .withAcceleration(7.0)
