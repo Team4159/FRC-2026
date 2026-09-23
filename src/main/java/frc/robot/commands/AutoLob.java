@@ -102,7 +102,7 @@ public class AutoLob extends Command {
 
         timeOffset = MathSharedStore.getTimestamp();
 
-        shooter.setVelocity(ShooterSetpoint.LOB);
+        shooter.setFlywheelVelocity(ShooterSetpoint.LOB);
 
         timer.reset();
     }
@@ -120,7 +120,7 @@ public class AutoLob extends Command {
 
         for (int i = 0; i < 2; i++) {
             //calculate TOF(used for calculating adjusted robot pose)
-            double timeOfFlight = getTimeOfFlight(desiredHoodAngle, shooter.getFuelVelocity());
+            double timeOfFlight = getTimeOfFlight(desiredHoodAngle, shooter.getFuelExitVelocity());
             //calculate the distance traveled by the robot during the time of flight
             Transform2d adjustedRobotPoseTransform = new Transform2d(
                 drivetrain.getState().Speeds.vxMetersPerSecond * timeOfFlight,
@@ -151,13 +151,17 @@ public class AutoLob extends Command {
             //run neck backwards if at the beginning
             autoShootStatus = AutoShootStatus.WAITING;
             shooter.setFeederDutyCycle(FeederState.UNJAM.dutyCycle);
-            hopper.setHopperDutyCycle(HopperState.STOP.dutyCycle);
+            hopper.setDutyCycle(HopperState.STOP.dutyCycle);
         }
-        if (shooter.isAtPitch() && shooter.isAtVelocity() && isAtDesiredRotation(Radians.of(desiredRobotAngle))) {
+        if (
+            shooter.isAtHoodPitch() &&
+            shooter.isAtFlywheelVelocity() &&
+            isAtDesiredRotation(Radians.of(desiredRobotAngle))
+        ) {
             //shoot the fuel if at the right pitch
             autoShootStatus = AutoShootStatus.SHOOT;
             shooter.setFeederDutyCycle(FeederState.FEED.dutyCycle);
-            hopper.setHopperDutyCycle(HopperState.FEED.dutyCycle);
+            hopper.setDutyCycle(HopperState.FEED.dutyCycle);
         } else {
             //otherwise just wait
             // autoAimStatus = AutoAimStatus.WAITING;
@@ -169,12 +173,16 @@ public class AutoLob extends Command {
         rotateSwerve(desiredRobotAngle);
 
         //set the desired hood angle
-        shooter.setPitch(Radians.of(desiredHoodAngle));
+        shooter.setHoodPitchComplement(Radians.of(desiredHoodAngle));
 
-        SmartDashboard.putBoolean("isAtPitch", shooter.isAtPitch());
-        SmartDashboard.putBoolean("isAtVelocity", shooter.isAtVelocity());
+        SmartDashboard.putBoolean("isAtPitch", shooter.isAtHoodPitch());
+        SmartDashboard.putBoolean("isAtVelocity", shooter.isAtFlywheelVelocity());
         SmartDashboard.putBoolean("swerve isatangle", isAtDesiredRotation(Radians.of(desiredRobotAngle)));
-        if (shooter.isAtPitch() && shooter.isAtVelocity() && isAtDesiredRotation(Radians.of(desiredRobotAngle))) {
+        if (
+            shooter.isAtHoodPitch() &&
+            shooter.isAtFlywheelVelocity() &&
+            isAtDesiredRotation(Radians.of(desiredRobotAngle))
+        ) {
             autoShootStatus = AutoShootStatus.SHOOT;
         } else {
             autoShootStatus = AutoShootStatus.WAITING;
@@ -182,7 +190,7 @@ public class AutoLob extends Command {
 
         if (autoShootStatus == AutoShootStatus.SHOOT) {
             shooter.setFeederDutyCycle(FeederState.FEED.dutyCycle);
-            hopper.setHopperDutyCycle(HopperState.FEED.dutyCycle);
+            hopper.setDutyCycle(HopperState.FEED.dutyCycle);
         }
 
         //AdvantageScope fuel simulation
@@ -264,7 +272,7 @@ public class AutoLob extends Command {
         // distance from robot to target
         Translation2d robotTranslation = adjustedRobotPose.getTranslation();
         double distance = robotTranslation.getDistance(target.getTranslation());
-        double launchVelocity = shooter.getFuelVelocity();
+        double launchVelocity = shooter.getFuelExitVelocity();
         if (RobotBase.isSimulation()) {
             launchVelocity = getSimLaunchVelocity();
         }
@@ -325,11 +333,11 @@ public class AutoLob extends Command {
 
     @Override
     public void end(boolean interrupted) {
-        shooter.adjustHood(ShooterConstants.HOOD_RESTING_ANGLE);
+        shooter.restHood();
         //shooter.setSpeed(ShooterConstants.restingAngularVelocity);
-        shooter.restShooter();
+        shooter.restFlywheel();
         shooter.setFeederDutyCycle(FeederState.STOP.dutyCycle);
-        hopper.setHopperDutyCycle(HopperState.STOP.dutyCycle);
+        hopper.setDutyCycle(HopperState.STOP.dutyCycle);
         CommandScheduler.getInstance().schedule(intake.new ChangeStates(IntakeState.BOUNCE_UP));
     }
 }

@@ -13,14 +13,14 @@ import frc.robot.generated.TunerConstants;
 
 public class DrivetrainConstants {
 
+    public static final double MAX_TRANSLATION_SPEED = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
+    public static final double MAX_ROTATION_SPEED = RotationsPerSecond.of(1.5).in(RadiansPerSecond);
+
     public static final Distance CHASSIS_SIZE_X = Inches.of(27.0);
     public static final Distance CHASSIS_SIZE_Y = Inches.of(27.0);
 
     public static final Distance BUMPER_SIZE_X = Inches.of(35.0);
     public static final Distance BUMPER_SIZE_Y = Inches.of(35.0);
-
-    public static final double MAX_TRANSLATION_SPEED = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
-    public static final double MAX_ROTATION_SPEED = 2 * RotationsPerSecond.of(0.75).in(RadiansPerSecond);
 
     public static final double POINT_kP = 5;
     public static final double POINT_kI = 0.0;

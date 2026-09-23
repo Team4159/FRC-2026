@@ -1,8 +1,5 @@
 package frc.robot.subsystems.hopper;
 
-import static edu.wpi.first.units.Units.Amps;
-
-import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -10,22 +7,19 @@ import frc.robot.subsystems.hopper.HopperConstants.HopperState;
 
 public class Hopper extends SubsystemBase {
 
-    private TalonFX hopperMotor;
+    private final TalonFX hopperMotor;
 
     public Hopper() {
-        hopperMotor = new TalonFX(HopperConstants.HOPPER_MOTOR_ID);
-        CurrentLimitsConfigs currentLimits = new CurrentLimitsConfigs()
-            .withSupplyCurrentLimit(Amps.of(20))
-            .withSupplyCurrentLimitEnable(true);
-        hopperMotor.getConfigurator().apply(currentLimits);
+        hopperMotor = new TalonFX(HopperConstants.MOTOR_ID);
+        hopperMotor.getConfigurator().apply(HopperConstants.MOTOR_CONFIGURATION);
     }
 
-    public void setHopperDutyCycle(double dutyCycle) {
+    public void setDutyCycle(double dutyCycle) {
         hopperMotor.set(dutyCycle);
     }
 
-    public void stopHopper() {
-        hopperMotor.set(0);
+    public void stop() {
+        hopperMotor.stopMotor();
     }
 
     public class ChangeState extends Command {
@@ -39,12 +33,12 @@ public class Hopper extends SubsystemBase {
 
         @Override
         public void initialize() {
-            Hopper.this.setHopperDutyCycle(hopperState.dutyCycle);
+            Hopper.this.setDutyCycle(hopperState.dutyCycle);
         }
 
         @Override
         public void end(boolean interrupt) {
-            Hopper.this.stopHopper();
+            Hopper.this.stop();
         }
     }
 }

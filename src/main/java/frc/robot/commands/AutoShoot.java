@@ -212,12 +212,12 @@ public class AutoShoot extends Command {
         rotateSwerve(desiredRobotAngle);
 
         // set the desired hood angle
-        shooter.setPitch(desiredHoodAngle);
-        shooter.setVelocity(desiredShooterAngularVelocity);
+        shooter.setHoodPitchComplement(desiredHoodAngle);
+        shooter.setFlywheelVelocity(desiredShooterAngularVelocity);
 
         // send tolerances to smart dashboard
-        SmartDashboard.putBoolean("isAtPitch", shooter.isAtPitch());
-        SmartDashboard.putBoolean("isAtVelocity", shooter.isAtVelocity());
+        SmartDashboard.putBoolean("isAtPitch", shooter.isAtHoodPitch());
+        SmartDashboard.putBoolean("isAtVelocity", shooter.isAtFlywheelVelocity());
         SmartDashboard.putBoolean("swerve isatangle", isAtDesiredRotation(Radians.of(desiredRobotAngle)));
 
         // if (!timer.hasElapsed(ShooterConstants.backwardsTime)){
@@ -226,11 +226,15 @@ public class AutoShoot extends Command {
         // shooter.setFeederSpeed(FeederState.UNSTUCKFEEDER.percentage);
         // hopper.setHopperSpeed(HopperState.STOP.percentage);
         // }
-        if (shooter.isAtPitch() && shooter.isAtVelocity() && isAtDesiredRotation(Radians.of(desiredRobotAngle))) {
+        if (
+            shooter.isAtHoodPitch() &&
+            shooter.isAtFlywheelVelocity() &&
+            isAtDesiredRotation(Radians.of(desiredRobotAngle))
+        ) {
             // shoot the fuel if at the right pitch
             autoShootStatus = AutoShootStatus.SHOOT;
             shooter.setFeederDutyCycle(FeederState.FEED.dutyCycle);
-            hopper.setHopperDutyCycle(HopperState.FEED.dutyCycle);
+            hopper.setDutyCycle(HopperState.FEED.dutyCycle);
         } else {
             //otherwise just wait
             // autoAimStatus = AutoAimStatus.WAITING;
@@ -327,8 +331,8 @@ public class AutoShoot extends Command {
     private double getLaunchVelocity(AngularVelocity desiredMotorVelocity) {
         double shooterOmega = desiredMotorVelocity.in(RadiansPerSecond) * ShooterConstants.ROTOR_TO_WHEEL_RATIO;
 
-        double wheelTangentialSpeed = shooterOmega * ShooterConstants.SHOOTER_WHEEL_RADIUS.in(Meters);
-        double rollerTangentialSpeed = shooterOmega * ShooterConstants.SHOOTER_ROLLER_RADIUS.in(Meters);
+        double wheelTangentialSpeed = shooterOmega * ShooterConstants.WHEEL_RADIUS.in(Meters);
+        double rollerTangentialSpeed = shooterOmega * ShooterConstants.ROLLER_RADIUS.in(Meters);
 
         return (efficiency * (wheelTangentialSpeed + rollerTangentialSpeed)) / 2;
     }
@@ -435,10 +439,10 @@ public class AutoShoot extends Command {
 
     @Override
     public void end(boolean interrupted) {
-        shooter.adjustHood(ShooterConstants.HOOD_RESTING_ANGLE);
-        shooter.restShooter();
+        shooter.restHood();
+        shooter.restFlywheel();
         shooter.setFeederDutyCycle(FeederState.STOP.dutyCycle);
-        hopper.setHopperDutyCycle(HopperState.STOP.dutyCycle);
+        hopper.setDutyCycle(HopperState.STOP.dutyCycle);
         CommandScheduler.getInstance().schedule(intake.new ChangeStates(IntakeState.DOWN_OFF));
     }
 }

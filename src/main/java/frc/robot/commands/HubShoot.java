@@ -10,7 +10,6 @@ import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.intake.IntakeConstants.IntakeState;
 import frc.robot.subsystems.shooter.FeederConstants.FeederState;
 import frc.robot.subsystems.shooter.Shooter;
-import frc.robot.subsystems.shooter.ShooterConstants;
 import frc.robot.subsystems.shooter.ShooterConstants.ShooterSetpoint;
 
 public class HubShoot extends Command {
@@ -34,8 +33,8 @@ public class HubShoot extends Command {
 
     @Override
     public void initialize() {
-        shooter.setVelocity(ShooterSetpoint.FROM_HUB);
-        shooter.setPitch(ShooterSetpoint.FROM_HUB);
+        shooter.setFlywheelVelocity(ShooterSetpoint.FROM_HUB);
+        shooter.setHoodPitchComplement(ShooterSetpoint.FROM_HUB);
         CommandScheduler.getInstance().schedule(intake.new BounceIntake());
 
         timer.reset();
@@ -49,28 +48,28 @@ public class HubShoot extends Command {
         //     shooter.setFeederSpeed(FeederState.UNSTUCKFEEDER.percentage);
         //     hopper.setHopperSpeed(HopperState.STOP.percentage);
         // }
-        if (shooter.isAtPitch() && shooter.isAtVelocity()) {
+        if (shooter.isAtHoodPitch() && shooter.isAtFlywheelVelocity()) {
             feedFlag = true;
         }
         if (feedFlag) {
             //shoot the fuel if at the right pitch
             shooter.setFeederDutyCycle(FeederState.FEED.dutyCycle);
-            hopper.setHopperDutyCycle(HopperState.FEED.dutyCycle);
+            hopper.setDutyCycle(HopperState.FEED.dutyCycle);
         } else {
             //otherwise just wait
             shooter.setFeederDutyCycle(FeederState.STOP.dutyCycle);
-            hopper.setHopperDutyCycle(HopperState.STOP.dutyCycle);
+            hopper.setDutyCycle(HopperState.STOP.dutyCycle);
         }
 
-        SmartDashboard.putBoolean("isAtPitch", shooter.isAtPitch());
-        SmartDashboard.putBoolean("isAtVelocity", shooter.isAtVelocity());
+        SmartDashboard.putBoolean("isAtPitch", shooter.isAtHoodPitch());
+        SmartDashboard.putBoolean("isAtVelocity", shooter.isAtFlywheelVelocity());
     }
 
     @Override
     public void end(boolean interrupted) {
         //shooter.setSpeed(ShooterConstants.restingAngularVelocity);
-        shooter.restShooter();
-        shooter.adjustHood(ShooterConstants.HOOD_RESTING_ANGLE);
+        shooter.restFlywheel();
+        shooter.restHood();
         //shooter.setFeederSpeed(FeederState.STOP.percentage);
         //hopper.setHopperSpeed(HopperState.STOP.percentage);
         CommandScheduler.getInstance().schedule(intake.new ChangeStates(IntakeState.BOUNCE_UP));

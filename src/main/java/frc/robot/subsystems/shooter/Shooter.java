@@ -7,13 +7,10 @@ import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
-import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
-import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.InvertedValue;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.util.Units;
@@ -28,106 +25,136 @@ import frc.robot.subsystems.shooter.ShooterConstants.ShooterSetpoint;
 public class Shooter extends SubsystemBase {
 
     //all TalonFX motors on the shooter (hood and feeder are X44, shooter motors are X60 but in code all TalonFX motors (Falcon, Kraken x44 and x60) all behave the same)
-    private final TalonFX hoodMotor, feederMotor, leftBottomShooterMotor, leftTopShooterMotor, rightTopShooterMotor, rightBottomShooterMotor;
+    private final TalonFX hoodMotor, feederMotor, leftBottomFlywheelMotor, leftTopFlywheelMotor, rightTopFlywheelMotor, rightBottomFlywheelMotor;
     //this was cooked for some reason never got a chance to figure out why so instead we just set each motor individually instead of using the leader/follower system
     //private final TalonFX leaderShooterMotor;
     //the CANCoder on the hood
-    private final CANcoder hoodCanCoder;
+    private final CANcoder hoodEncoder;
 
     //Phoenix control requests
     //this allows for control systems to be run on the motor controllers (less work for roborio) because CTRE is actually good at this (unlike REV, for REV motors just use a WPILIB PID)
 
     //Motion Magic® is a CTRE control request that is a profiled PID controller that takes a max velocity, acceleration, and jerk into account for smoother motion control, works very well for pivots
-    private final MotionMagicVoltage hoodMotionMagic;
+    private final MotionMagicVoltage hoodMotionMagicVoltage;
     //velocity voltage is just a regular voltage based PID for a velocity setpoint
-    private final VelocityVoltage shooterVelocityVoltage;
+    private final VelocityVoltage flywheelVelocityVoltage;
 
     //the current manual angle setpoint in degrees
-    private double manualAngle = 5;
+    private double manualAngle = 5.0;
 
     private final Debouncer velocityDebouncer = new Debouncer(0.2, DebounceType.kBoth);
 
     public Shooter() {
         //initialize motors and CANCoder using the CANIDs in constants
-        hoodMotor = new TalonFX(ShooterConstants.HOOD_MOTOR_ID);
-        hoodCanCoder = new CANcoder(ShooterConstants.HOOD_ENCODER_ID);
-        feederMotor = new TalonFX(FeederConstants.FEEDER_MOTOR_ID);
-        leftBottomShooterMotor = new TalonFX(ShooterConstants.SHOOTER_LEFT_BOTTOM_MOTOR_ID);
-        leftTopShooterMotor = new TalonFX(ShooterConstants.SHOOTER_LEFT_TOP_MOTOR_ID);
-        rightTopShooterMotor = new TalonFX(ShooterConstants.SHOOTER_RIGHT_TOP_MOTOR_ID);
-        rightBottomShooterMotor = new TalonFX(ShooterConstants.SHOOTER_RIGHT_BOTTOM_MOTOR_ID);
-
-        //these should no longer be necessary with the other configs applied after this but i (Trevor Choy) left it in because i was worried about breaking something at comp lol
-        leftBottomShooterMotor
-            .getConfigurator()
-            .apply(new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive));
-        leftTopShooterMotor
-            .getConfigurator()
-            .apply(new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive));
+        hoodMotor = new TalonFX(HoodConstants.MOTOR_ID);
+        hoodEncoder = new CANcoder(HoodConstants.ENCODER_ID);
+        feederMotor = new TalonFX(FeederConstants.MOTOR_ID);
+        leftBottomFlywheelMotor = new TalonFX(ShooterConstants.LEFT_BOTTOM_MOTOR_ID);
+        leftTopFlywheelMotor = new TalonFX(ShooterConstants.LEFT_TOP_MOTOR_ID);
+        rightTopFlywheelMotor = new TalonFX(ShooterConstants.RIGHT_TOP_MOTOR_ID);
+        rightBottomFlywheelMotor = new TalonFX(ShooterConstants.RIGHT_BOTTOM_MOTOR_ID);
 
         //apply the configs
-        hoodCanCoder.getConfigurator().apply(ShooterConstants.CAN_CODER_CONFIG);
-        hoodMotor.getConfigurator().apply(ShooterConstants.HOOD_CONFIG);
-        leftBottomShooterMotor.getConfigurator().apply(ShooterConstants.LEFT_SHOOTER_MOTORS_CONFIG);
-        leftTopShooterMotor.getConfigurator().apply(ShooterConstants.LEFT_SHOOTER_MOTORS_CONFIG);
-        rightTopShooterMotor.getConfigurator().apply(ShooterConstants.RIGHT_SHOOTER_MOTORS_CONFIG);
-        rightBottomShooterMotor.getConfigurator().apply(ShooterConstants.RIGHT_SHOOTER_MOTORS_CONFIG);
-
-        //the feeder motor does not need much of a config so it just has its current limit config created and applied here
-        CurrentLimitsConfigs currentLimits = new CurrentLimitsConfigs()
-            .withSupplyCurrentLimit(Amps.of(20))
-            .withSupplyCurrentLimitEnable(true);
-        feederMotor.getConfigurator().apply(currentLimits);
+        hoodMotor.getConfigurator().apply(HoodConstants.MOTOR_CONFIGURATION);
+        hoodEncoder.getConfigurator().apply(HoodConstants.ENCODER_CONFIGURATION);
+        feederMotor.getConfigurator().apply(FeederConstants.MOTOR_CONFIGURATION);
+        leftBottomFlywheelMotor.getConfigurator().apply(ShooterConstants.LEFT_MOTORS_CONFIGURATION);
+        leftTopFlywheelMotor.getConfigurator().apply(ShooterConstants.LEFT_MOTORS_CONFIGURATION);
+        rightTopFlywheelMotor.getConfigurator().apply(ShooterConstants.RIGHT_MOTORS_CONFIGURATION);
+        rightBottomFlywheelMotor.getConfigurator().apply(ShooterConstants.RIGHT_MOTORS_CONFIGURATION);
 
         //initialize the control requests(the setpoints are changed later and are currently meaningless)
-        shooterVelocityVoltage = new VelocityVoltage(0);
-        hoodMotionMagic = new MotionMagicVoltage(0);
+        flywheelVelocityVoltage = new VelocityVoltage(0.0);
+        hoodMotionMagicVoltage = new MotionMagicVoltage(0.0);
 
         //set the hood to the resting position
         //when making commands for the shooter the hood should always be set back to resting position when done so the robot can go under the trench
         restHood();
         //set velocity of the shooter wheels ot the resting velocity (makes it take less time to spin up and shoot, didn't cause any brownouts at Contra Costa but could use some more testing)
-        restShooter();
+        restFlywheel();
 
         // leftTopShooterMotor.setControl(new StrictFollower(leaderShooterMotor.getDeviceID()));
         // rightTopShooterMotor.setControl(new StrictFollower(leaderShooterMotor.getDeviceID()));
         // rightBottomShooterMotor.setControl(new StrictFollower(leaderShooterMotor.getDeviceID()));
     }
 
-    /** @param deisredAngularVelocity the desired angular velocity of the motors */
-    public void setVelocity(AngularVelocity desiredAngularVelocity) {
-        //set the velocity target of the velocity voltage to the desired angular velocity
-        shooterVelocityVoltage.withVelocity(desiredAngularVelocity.in(RotationsPerSecond));
-        //leaderShooterMotor.setControl(shooterVelocityVoltage);
-        //set the control of the motors to the velocityVoltage
-        leftBottomShooterMotor.setControl(
-            shooterVelocityVoltage.withVelocity(desiredAngularVelocity.in(RotationsPerSecond))
+    @Override
+    public void periodic() {
+        //just a bunch of smartdashboard logging used for tuning
+        SmartDashboard.putNumber("hood position", Units.rotationsToDegrees(hoodMotor.getPosition().getValueAsDouble()));
+        SmartDashboard.putNumber("hood target position", hoodMotionMagicVoltage.Position);
+        SmartDashboard.putNumber("manual hood target", manualAngle);
+        SmartDashboard.putNumber("shooter velocity", getFlywheelMotorVelocity().in(RPM));
+        SmartDashboard.putNumber("shooter velocity target", flywheelVelocityVoltage.getVelocityMeasure().in(RPM));
+
+        SmartDashboard.putNumber(
+            "bottom left shooter motor current",
+            leftBottomFlywheelMotor.getSupplyCurrent().getValue().in(Amps)
         );
-        leftTopShooterMotor.setControl(
-            shooterVelocityVoltage.withVelocity(desiredAngularVelocity.in(RotationsPerSecond))
+        SmartDashboard.putNumber(
+            "top left shooter motor current",
+            leftTopFlywheelMotor.getSupplyCurrent().getValue().in(Amps)
         );
-        rightTopShooterMotor.setControl(
-            shooterVelocityVoltage.withVelocity(desiredAngularVelocity.in(RotationsPerSecond))
+        SmartDashboard.putNumber(
+            "bottom right shooter motor current",
+            rightBottomFlywheelMotor.getSupplyCurrent().getValue().in(Amps)
         );
-        rightBottomShooterMotor.setControl(
-            shooterVelocityVoltage.withVelocity(desiredAngularVelocity.in(RotationsPerSecond))
+        SmartDashboard.putNumber(
+            "top right shooter motor current",
+            rightTopFlywheelMotor.getSupplyCurrent().getValue().in(Amps)
         );
     }
 
-    public void setVelocity(ShooterSetpoint shooterSetpoint) {
-        setVelocity(shooterSetpoint.angularVelocity);
+    /** @param deisredAngularVelocity the desired angular velocity of the motors */
+    public void setFlywheelVelocity(AngularVelocity desiredAngularVelocity) {
+        //set the velocity target of the velocity voltage to the desired angular velocity
+        flywheelVelocityVoltage.withVelocity(desiredAngularVelocity.in(RotationsPerSecond));
+        //leaderShooterMotor.setControl(shooterVelocityVoltage);
+        //set the control of the motors to the velocityVoltage
+        leftBottomFlywheelMotor.setControl(
+            flywheelVelocityVoltage.withVelocity(desiredAngularVelocity.in(RotationsPerSecond))
+        );
+        leftTopFlywheelMotor.setControl(
+            flywheelVelocityVoltage.withVelocity(desiredAngularVelocity.in(RotationsPerSecond))
+        );
+        rightTopFlywheelMotor.setControl(
+            flywheelVelocityVoltage.withVelocity(desiredAngularVelocity.in(RotationsPerSecond))
+        );
+        rightBottomFlywheelMotor.setControl(
+            flywheelVelocityVoltage.withVelocity(desiredAngularVelocity.in(RotationsPerSecond))
+        );
+    }
+
+    public void setFlywheelVelocity(ShooterSetpoint shooterSetpoint) {
+        setFlywheelVelocity(shooterSetpoint.angularVelocity);
+    }
+
+    public void restFlywheel() {
+        setFlywheelVelocity(ShooterSetpoint.RESTING);
+    }
+
+    public void revFlywheel() {
+        setFlywheelVelocity(ShooterSetpoint.REV);
+    }
+
+    /** stop all shooter motors */
+    public void stopFlywheel() {
+        leftBottomFlywheelMotor.stopMotor();
+        leftTopFlywheelMotor.stopMotor();
+        rightTopFlywheelMotor.stopMotor();
+        rightBottomFlywheelMotor.stopMotor();
     }
 
     /** @return the estimated initial speed of the ball after being shot from the shooter in m/s*/
-    public double getFuelVelocity() {
-        double motorOmega = getShooterMotorVelocity().in(RadiansPerSecond);
+    public double getFuelExitVelocity() {
+        double motorOmega = getFlywheelMotorVelocity().in(RadiansPerSecond);
 
         double shooterOmega = motorOmega * ShooterConstants.ROTOR_TO_WHEEL_RATIO;
 
-        double wheelTangentialSpeed = shooterOmega * ShooterConstants.SHOOTER_WHEEL_RADIUS.in(Meters);
-        double rollerTangentialSpeed = shooterOmega * ShooterConstants.SHOOTER_ROLLER_RADIUS.in(Meters);
+        double wheelTangentialSpeed = shooterOmega * ShooterConstants.WHEEL_RADIUS.in(Meters);
+        double rollerTangentialSpeed = shooterOmega * ShooterConstants.ROLLER_RADIUS.in(Meters);
 
-        return (ShooterConstants.SHOOTER_EFFICIENCY * (wheelTangentialSpeed + rollerTangentialSpeed)) / 2.0;
+        return (ShooterConstants.FLYWHEEL_EFFICIENCY * (wheelTangentialSpeed + rollerTangentialSpeed)) / 2.0;
     }
 
     // /** @return the estimated initial speed of the ball after being shot from the shooter in m/s*/
@@ -143,60 +170,33 @@ public class Shooter extends SubsystemBase {
     // }
 
     /** @return the average angular velocity of the shooter motors measured from all 4 shooter motors*/
-    public AngularVelocity getShooterMotorVelocity() {
+    public AngularVelocity getFlywheelMotorVelocity() {
         return RadiansPerSecond.of(
-            (leftBottomShooterMotor.getVelocity().getValue().in(RadiansPerSecond) +
-                leftTopShooterMotor.getVelocity().getValue().in(RadiansPerSecond) +
-                rightTopShooterMotor.getVelocity().getValue().in(RadiansPerSecond) +
-                rightBottomShooterMotor.getVelocity().getValue().in(RadiansPerSecond)) /
+            (leftBottomFlywheelMotor.getVelocity().getValue().in(RadiansPerSecond) +
+                leftTopFlywheelMotor.getVelocity().getValue().in(RadiansPerSecond) +
+                rightTopFlywheelMotor.getVelocity().getValue().in(RadiansPerSecond) +
+                rightBottomFlywheelMotor.getVelocity().getValue().in(RadiansPerSecond)) /
                 4
         );
     }
 
     /** @return true if the shooter motors are at the target velocity (within tolerance), false otherwise*/
-    public boolean isAtVelocity() {
+    public boolean isAtFlywheelVelocity() {
         return velocityDebouncer.calculate(
-            leftBottomShooterMotor
+            leftBottomFlywheelMotor
                 .getClosedLoopReference()
                 .isNear(
-                    getShooterMotorVelocity().in(RotationsPerSecond),
-                    ShooterConstants.SHOOTER_VELOCITY_TOLERANCE.in(RotationsPerSecond)
+                    getFlywheelMotorVelocity().in(RotationsPerSecond),
+                    ShooterConstants.VELOCITY_TOLERANCE.in(RotationsPerSecond)
                 )
         );
     }
 
     /** @ return true if the hood is at the right pitch within tolerance, false otherwise */
-    public boolean isAtPitch() {
+    public boolean isAtHoodPitch() {
         return hoodMotor
             .getClosedLoopReference()
             .isNear(hoodMotor.getPosition().getValueAsDouble(), Units.degreesToRotations(2));
-    }
-
-    @Override
-    public void periodic() {
-        //just a bunch of smartdashboard logging used for tuning
-        SmartDashboard.putNumber("hood position", Units.rotationsToDegrees(hoodMotor.getPosition().getValueAsDouble()));
-        SmartDashboard.putNumber("hood target position", hoodMotionMagic.Position);
-        SmartDashboard.putNumber("manual hood target", manualAngle);
-        SmartDashboard.putNumber("shooter velocity", getShooterMotorVelocity().in(RPM));
-        SmartDashboard.putNumber("shooter velocity target", shooterVelocityVoltage.getVelocityMeasure().in(RPM));
-
-        SmartDashboard.putNumber(
-            "bottom left shooter motor current",
-            leftBottomShooterMotor.getSupplyCurrent().getValue().in(Amps)
-        );
-        SmartDashboard.putNumber(
-            "top left shooter motor current",
-            leftTopShooterMotor.getSupplyCurrent().getValue().in(Amps)
-        );
-        SmartDashboard.putNumber(
-            "bottom right shooter motor current",
-            rightBottomShooterMotor.getSupplyCurrent().getValue().in(Amps)
-        );
-        SmartDashboard.putNumber(
-            "top right shooter motor current",
-            rightTopShooterMotor.getSupplyCurrent().getValue().in(Amps)
-        );
     }
 
     /** @param dutyCycle the percentage (-1-1) of how much power is sent to the feeder motor*/
@@ -206,60 +206,44 @@ public class Shooter extends SubsystemBase {
 
     /** stops the feeder */
     public void stopFeeder() {
-        feederMotor.set(0);
+        feederMotor.stopMotor();
     }
 
-    /** @param desiredAngle set the deisred angle of the hood*/
-    public void adjustHood(Angle desiredAngle) {
+    /** @param pitch set the desired angle of the hood*/
+    public void setHoodPitch(Angle pitch) {
         //set the hood motor control to the motion magic with a desired position that is the desired angle
-        hoodMotor.setControl(hoodMotionMagic.withPosition(desiredAngle));
-    }
-
-    /** sets the desired angle of the hood to the resting angle(fits under the trench) */
-    public void restHood() {
-        adjustHood(ShooterConstants.HOOD_RESTING_ANGLE);
+        hoodMotor.setControl(hoodMotionMagicVoltage.withPosition(pitch));
     }
 
     /** @param pitch the desired launch angle of the fuel
      * adjusts the hood such to achieve the desired fuel launch angle
      */
-    public void setPitch(Angle pitch) {
+    public void setHoodPitchComplement(Angle pitch) {
         //adjusthood is in terms of shooter angle where the angle of the shooter COM with respect to the horizontal is 0, to get this from trajectory angle must get the complement of the trajectory angle
         //subtract the hood offset which is the angle between the hood COM and the final hood roller
-        adjustHood(Degrees.of(90).minus(pitch).minus(ShooterConstants.HOOD_ANGLE_OFFSET));
+        setHoodPitch(Degrees.of(90).minus(pitch).minus(HoodConstants.PITCH_OFFSET));
     }
 
-    public void setPitch(ShooterSetpoint shooterSetpoint) {
+    public void setHoodPitchComplement(ShooterSetpoint shooterSetpoint) {
         if (shooterSetpoint.pitch.isEmpty()) {
             throw new IllegalArgumentException("Shooter setpoint pitch cannot be empty");
         }
-        setPitch(shooterSetpoint.pitch.get());
+        setHoodPitchComplement(shooterSetpoint.pitch.get());
+    }
+
+    /** sets the desired angle of the hood to the resting angle(fits under the trench) */
+    public void restHood() {
+        setHoodPitch(HoodConstants.RESTING_PITCH);
     }
 
     /** @param adjustment how much to adjust by in degrees */
-    public void manualHood(double adjustment) {
+    public void adjustHoodPitch(double adjustment) {
         //make sure the hood setpoint stays within its bounded range
         double targetAngle = Math.max(5, Math.min(manualAngle + adjustment, 45));
         //store the setpoint in the manualAngle member variable
         manualAngle = targetAngle;
         //adjust the hood to the manual setpoint
-        adjustHood(Degrees.of(targetAngle));
-    }
-
-    /** stop all shooter motors */
-    public void stopShooter() {
-        leftBottomShooterMotor.stopMotor();
-        leftTopShooterMotor.stopMotor();
-        rightTopShooterMotor.stopMotor();
-        rightBottomShooterMotor.stopMotor();
-    }
-
-    public void restShooter() {
-        setVelocity(ShooterSetpoint.RESTING);
-    }
-
-    public void revShooter() {
-        setVelocity(ShooterSetpoint.REV);
+        setHoodPitch(Degrees.of(targetAngle));
     }
 
     /** A command to run the shooter motors at a given velocity */
@@ -279,13 +263,13 @@ public class Shooter extends SubsystemBase {
         public void initialize() {
             //set the shooter target velocity to the desired angular velocity
             //"Shooter.this" is not needed to use setVelocity, it can be accessed directly due to the command being a nested class of the Shooter subsystem
-            setVelocity(velocity);
+            setFlywheelVelocity(velocity);
         }
 
         @Override
         public void end(boolean interrupted) {
             //stop the shooter when the command ends
-            stopShooter();
+            stopFlywheel();
         }
     }
 

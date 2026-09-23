@@ -322,11 +322,11 @@ public class ConfigurableAuto {
             startToIntake1Traj
                 .resetOdometry()
                 .andThen(startToIntake1Traj.cmd())
-                .andThen(shooter::revShooter)
+                .andThen(shooter::revFlywheel)
                 .andThen(intake1ToShoot1Traj.cmd())
                 .andThen(new ParallelDeadlineGroup(new WaitCommand(AutoConstants.SHOOT_TIME), getAutoShoot()))
                 .andThen(shoot1ToIntake2Traj.cmd())
-                .andThen(shooter::revShooter)
+                .andThen(shooter::revFlywheel)
                 .andThen(intake2ToShoot2Traj.cmd())
                 .andThen(getAutoShoot())
         );

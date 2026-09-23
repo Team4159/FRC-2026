@@ -1,10 +1,8 @@
 package frc.robot.subsystems.intake;
 
-import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Rotations;
 
-import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
@@ -19,48 +17,27 @@ import frc.robot.subsystems.intake.IntakeConstants.IntakeState;
 
 public class Intake extends SubsystemBase {
 
-    private final TalonFX locationMotor;
-    private final TalonFX spinMotor;
-    private final CANcoder canCoder;
+    private final TalonFX pivotMotor;
+    private final TalonFX rollerMotor;
+    private final CANcoder pivotEncoder;
+
+    private final MotionMagicVoltage pivotMotionMagicVoltage;
 
     private double rollerDutyCycle;
 
-    private final MotionMagicVoltage intakeMotionMagicVoltage;
-
     public Intake() {
-        locationMotor = new TalonFX(IntakeConstants.ANGLE_MOTOR_ID);
-        spinMotor = new TalonFX(IntakeConstants.SPIN_MOTOR_ID);
-        canCoder = new CANcoder(IntakeConstants.ANGLE_ENCODER_ID);
+        pivotMotor = new TalonFX(IntakeConstants.PIVOT_MOTOR_ID);
+        rollerMotor = new TalonFX(IntakeConstants.ROLLER_MOTOR_ID);
+        pivotEncoder = new CANcoder(IntakeConstants.PIVOT_ENCODER_ID);
 
-        canCoder.getConfigurator().apply(IntakeConstants.ANGLE_CAN_CODER_CONFIG);
-        locationMotor.getConfigurator().apply(IntakeConstants.ANGLE_CONFIG);
-        setMotionMagic(IntakeConstants.ANGLE_FAST_MOTION_MAGIC_CONFIG);
+        pivotEncoder.getConfigurator().apply(IntakeConstants.PIVOT_ENCODER_CONFIGURATION);
+        setPivotMotionMagicConfiguration(IntakeConstants.PIVOT_FAST_MOTION_MAGIC_CONFIGURATION);
+        pivotMotor.getConfigurator().apply(IntakeConstants.PIVOT_MOTOR_CONFIGURATION);
+        rollerMotor.getConfigurator().apply(IntakeConstants.ROLLER_MOTOR_CONFIGURATION);
 
-        intakeMotionMagicVoltage = new MotionMagicVoltage(0);
-        setLocation(IntakeState.DOWN_OFF.angleLocation);
-
-        CurrentLimitsConfigs rollerCurrentLimits = new CurrentLimitsConfigs()
-            .withSupplyCurrentLimit(Amps.of(20))
-            .withSupplyCurrentLimitEnable(true);
-        spinMotor.getConfigurator().apply(rollerCurrentLimits);
-
+        pivotMotionMagicVoltage = new MotionMagicVoltage(0.0);
+        setPivotAngle(IntakeState.DOWN_OFF.pivotAngle);
         rollerDutyCycle = 0.0;
-    }
-
-    public void setMotionMagic(MotionMagicConfigs motionMagicConfigs) {
-        locationMotor.getConfigurator().apply(IntakeConstants.ANGLE_CONFIG.withMotionMagic(motionMagicConfigs));
-    }
-
-    public void setSpinDutyCycle(double dutyCycle) {
-        spinMotor.set(dutyCycle);
-    }
-
-    public void setLocation(Angle angle) {
-        locationMotor.setControl(intakeMotionMagicVoltage.withPosition(angle));
-    }
-
-    private Angle getPivotAngle() {
-        return Rotations.of(locationMotor.getPosition().getValueAsDouble());
     }
 
     @Override
@@ -68,14 +45,32 @@ public class Intake extends SubsystemBase {
         SmartDashboard.putNumber("intake angle", getPivotAngle().in(Degrees));
         SmartDashboard.putNumber(
             "intake pid error",
-            Units.rotationsToDegrees(locationMotor.getClosedLoopError().getValueAsDouble())
+            Units.rotationsToDegrees(pivotMotor.getClosedLoopError().getValueAsDouble())
         );
 
-        if (getPivotAngle().in(Degrees) < 15) {
-            setSpinDutyCycle(rollerDutyCycle);
+        if (getPivotAngle().in(Degrees) < 15.0) {
+            setRollerDutyCycle(rollerDutyCycle);
         } else {
-            setSpinDutyCycle(0);
+            setRollerDutyCycle(0.0);
         }
+    }
+
+    public void setPivotMotionMagicConfiguration(MotionMagicConfigs motionMagicConfigs) {
+        pivotMotor
+            .getConfigurator()
+            .apply(IntakeConstants.PIVOT_MOTOR_CONFIGURATION.withMotionMagic(motionMagicConfigs));
+    }
+
+    public void setPivotAngle(Angle angle) {
+        pivotMotor.setControl(pivotMotionMagicVoltage.withPosition(angle));
+    }
+
+    private Angle getPivotAngle() {
+        return Rotations.of(pivotMotor.getPosition().getValueAsDouble());
+    }
+
+    public void setRollerDutyCycle(double dutyCycle) {
+        rollerMotor.set(dutyCycle);
     }
 
     public class ChangeStates extends Command {
@@ -89,14 +84,14 @@ public class Intake extends SubsystemBase {
 
         @Override
         public void initialize() {
-            rollerDutyCycle = state.spinDutyCycle;
-            setLocation(state.angleLocation);
+            rollerDutyCycle = state.rollerDutyCycle;
+            setPivotAngle(state.pivotAngle);
         }
 
         @Override
         public void end(boolean interrupt) {
-            Intake.this.setSpinDutyCycle(IntakeState.UP_OFF.spinDutyCycle);
-            rollerDutyCycle = 0;
+            Intake.this.setRollerDutyCycle(IntakeState.UP_OFF.rollerDutyCycle);
+            rollerDutyCycle = 0.0;
         }
     }
 
@@ -108,19 +103,20 @@ public class Intake extends SubsystemBase {
 
         @Override
         public void initialize() {
-            setMotionMagic(IntakeConstants.ANGLE_SLOW_MOTION_MAGIC_CONFIG);
-            setLocation(IntakeState.UP_OFF.angleLocation);
+            setPivotMotionMagicConfiguration(IntakeConstants.PIVOT_SLOW_MOTION_MAGIC_CONFIGURATION);
+            setPivotAngle(IntakeState.UP_OFF.pivotAngle);
         }
 
         @Override
         public void end(boolean interrupted) {
-            setMotionMagic(IntakeConstants.ANGLE_FAST_MOTION_MAGIC_CONFIG);
+            setPivotMotionMagicConfiguration(IntakeConstants.PIVOT_FAST_MOTION_MAGIC_CONFIGURATION);
         }
     }
 
     public class BounceIntake extends Command {
 
         private final Timer timer;
+
         private IntakeState state;
 
         public BounceIntake() {
@@ -130,7 +126,7 @@ public class Intake extends SubsystemBase {
 
         @Override
         public void initialize() {
-            setLocation(IntakeState.BOUNCE_UP.angleLocation);
+            setPivotAngle(IntakeState.BOUNCE_UP.pivotAngle);
             state = IntakeState.BOUNCE_UP;
             timer.start();
             timer.reset();
@@ -142,11 +138,11 @@ public class Intake extends SubsystemBase {
             // System.out.println(alternate);
             // System.out.println(timer.get());
             if (state == IntakeState.DOWN_OFF && alternate) {
-                setLocation(IntakeState.BOUNCE_UP.angleLocation);
+                setPivotAngle(IntakeState.BOUNCE_UP.pivotAngle);
                 state = IntakeState.BOUNCE_UP;
                 timer.reset();
             } else if (state == IntakeState.BOUNCE_UP && alternate) {
-                setLocation(IntakeState.DOWN_OFF.angleLocation);
+                setPivotAngle(IntakeState.DOWN_OFF.pivotAngle);
                 state = IntakeState.DOWN_OFF;
                 timer.reset();
             }
@@ -154,11 +150,11 @@ public class Intake extends SubsystemBase {
 
         @Override
         public void end(boolean interrupted) {
-            setLocation(IntakeState.BOUNCE_UP.angleLocation);
+            setPivotAngle(IntakeState.BOUNCE_UP.pivotAngle);
         }
 
         private boolean isNear(IntakeState state) {
-            return getPivotAngle().isNear(state.angleLocation, Degrees.of(5));
+            return getPivotAngle().isNear(state.pivotAngle, Degrees.of(5));
         }
     }
 }
