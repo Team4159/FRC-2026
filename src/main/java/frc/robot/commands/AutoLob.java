@@ -102,7 +102,7 @@ public class AutoLob extends Command {
 
         timeOffset = MathSharedStore.getTimestamp();
 
-        shooter.setFlywheelVelocity(ShooterSetpoint.LOB);
+        shooter.setFlywheelMotorVelocity(ShooterSetpoint.LOB);
 
         timer.reset();
     }

@@ -33,7 +33,7 @@ public class TowerShoot extends Command {
 
     @Override
     public void initialize() {
-        shooter.setFlywheelVelocity(ShooterSetpoint.FROM_TOWER);
+        shooter.setFlywheelMotorVelocity(ShooterSetpoint.FROM_TOWER);
         shooter.setHoodPitchComplement(ShooterSetpoint.FROM_TOWER);
         CommandScheduler.getInstance().schedule(intake.new BounceIntake());
 

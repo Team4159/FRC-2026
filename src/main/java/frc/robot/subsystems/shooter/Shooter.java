@@ -125,16 +125,16 @@ public class Shooter extends SubsystemBase {
         );
     }
 
-    public void setFlywheelVelocity(ShooterSetpoint shooterSetpoint) {
+    public void setFlywheelMotorVelocity(ShooterSetpoint shooterSetpoint) {
         setFlywheelVelocity(shooterSetpoint.angularVelocity);
     }
 
     public void restFlywheel() {
-        setFlywheelVelocity(ShooterSetpoint.RESTING);
+        setFlywheelMotorVelocity(ShooterSetpoint.RESTING);
     }
 
     public void revFlywheel() {
-        setFlywheelVelocity(ShooterSetpoint.REV);
+        setFlywheelMotorVelocity(ShooterSetpoint.REV);
     }
 
     /** stop all shooter motors */

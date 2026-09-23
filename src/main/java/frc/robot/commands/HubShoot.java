@@ -33,7 +33,7 @@ public class HubShoot extends Command {
 
     @Override
     public void initialize() {
-        shooter.setFlywheelVelocity(ShooterSetpoint.FROM_HUB);
+        shooter.setFlywheelMotorVelocity(ShooterSetpoint.FROM_HUB);
         shooter.setHoodPitchComplement(ShooterSetpoint.FROM_HUB);
         CommandScheduler.getInstance().schedule(intake.new BounceIntake());
 
