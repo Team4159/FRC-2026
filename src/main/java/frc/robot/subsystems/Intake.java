@@ -41,7 +41,7 @@ public class Intake extends SubsystemBase {
         setLocation(IntakeState.DOWN_OFF.angleLocation);
 
         CurrentLimitsConfigs rollerCurrentLimits = new CurrentLimitsConfigs()
-            .withSupplyCurrentLimit(Amps.of(20))
+            .withSupplyCurrentLimit(Amps.of(40))
             .withSupplyCurrentLimitEnable(true);
         spinMotor.getConfigurator().apply(rollerCurrentLimits);
 
