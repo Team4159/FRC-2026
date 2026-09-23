@@ -66,7 +66,7 @@ public class IntakeConstants {
 
     public static final TalonFXConfiguration ROLLER_MOTOR_CONFIGURATION = new TalonFXConfiguration() {
         {
-            CurrentLimits.withSupplyCurrentLimitEnable(true).withSupplyCurrentLimit(Amps.of(20.0));
+            CurrentLimits.withSupplyCurrentLimitEnable(true).withSupplyCurrentLimit(Amps.of(40.0));
         }
     };
 

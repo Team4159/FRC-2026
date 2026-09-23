@@ -33,8 +33,6 @@ import frc.lib.AllianceUtil;
 import frc.lib.PoseUtil;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.commands.AutoShoot;
-import frc.robot.generated.CommandSwerveDrivetrain;
-import frc.robot.generated.TunerConstants;
 import frc.robot.operator.OperatorConstants;
 import frc.robot.operator.OperatorConstants.DriveFlag;
 import frc.robot.operator.OperatorConstants.DriveMode;

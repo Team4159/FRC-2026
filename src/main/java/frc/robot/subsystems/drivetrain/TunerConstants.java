@@ -1,4 +1,4 @@
-package frc.robot.generated;
+package frc.robot.subsystems.drivetrain;
 
 import static edu.wpi.first.units.Units.*;
 
@@ -64,11 +64,7 @@ public class TunerConstants {
     // Some configs will be overwritten; check the `with*InitialConfigs()` API
     // documentation.
     private static final TalonFXConfiguration driveInitialConfigs = new TalonFXConfiguration().withCurrentLimits(
-        new CurrentLimitsConfigs()
-            .withSupplyCurrentLimit(Amps.of(35))
-            .withSupplyCurrentLimitEnable(true)
-            .withStatorCurrentLimit(Amps.of(35))
-            .withStatorCurrentLimitEnable(true)
+        new CurrentLimitsConfigs().withSupplyCurrentLimit(Amps.of(35)).withSupplyCurrentLimitEnable(true)
     );
     private static final TalonFXConfiguration steerInitialConfigs = new TalonFXConfiguration().withCurrentLimits(
         new CurrentLimitsConfigs()
