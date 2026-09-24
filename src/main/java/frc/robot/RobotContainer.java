@@ -88,11 +88,11 @@ public class RobotContainer {
         // teleop mode
         operatorModality
             .slowMode()
-            .and(DriverStation::isTeleop)
+            .and(DriverStation::isTeleopEnabled)
             .whileTrue(drivetrain.new DriveFlagToggler(DriveFlag.SLOW_MODE));
         operatorModality
             .driverAssist()
-            .and(DriverStation::isTeleop)
+            .and(DriverStation::isTeleopEnabled)
             .onTrue(
                 Commands.runOnce(() -> {
                     HIDRumble.rumble(operatorModality.getHID(), new RumbleRequest(RumbleType.kLeftRumble, 0.5, 0.25));
@@ -104,28 +104,28 @@ public class RobotContainer {
             );
         operatorModality
             .autoShoot()
-            .and(DriverStation::isTeleop)
+            .and(DriverStation::isTeleopEnabled)
             .and(() -> PoseUtil.isPoseBehindAllianceTrenches(AllianceUtil.getAlliance(), drivetrain.getState().Pose))
             .whileTrue(
                 new AutoShoot(drivetrain, shooter, hopper, intake, false, Optional.of(operatorModality.getHID()))
             );
         operatorModality
             .hubShoot()
-            .and(DriverStation::isTeleop)
+            .and(DriverStation::isTeleopEnabled)
             .whileTrue(new HubShoot(shooter, intake, hopper));
         operatorModality
             .towerShoot()
-            .and(DriverStation::isTeleop)
+            .and(DriverStation::isTeleopEnabled)
             .whileTrue(new TowerShoot(shooter, intake, hopper));
         operatorModality
             .autoLob()
-            .and(DriverStation::isTeleop)
+            .and(DriverStation::isTeleopEnabled)
             .and(() -> !PoseUtil.isPoseBehindAllianceTrenches(AllianceUtil.getAlliance(), drivetrain.getState().Pose))
             .whileTrue(new AutoLob(drivetrain, shooter, hopper, intake, false));
 
         operatorModality
             .intake()
-            .and(DriverStation::isTeleop)
+            .and(DriverStation::isTeleopEnabled)
             .whileTrue(
                 new ParallelCommandGroup(
                     intake.new ChangeStates(IntakeState.DOWN_ON),
@@ -135,7 +135,7 @@ public class RobotContainer {
         // ChangeStates(IntakeState.BOUNCE_UP));
         operatorModality
             .outtake()
-            .and(DriverStation::isTeleop)
+            .and(DriverStation::isTeleopEnabled)
             .whileTrue(
                 new ParallelCommandGroup(
                     intake.new ChangeStates(IntakeState.DOWN_REVERSE),
@@ -145,7 +145,7 @@ public class RobotContainer {
             );
         operatorModality
             .retractIntake()
-            .and(DriverStation::isTeleop)
+            .and(DriverStation::isTeleopEnabled)
             .onTrue(
                 new ParallelCommandGroup(
                     intake.new ChangeStates(IntakeState.UP_OFF),
