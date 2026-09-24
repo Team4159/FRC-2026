@@ -68,7 +68,7 @@ public class TowerShoot extends Command {
     @Override
     public void end(boolean interrupted) {
         //shooter.setSpeed(ShooterConstants.restingAngularVelocity);
-        shooter.restFlywheel();
+        shooter.stopFlywheel();
         shooter.restHood();
         //shooter.setFeederSpeed(FeederState.STOP.percentage);
         //hopper.setHopperSpeed(HopperState.STOP.percentage);

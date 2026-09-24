@@ -441,7 +441,7 @@ public class AutoShoot extends Command {
     @Override
     public void end(boolean interrupted) {
         shooter.restHood();
-        shooter.restFlywheel();
+        shooter.stopFlywheel();
         shooter.setFeederDutyCycle(FeederState.STOP.dutyCycle);
         hopper.setDutyCycle(HopperState.STOP.dutyCycle);
         CommandScheduler.getInstance().schedule(intake.new ChangeStates(IntakeState.DOWN_OFF));

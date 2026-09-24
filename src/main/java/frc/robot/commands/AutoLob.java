@@ -335,7 +335,7 @@ public class AutoLob extends Command {
     public void end(boolean interrupted) {
         shooter.restHood();
         //shooter.setSpeed(ShooterConstants.restingAngularVelocity);
-        shooter.restFlywheel();
+        shooter.stopFlywheel();
         shooter.setFeederDutyCycle(FeederState.STOP.dutyCycle);
         hopper.setDutyCycle(HopperState.STOP.dutyCycle);
         CommandScheduler.getInstance().schedule(intake.new ChangeStates(IntakeState.BOUNCE_UP));

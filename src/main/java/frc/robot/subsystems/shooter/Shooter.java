@@ -39,12 +39,7 @@ public class Shooter extends SubsystemBase {
         //set the hood to the resting position
         //when making commands for the shooter the hood should always be set back to resting position when done so the robot can go under the trench
         restHood();
-        //set velocity of the shooter wheels ot the resting velocity (makes it take less time to spin up and shoot, didn't cause any brownouts at Contra Costa but could use some more testing)
-        restFlywheel();
-
-        // leftTopShooterMotor.setControl(new StrictFollower(leaderShooterMotor.getDeviceID()));
-        // rightTopShooterMotor.setControl(new StrictFollower(leaderShooterMotor.getDeviceID()));
-        // rightBottomShooterMotor.setControl(new StrictFollower(leaderShooterMotor.getDeviceID()));
+        stopFlywheel();
     }
 
     @Override
