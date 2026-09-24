@@ -288,7 +288,7 @@ public final class Constants {
         /** Hood encoder CAN ID */
         public static final int HOOD_ENCODER_ID = 2;
         public static final Angle HOOD_ENCODER_OFFSET = Degrees.of(-242.65);
-        public static final double HOOD_SENSOR_TO_MECHANISM_RATIO = 34 / 16; // evaluates to 2 instead of 2.125 but the lookup table is based off 2 so not changing
+        public static final double HOOD_SENSOR_TO_MECHANISM_RATIO = 34.0 / 16.0; // evaluates to 2 instead of 2.125 but the lookup table is based off 2 so not changing
         /** ratio from the motor to the sensor (WCP throughbore encoder) */
         public static final double HOOD_ROTOR_TO_SENSOR_RATIO = 125;
 
@@ -403,7 +403,7 @@ public final class Constants {
             REV(RPM.of(1000.0)),
             LOB(RPM.of(2000.0)),
             FROM_HUB(RPM.of(2500.0), Degrees.of(75.0)),
-            FROM_TOWER(RPM.of(3000.0), Degrees.of(70.0));
+            FROM_TOWER(RPM.of(2200.0), Degrees.of(70.0));
 
             public final AngularVelocity angularVelocity;
             public final Optional<Angle> pitch;
@@ -429,7 +429,7 @@ public final class Constants {
         public static final double ROTOR_TO_WHEEL_RATIO = 1.0;
         public static final double ROTOR_TO_ROLLER_RATIO = 7.0 / 6.0;
 
-        public static AngularVelocity SHOOTER_VELOCITY_TOLERANCE = RPM.of(100.0);
+        public static AngularVelocity SHOOTER_VELOCITY_TOLERANCE = RPM.of(50.0);
         public static Angle HOOD_MAX_PITCH = Degrees.of(85.0);
 
         // robot relative shooter offset
@@ -722,6 +722,7 @@ public final class Constants {
         public static final Distance MAX_DISTANCE = Meters.of(4.5);
 
         // stores desired motor angular velocity and shooter efficiency based on position
+        private static final double offset = 0.3;
         public static final Map<Distance, LookupTablePoint> JOE_LOOKUP_TABLE = Map.ofEntries(
             //non-continuous feeding
             // Map.entry(Meters.of(1),   new LookupTablePoint(RPM.of(2000), 0.93)),
@@ -741,14 +742,14 @@ public final class Constants {
             // Map.entry(Meters.of(3.5), new LookupTablePoint(RPM.of(2300), 0.97)),
             // Map.entry(Meters.of(4),   new LookupTablePoint(RPM.of(2500), 0.90)),
             // Map.entry(Meters.of(4.5), new LookupTablePoint(RPM.of(2700), 0.85))
-            // Map.entry(Meters.of(1),   new LookupTablePoint(RPM.of(1800), 0.92)),
-            // Map.entry(Meters.of(1.5), new LookupTablePoint(RPM.of(1900), 0.90)),
-            // Map.entry(Meters.of(2),   new LookupTablePoint(RPM.of(2000), 0.88)),
-            // Map.entry(Meters.of(2.5), new LookupTablePoint(RPM.of(2100), 0.85)),
-            // Map.entry(Meters.of(3),   new LookupTablePoint(RPM.of(2200), 0.80)),
-            // Map.entry(Meters.of(3.5), new LookupTablePoint(RPM.of(2300), 0.78)),
-            // Map.entry(Meters.of(4),   new LookupTablePoint(RPM.of(2500), 0.73)),
-            // Map.entry(Meters.of(4.5), new LookupTablePoint(RPM.of(2700), 0.70))
+            Map.entry(Meters.of(1),   new LookupTablePoint(RPM.of(1800), offset + 0.92)),
+            Map.entry(Meters.of(1.5), new LookupTablePoint(RPM.of(1900), offset + 0.90)),
+            Map.entry(Meters.of(2),   new LookupTablePoint(RPM.of(2000), offset + 0.88)),
+            Map.entry(Meters.of(2.5), new LookupTablePoint(RPM.of(2100), offset+ 0.85)),
+            Map.entry(Meters.of(3),   new LookupTablePoint(RPM.of(2200), offset + 0.80)),
+            Map.entry(Meters.of(3.5), new LookupTablePoint(RPM.of(2300), offset + 0.78)),
+            Map.entry(Meters.of(4),   new LookupTablePoint(RPM.of(2500), offset + 0.73)),
+            Map.entry(Meters.of(4.5), new LookupTablePoint(RPM.of(2700), offset + 0.70))
             // Map.entry(Meters.of(1), new LookupTablePoint(RPM.of(1800), 1.20)), //1
             // Map.entry(Meters.of(1.5), new LookupTablePoint(RPM.of(1900), 1.20)),
             // Map.entry(Meters.of(2), new LookupTablePoint(RPM.of(2000), 1.15)), //2
@@ -757,14 +758,15 @@ public final class Constants {
             // Map.entry(Meters.of(3.5), new LookupTablePoint(RPM.of(2300), 0.95)),
             // Map.entry(Meters.of(4), new LookupTablePoint(RPM.of(2500), 0.90)),
             // Map.entry(Meters.of(4.5), new LookupTablePoint(RPM.of(2700), 0.85))
-            Map.entry(Meters.of(1.0), new LookupTablePoint(RPM.of(1800), 1.1)),
-            Map.entry(Meters.of(1.5), new LookupTablePoint(RPM.of(1900), 1.05)),
-            Map.entry(Meters.of(2.0), new LookupTablePoint(RPM.of(2000), 1.025)),
-            Map.entry(Meters.of(2.5), new LookupTablePoint(RPM.of(2100), 1)),
-            Map.entry(Meters.of(3.0), new LookupTablePoint(RPM.of(2200), 1)),
-            Map.entry(Meters.of(3.5), new LookupTablePoint(RPM.of(2300), 0.97)),
-            Map.entry(Meters.of(4.0), new LookupTablePoint(RPM.of(2500), 0.90)),
-            Map.entry(Meters.of(4.5), new LookupTablePoint(RPM.of(2700), 0.85))
+
+            // Map.entry(Meters.of(1.0), new LookupTablePoint(RPM.of(1800), 1.1)),
+            // Map.entry(Meters.of(1.5), new LookupTablePoint(RPM.of(1900), 1.05)),
+            // Map.entry(Meters.of(2.0), new LookupTablePoint(RPM.of(2000), 1.025)),
+            // Map.entry(Meters.of(2.5), new LookupTablePoint(RPM.of(2100), 1)),
+            // Map.entry(Meters.of(3.0), new LookupTablePoint(RPM.of(2200), 1)),
+            // Map.entry(Meters.of(3.5), new LookupTablePoint(RPM.of(2300), 0.97)),
+            // Map.entry(Meters.of(4.0), new LookupTablePoint(RPM.of(2500), 0.90)),
+            // Map.entry(Meters.of(4.5), new LookupTablePoint(RPM.of(2700), 0.85))
         );
     }
 }

@@ -443,7 +443,7 @@ public class AutoShoot extends Command {
     @Override
     public void end(boolean interrupted) {
         shooter.adjustHood(ShooterConstants.HOOD_RESTING_ANGLE);
-        shooter.restShooter();
+        shooter.stopShooter();
         shooter.setFeederDutyCycle(FeederState.STOP.dutyCycle);
         hopper.setHopperDutyCycle(HopperState.STOP.dutyCycle);
         CommandScheduler.getInstance().schedule(intake.new ChangeStates(IntakeState.DOWN_OFF));

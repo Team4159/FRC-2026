@@ -157,21 +157,12 @@ public class Shooter extends SubsystemBase {
 
     /** @return true if the shooter motors are at the target velocity (within tolerance), false otherwise*/
     public boolean isAtVelocity() {
-        return velocityDebouncer.calculate(
-            leftBottomShooterMotor
-                .getClosedLoopReference()
-                .isNear(
-                    getShooterMotorVelocity().in(RotationsPerSecond),
-                    ShooterConstants.SHOOTER_VELOCITY_TOLERANCE.in(RotationsPerSecond)
-                )
-        );
+        return getShooterMotorVelocity().isNear(shooterVelocityVoltage.getVelocityMeasure(), ShooterConstants.SHOOTER_VELOCITY_TOLERANCE);
     }
 
     /** @ return true if the hood is at the right pitch within tolerance, false otherwise */
     public boolean isAtPitch() {
-        return hoodMotor
-            .getClosedLoopReference()
-            .isNear(hoodMotor.getPosition().getValueAsDouble(), Units.degreesToRotations(2));
+        return hoodMotor.getPosition().getValue().isNear(hoodMotionMagic.getPositionMeasure(), Degrees.of(2));
     }
 
     @Override

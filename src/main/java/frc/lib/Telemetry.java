@@ -276,6 +276,7 @@ public class Telemetry {
     }
 
     private void logData() {
+    
         batteryVoltagePublisher.set(RobotController.getBatteryVoltage());
 
         totalEnergyPublisher.set(
