@@ -1,8 +1,5 @@
 package frc.robot.subsystems.drivetrain;
 
-import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.Meters;
-import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
 import static frc.robot.operator.OperatorConstants.*;
 import static frc.robot.subsystems.drivetrain.DrivetrainConstants.*;
 
@@ -13,34 +10,18 @@ import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.ctre.phoenix6.swerve.SwerveRequest.ForwardPerspectiveValue;
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.Vector;
-import edu.wpi.first.math.filter.LinearFilter;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.numbers.N2;
-import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.measure.Distance;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.AllianceUtil;
-import frc.lib.PoseUtil;
-import frc.robot.Constants.FieldConstants;
 import frc.robot.commands.AutoShoot;
-import frc.robot.operator.OperatorConstants;
 import frc.robot.operator.OperatorConstants.DriveFlag;
-import frc.robot.operator.OperatorConstants.DriveMode;
 import frc.robot.operator.OperatorModality;
-import frc.robot.subsystems.hopper.HopperConstants;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Supplier;
 
 public class Drivetrain extends CommandSwerveDrivetrain {
@@ -48,17 +29,8 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     public final SwerveRequest.FieldCentric fieldCentricDrive = new SwerveRequest.FieldCentric()
         .withForwardPerspective(ForwardPerspectiveValue.BlueAlliance)
         .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
-    public final SwerveRequest.RobotCentric robotCentricDrive = new SwerveRequest.RobotCentric().withDriveRequestType(
-        DriveRequestType.OpenLoopVoltage
-    );
     public final SwerveRequest.FieldCentricFacingAngle fieldCentricFacingAngleDrive =
         new SwerveRequest.FieldCentricFacingAngle()
-            .withForwardPerspective(ForwardPerspectiveValue.BlueAlliance)
-            .withDriveRequestType(DriveRequestType.Velocity)
-            .withHeadingPID(POINT_kP, POINT_kI, POINT_kD)
-            .withTargetRateFeedforward(POINT_FEED_FORWARD);
-    public final SwerveRequest.RobotCentricFacingAngle robotCentricFacingAngleDrive =
-        new SwerveRequest.RobotCentricFacingAngle()
             .withForwardPerspective(ForwardPerspectiveValue.BlueAlliance)
             .withDriveRequestType(DriveRequestType.Velocity)
             .withHeadingPID(POINT_kP, POINT_kI, POINT_kD)
@@ -73,22 +45,9 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     public final SwerveRequest.PointWheelsAt pointDrive = new SwerveRequest.PointWheelsAt();
     public final SwerveRequest.Idle idleDrive = new SwerveRequest.Idle();
 
-    public final Trigger crashTrigger = new Trigger(this::isCrashing);
-    public final Trigger slipTrigger = new Trigger(this::isSlipping);
-    private final LinearFilter slippingBucketFilter = LinearFilter.movingAverage(25);
-
     private final Supplier<Double> inputDriveX;
     private final Supplier<Double> inputDriveY;
     private final Supplier<Double> inputRotation;
-
-    private final ChassisSpeeds estimatedRealChassisSpeeds = new ChassisSpeeds(
-        0,
-        0,
-        getPigeon2().getAngularVelocityYWorld().getValueAsDouble()
-    );
-    private final LinearFilter estimatedRealChassisSpeedXFilter = LinearFilter.movingAverage(5);
-    private final LinearFilter estimatedRealChassisSpeedYFilter = LinearFilter.movingAverage(5);
-    private Pose2d lastPose = getState().Pose;
 
     private class DriveFlagValue {
 
@@ -115,8 +74,6 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         driveFlags.put(DriveFlag.MANUAL_ALIGN, new DriveFlagValue(false));
     }
 
-    private Optional<Rotation2d> externalDesiredRotation = Optional.empty();
-
     private boolean autoPathAutoShootMode = false;
     private AutoShoot autoShootCommand;
 
@@ -131,246 +88,6 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         this.inputDriveX = () -> operatorModality.driveX();
         this.inputDriveY = () -> operatorModality.driveY();
         this.inputRotation = () -> operatorModality.rotation();
-    }
-
-    @Override
-    public void periodic() {
-        Pose2d currentPose = getState().Pose;
-        Translation2d displacement = currentPose.getTranslation().minus(lastPose.getTranslation());
-        lastPose = currentPose;
-        estimatedRealChassisSpeeds.vxMetersPerSecond = estimatedRealChassisSpeedXFilter.calculate(
-            displacement.getX() / TimedRobot.kDefaultPeriod
-        );
-        estimatedRealChassisSpeeds.vyMetersPerSecond = estimatedRealChassisSpeedYFilter.calculate(
-            displacement.getY() / TimedRobot.kDefaultPeriod
-        );
-        estimatedRealChassisSpeeds.omegaRadiansPerSecond = getPigeon2().getAngularVelocityYWorld().getValueAsDouble();
-        isSlipping();
-    }
-
-    public class Drive extends Command {
-
-        private final Supplier<SwerveRequest> driveSupplier;
-
-        public Drive(DriveMode driveMode) {
-            this.driveSupplier = getDriveSupplier(driveMode);
-            addRequirements(Drivetrain.this);
-        }
-
-        @Override
-        public void execute() {
-            setControl(driveSupplier.get());
-        }
-
-        private SwerveRequest getTeleopDrive() {
-            if (canAutoBrake()) {
-                return brakeDrive;
-            }
-
-            double maxTranslationSpeed = getMaxTranslationSpeed();
-            double maxRotationSpeed = getMaxRotationSpeed();
-            if (getDriveFlagValue(DriveFlag.SLOW_MODE) && getDriveFlagValue(DriveFlag.MANUAL_ALIGN)) {
-                maxTranslationSpeed *= ALIGN_MODE_SPEED_TRANSLATION_FACTOR;
-                maxRotationSpeed *= ALIGN_MODE_SPEED_ROTATION_FACTOR;
-            }
-
-            Translation2d inputSpeedTranslation;
-            double inputSpeedRotation = getInputRotation() * maxRotationSpeed;
-            if (getDriveFlagValue(DriveFlag.MANUAL_ALIGN)) {
-                Translation2d input = getInputTranslation(true);
-                double x = 0;
-                double y = 0;
-                if (input.getNorm() >= 0.0) {
-                    if (Math.abs(input.getAngle().getCos()) >= input.getNorm() / Math.sqrt(2)) {
-                        x = Math.signum(input.getX());
-                    } else {
-                        y = Math.signum(input.getY());
-                    }
-                }
-                inputSpeedTranslation = new Translation2d(x * maxTranslationSpeed, y * maxTranslationSpeed);
-            } else {
-                inputSpeedTranslation = getInputSpeedTranslation(true);
-            }
-
-            Optional<Rotation2d> desiredRotation = Optional.empty();
-            if (externalDesiredRotation.isPresent()) {
-                desiredRotation = Optional.of(externalDesiredRotation.get());
-            } else if (
-                getDriveFlagValue(DriveFlag.INTAKE_ASSIST) &&
-                getInputTranslation(true).getNorm() >= INTAKE_ROTATION_INPUT_DEADZONE
-            ) {
-                Angle angle;
-                int angleSign = (int) Math.signum(getInputRotation());
-                if (angleSign > 0) {
-                    angle = Degrees.of(45.0);
-                } else if (angleSign < 0) {
-                    angle = Degrees.of(-45.0);
-                } else {
-                    angle = Degrees.of(0.0);
-                }
-                desiredRotation = Optional.of(
-                    new Rotation2d(inputSpeedTranslation.getX(), inputSpeedTranslation.getY()).plus(
-                        new Rotation2d(angle)
-                    )
-                );
-            }
-
-            var assistSpeed = driveAssist();
-            var velocityY = assistSpeed.isEmpty() ? inputSpeedTranslation.getY() : assistSpeed.get().vyMetersPerSecond;
-            if (desiredRotation.isPresent()) {
-                return fieldCentricFacingAngleDrive
-                    .withVelocityX(inputSpeedTranslation.getX())
-                    .withVelocityY(velocityY)
-                    .withTargetDirection(desiredRotation.get());
-            }
-            return fieldCentricDrive
-                .withVelocityX(inputSpeedTranslation.getX())
-                .withVelocityY(velocityY)
-                .withRotationalRate(inputSpeedRotation);
-        }
-
-        private Optional<ChassisSpeeds> driveAssist() {
-            if (
-                !getDriveFlagValue(DriveFlag.DRIVE_ASSIST) ||
-                !DriverStation.isTeleop() ||
-                getDriveFlagValue(DriveFlag.MANUAL_ALIGN)
-            ) {
-                return Optional.empty();
-            }
-
-            Pose2d robotPose = getState().Pose;
-
-            // trench assist
-            var trenchZone = PoseUtil.getPoseTrenchZone(robotPose);
-            if (trenchZone.isPresent()) {
-                Translation2d trenchFocus = trenchZone.get().FOCUS;
-
-                var leftExtentDiagonal = Pair.of(
-                    new Translation2d(CHASSIS_SIZE_X.div(2).plus(HopperConstants.HOPPER_EXTENT), BUMPER_SIZE_Y.div(2)),
-                    new Translation2d(BUMPER_SIZE_X.div(-2), BUMPER_SIZE_Y.div(-2))
-                );
-                var rotatedLeftExtentDiagonal = Pair.of(
-                    leftExtentDiagonal.getFirst().rotateAround(Translation2d.kZero, robotPose.getRotation()),
-                    leftExtentDiagonal.getSecond().rotateAround(Translation2d.kZero, robotPose.getRotation())
-                );
-                var rotatedRightExtentDiagonal = Pair.of(
-                    new Translation2d(
-                        leftExtentDiagonal.getFirst().getX(),
-                        -leftExtentDiagonal.getFirst().getY()
-                    ).rotateAround(Translation2d.kZero, robotPose.getRotation()),
-                    new Translation2d(
-                        leftExtentDiagonal.getSecond().getX(),
-                        -leftExtentDiagonal.getSecond().getY()
-                    ).rotateAround(Translation2d.kZero, robotPose.getRotation())
-                );
-                double leftDiagonalVertical = Math.abs(
-                    rotatedLeftExtentDiagonal.getFirst().getY() - rotatedLeftExtentDiagonal.getSecond().getY()
-                );
-                double rightDiagonalVertical = Math.abs(
-                    rotatedRightExtentDiagonal.getFirst().getY() - rotatedRightExtentDiagonal.getSecond().getY()
-                );
-                var mostVerticalDiagonal =
-                    leftDiagonalVertical > rightDiagonalVertical
-                        ? rotatedLeftExtentDiagonal
-                        : rotatedRightExtentDiagonal;
-                Distance focusOffset = mostVerticalDiagonal
-                    .getFirst()
-                    .getMeasureY()
-                    .plus(mostVerticalDiagonal.getSecond().getMeasureY())
-                    .div(-2);
-                Translation2d alignFocus = trenchFocus.plus(new Translation2d(Meters.of(0.0), focusOffset));
-
-                Distance errorX = alignFocus.getMeasureX().minus(robotPose.getMeasureX());
-                Distance errorY = alignFocus.getMeasureY().minus(robotPose.getMeasureY());
-                Distance localErrorY =
-                    trenchFocus.getY() < FieldConstants.ALLIANCE_HEIGHT.baseUnitMagnitude() / 2
-                        ? errorY.copy()
-                        : errorY.times(-1);
-
-                boolean hasPassed = !errorX.isNear(
-                    Meters.zero(),
-                    OperatorConstants.TRENCH_ASSIST_PASS_POSITION_TOLERANCE
-                );
-                boolean isNotApproaching =
-                    Math.signum(getInputX(true)) == -Math.signum(errorX.magnitude()) ||
-                    Math.abs(getInputX(true)) <= OperatorConstants.TRENCH_ASSIST_APPROACH_INPUT_TO_TOLERANCE;
-                if (hasPassed && isNotApproaching) {
-                    return Optional.empty();
-                }
-
-                double vy =
-                    TRENCH_ASSIST_ALIGN_STRENGTH * Math.signum(errorY.magnitude()) * Math.abs(getInputVelocityX(true));
-                double influence = OperatorConstants.TRENCH_ASSIST_ALIGN_INFLUENCE * getInputVelocityY(true);
-                boolean aligned =
-                    localErrorY.baseUnitMagnitude() >=
-                        -OperatorConstants.TRENCH_ASSIST_ALIGN_POSITION_INNER_TOLERANCE.baseUnitMagnitude() &&
-                    localErrorY.baseUnitMagnitude() <=
-                        OperatorConstants.TRENCH_ASSIST_ALIGN_POSITION_OUTER_TOLERANCE.baseUnitMagnitude();
-                boolean againstAlignment = influence >= Math.abs(vy);
-                if (aligned || againstAlignment) {
-                    vy = 0.0;
-                }
-                vy += influence;
-
-                return Optional.of(new ChassisSpeeds(0.0, vy, 0.0));
-            }
-
-            return Optional.empty();
-        }
-
-        private Supplier<SwerveRequest> getDriveSupplier(DriveMode driveMode) {
-            return () ->
-                switch (driveMode) {
-                    case TELEOP -> getTeleopDrive();
-                    case BRAKE -> brakeDrive;
-                    case POINT -> pointDrive.withModuleDirection(new Rotation2d(getInputX(false), getInputY(false)));
-                    case IDLE -> idleDrive;
-                    // case RADIAL -> {
-                    // if (canAutoBrake()) {
-                    // yield brakeDrive;
-                    // }
-                    // double radialInput = MathUtil.applyDeadband(inputX.get(),
-                    // kPrimaryRadialModeDeadband, 1);
-                    // double tangentialInput = MathUtil.applyDeadband(inputY.get(),
-                    // kPrimaryRadialModeDeadband, 1);
-                    // Pose2d robotPose = getState().Pose;
-                    // Pose2d hubPose =
-                    // FieldConstants.hubLocations.get(AllianceUtil.getAlliance());
-                    // Translation2d radialVector = new Translation2d(
-                    // hubPose.getX() - robotPose.getX(),
-                    // hubPose.getY() - robotPose.getY());
-                    // if (radialVector.getNorm() <= 1e-3) {
-                    // radialVector = new Translation2d(0.0, 0.0);
-                    // } else {
-                    // radialVector = radialVector.div(radialVector.getNorm());
-                    // }
-                    // Translation2d tangentialVector = new Translation2d(
-                    // radialVector.getY(),
-                    // radialVector.getX());
-                    // double velocityX = getMaxTranslationSpeed()
-                    // * (radialInput * radialVector.getX() - tangentialInput *
-                    // tangentialVector.getX());
-                    // double velocityY = getMaxTranslationSpeed()
-                    // * (radialInput * radialVector.getY() + tangentialInput *
-                    // tangentialVector.getY());
-                    // double velocityMagnitude = Math.hypot(velocityX, velocityY);
-                    // if (velocityMagnitude > getMaxTranslationSpeed()) {
-                    // double correctingFactor = getMaxTranslationSpeed() / velocityMagnitude;
-                    // velocityX *= correctingFactor;
-                    // velocityY *= correctingFactor;
-                    // }
-                    // if (desiredRotation.isPresent()) {
-                    // yield fieldCentricFacingAngleDrive
-                    // .withVelocityX(velocityX)
-                    // .withVelocityY(velocityY)
-                    // .withTargetDirection(desiredRotation.get());
-                    // }
-                    // yield fieldCentricDrive
-                    // .withVelocityX(velocityX)
-                    // .withVelocityY(velocityY);
-                    // }
-                };
-        }
     }
 
     public class DriveFlagToggler extends Command {
@@ -392,6 +109,10 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         }
     }
 
+    public Command getDriveCommand(DriveMode driveMode) {
+        return new Drive(this, driveMode);
+    }
+
     public void setDriveFlagValue(DriveFlag driveFlag, boolean newValue) {
         driveFlags.get(driveFlag).value = newValue;
     }
@@ -406,14 +127,6 @@ public class Drivetrain extends CommandSwerveDrivetrain {
 
     public void resetDriveFlags() {
         driveFlags.forEach((key, value) -> value.reset());
-    }
-
-    public void setDesiredRotation(Rotation2d desiredRotation) {
-        this.externalDesiredRotation = Optional.of(desiredRotation);
-    }
-
-    public void clearDesiredRotation() {
-        this.externalDesiredRotation = Optional.empty();
     }
 
     public double getMaxTranslationSpeed() {
@@ -616,37 +329,8 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         return getInputTranslation(false).getNorm() == 0.0 && getInputRotation() == 0.0;
     }
 
-    public boolean isAtDesiredRotation() {
-        if (externalDesiredRotation.isEmpty()) {
-            return false;
-        }
-        return (
-            Math.abs(
-                getState().Pose.getRotation().minus(externalDesiredRotation.get()).getMeasure().baseUnitMagnitude()
-            ) < AUTO_BRAKE_REACHED_DESIRED_ANGLE_TOLERANCE.baseUnitMagnitude()
-        );
-    }
-
     public boolean canAutoBrake() {
-        boolean atDesiredRotation = externalDesiredRotation.isEmpty() ? true : isAtDesiredRotation();
-        return getDriveFlagValue(DriveFlag.AUTO_BRAKE) && isDriveIdle() && atDesiredRotation;
-    }
-
-    public boolean isCrashing() {
-        double xyAccelerationMagnitude = Math.hypot(
-            getPigeon2().getAccelerationX().getValue().in(MetersPerSecondPerSecond),
-            getPigeon2().getAccelerationY().getValue().in(MetersPerSecondPerSecond)
-        );
-        return xyAccelerationMagnitude >= 20.0;
-    }
-
-    public boolean isSlipping() {
-        double expectedSpeed = Math.hypot(getState().Speeds.vxMetersPerSecond, getState().Speeds.vyMetersPerSecond);
-        double actualSpeed = Math.hypot(
-            estimatedRealChassisSpeeds.vxMetersPerSecond,
-            estimatedRealChassisSpeeds.vyMetersPerSecond
-        );
-        return slippingBucketFilter.calculate(expectedSpeed - actualSpeed) > 2.0;
+        return getDriveFlagValue(DriveFlag.AUTO_BRAKE) && isDriveIdle();
     }
 
     private boolean isInverted() {

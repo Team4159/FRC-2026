@@ -4,19 +4,10 @@ import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Inches;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.units.measure.Distance;
 
 public class HopperConstants {
-
-    public static final int MOTOR_ID = 30;
-
-    public static final TalonFXConfiguration MOTOR_CONFIGURATION = new TalonFXConfiguration() {
-        {
-            CurrentLimits.withSupplyCurrentLimitEnable(true).withSupplyCurrentLimit(Amps.of(20.0));
-        }
-    };
-
-    public static final Distance HOPPER_EXTENT = Inches.of(12.0);
 
     public static enum HopperState {
         FEED(1.0),
@@ -28,5 +19,19 @@ public class HopperConstants {
         private HopperState(double dutyCycle) {
             this.dutyCycle = dutyCycle;
         }
+    }
+
+    public static final TalonFX MOTOR = new TalonFX(30);
+
+    public static final TalonFXConfiguration MOTOR_CONFIGURATION = new TalonFXConfiguration() {
+        {
+            CurrentLimits.withSupplyCurrentLimitEnable(true).withSupplyCurrentLimit(Amps.of(20.0));
+        }
+    };
+
+    public static final Distance HOPPER_EXTENT = Inches.of(12.0);
+
+    static {
+        MOTOR.getConfigurator().apply(MOTOR_CONFIGURATION);
     }
 }

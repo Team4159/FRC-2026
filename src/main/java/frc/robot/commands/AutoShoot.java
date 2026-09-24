@@ -37,10 +37,11 @@ import frc.robot.subsystems.hopper.HopperConstants.HopperState;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.intake.IntakeConstants.IntakeState;
 import frc.robot.subsystems.shooter.FeederConstants.FeederState;
+import frc.robot.subsystems.shooter.FlywheelConstants;
+import frc.robot.subsystems.shooter.HoodConstants;
 import frc.robot.subsystems.shooter.JoeLookupTableConstants;
 import frc.robot.subsystems.shooter.JoeLookupTableConstants.LookupTablePoint;
 import frc.robot.subsystems.shooter.Shooter;
-import frc.robot.subsystems.shooter.ShooterConstants;
 import frc.robot.subsystems.shooter.ShooterConstants.AutoShootStatus;
 import java.util.Optional;
 
@@ -329,10 +330,10 @@ public class AutoShoot extends Command {
     }
 
     private double getLaunchVelocity(AngularVelocity desiredMotorVelocity) {
-        double shooterOmega = desiredMotorVelocity.in(RadiansPerSecond) * ShooterConstants.ROTOR_TO_WHEEL_RATIO;
+        double shooterOmega = desiredMotorVelocity.in(RadiansPerSecond) * FlywheelConstants.ROTOR_TO_WHEEL_RATIO;
 
-        double wheelTangentialSpeed = shooterOmega * ShooterConstants.WHEEL_RADIUS.in(Meters);
-        double rollerTangentialSpeed = shooterOmega * ShooterConstants.ROLLER_RADIUS.in(Meters);
+        double wheelTangentialSpeed = shooterOmega * FlywheelConstants.WHEEL_RADIUS.in(Meters);
+        double rollerTangentialSpeed = shooterOmega * FlywheelConstants.ROLLER_RADIUS.in(Meters);
 
         return (efficiency * (wheelTangentialSpeed + rollerTangentialSpeed)) / 2;
     }
@@ -432,7 +433,7 @@ public class AutoShoot extends Command {
             desiredPitch = Units.degreesToRadians(45);
             autoShootStatus = AutoShootStatus.OUT_OF_RANGE;
         }
-        desiredPitch = Math.min(desiredPitch, ShooterConstants.HOOD_MAX_PITCH.in(Radians));
+        desiredPitch = Math.min(desiredPitch, HoodConstants.MAX_PITCH.in(Radians));
         SmartDashboard.putNumber("autoaim desired pitch", Units.radiansToDegrees(desiredPitch));
         return Radians.of(desiredPitch);
     }

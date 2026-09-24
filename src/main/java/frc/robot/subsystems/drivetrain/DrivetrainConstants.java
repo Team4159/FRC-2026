@@ -26,19 +26,10 @@ public class DrivetrainConstants {
     public static final double POINT_kD = 0.0;
     public static final double POINT_FEED_FORWARD = 0.0;
 
-    public static final double AIM_kP = 9;
-    public static final double AIM_kI = 0.1;
-    public static final double AIM_kD = 0.0;
-    public static final double AIM_FEED_FORWARD = 0.0;
-
-    public static final Angle AUTO_SHOOT_TOLERANCE = Degrees.of(10);
-    public static final double AUTO_SHOOT_INPUT_MULTIPLIER = 1;
-
-    public static final PhoenixPIDController AUTO_SHOOT_ROTATION_CONTROLLER = new PhoenixPIDController(
-        AIM_kP,
-        AIM_kI,
-        AIM_kD
-    );
+    public static final Angle AUTO_SHOOT_TOLERANCE = Degrees.of(10.0);
+    public static final double AUTO_SHOOT_INPUT_MULTIPLIER = 1.0;
+    public static final double AUTO_SHOOT_FEED_FORWARD = 0.0;
+    public static final PhoenixPIDController AUTO_SHOOT_ROTATION_CONTROLLER = new PhoenixPIDController(9, 0.1, 0);
 
     static {
         AUTO_SHOOT_ROTATION_CONTROLLER.enableContinuousInput(-Math.PI, Math.PI);

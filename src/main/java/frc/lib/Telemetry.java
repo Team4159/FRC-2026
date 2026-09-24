@@ -1,12 +1,7 @@
 package frc.lib;
 
-import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
-import edu.wpi.first.math.VecBuilder;
-import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.networktables.DoubleArrayPublisher;
 import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.NetworkTable;
@@ -18,11 +13,6 @@ import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
-import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
-import edu.wpi.first.wpilibj.smartdashboard.SendableBuilderImpl;
-import edu.wpi.first.wpilibj.util.Color8Bit;
-import frc.robot.subsystems.drivetrain.DrivetrainConstants;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,7 +31,6 @@ public class Telemetry {
         INTAKE_ROLLER,
     }
 
-    private final double SWERVE_MODULE_SPREAD = 0.25;
     private final double JOULES_TO_WATT_HOURS = 1.0 / 3600.0;
 
     private final PowerDistribution powerDistribution = new PowerDistribution(1, ModuleType.kRev);
@@ -97,74 +86,6 @@ public class Telemetry {
     private final StructPublisher<Pose2d> drivetrainPosePublisher = drivetrainTable
         .getStructTopic("Pose", Pose2d.struct)
         .publish();
-    private final Mechanism2d[] swerveModuleMechanisms = new Mechanism2d[] {
-        new Mechanism2d(1, 1),
-        new Mechanism2d(1, 1),
-        new Mechanism2d(1, 1),
-        new Mechanism2d(1, 1),
-    };
-    private final MechanismLigament2d[] swerveModuleVelocityTargets = new MechanismLigament2d[4];
-    private final MechanismLigament2d[] swerveModuleVelocityStates = new MechanismLigament2d[4];
-    private final MechanismLigament2d[] swerveModuleAngleTargets = new MechanismLigament2d[4];
-    private final MechanismLigament2d[] swerveModuleAngleStates = new MechanismLigament2d[4];
-
-    {
-        @SuppressWarnings("unchecked")
-        Vector<N2>[] rootPositions = new Vector[] {
-            VecBuilder.fill(0.5 - SWERVE_MODULE_SPREAD, 0.5 - SWERVE_MODULE_SPREAD),
-            VecBuilder.fill(0.5 - SWERVE_MODULE_SPREAD, 0.5 + SWERVE_MODULE_SPREAD),
-            VecBuilder.fill(0.5 + SWERVE_MODULE_SPREAD, 0.5 - SWERVE_MODULE_SPREAD),
-            VecBuilder.fill(0.5 + SWERVE_MODULE_SPREAD, 0.5 + SWERVE_MODULE_SPREAD),
-        };
-        populateLigaments(
-            swerveModuleVelocityTargets,
-            swerveModuleMechanisms,
-            rootPositions,
-            "4_VelocityTargetRoot",
-            "VelocityTarget",
-            0.0,
-            8.0,
-            new Color8Bit(71, 125, 54)
-        );
-        populateLigaments(
-            swerveModuleVelocityStates,
-            swerveModuleMechanisms,
-            rootPositions,
-            "3_VelocityStateRoot",
-            "VelocityState",
-            0.0,
-            10.0,
-            new Color8Bit(235, 137, 52)
-        );
-        populateLigaments(
-            swerveModuleAngleTargets,
-            swerveModuleMechanisms,
-            rootPositions,
-            "2_AngleTargetRoot",
-            "AngleTarget",
-            0.1,
-            2.0,
-            new Color8Bit(109, 224, 73)
-        );
-        populateLigaments(
-            swerveModuleAngleStates,
-            swerveModuleMechanisms,
-            rootPositions,
-            "1_AngleStateRoot",
-            "AngleState",
-            0.1,
-            4.0,
-            new Color8Bit(255, 255, 255)
-        );
-
-        for (int i = 0; i < swerveModuleMechanisms.length; i++) {
-            NetworkTable table = drivetrainTable.getSubTable("Swerve Module " + i);
-            SendableBuilderImpl builder = new SendableBuilderImpl();
-            builder.setTable(table);
-            builder.startListeners();
-            swerveModuleMechanisms[i].initSendable(builder);
-        }
-    }
 
     private static boolean running = false;
 
@@ -182,9 +103,6 @@ public class Telemetry {
 
         DataLogManager.start();
         DriverStation.startDataLog(DataLogManager.getLog(), true);
-
-        SignalLogger.setPath(DataLogManager.getLogDir());
-        SignalLogger.start();
     }
 
     public void update() {
@@ -293,20 +211,6 @@ public class Telemetry {
 
         if (lastDrivetrainState != null) {
             drivetrainPosePublisher.set(lastDrivetrainState.Pose);
-            for (int i = 0; i < swerveModuleMechanisms.length; i++) {
-                SwerveModuleState state = lastDrivetrainState.ModuleStates[i];
-                swerveModuleVelocityStates[i].setAngle(state.angle);
-                swerveModuleVelocityStates[i].setLength(
-                    (state.speedMetersPerSecond / DrivetrainConstants.MAX_TRANSLATION_SPEED) * SWERVE_MODULE_SPREAD
-                );
-                swerveModuleAngleStates[i].setAngle(state.angle);
-                SwerveModuleState target = lastDrivetrainState.ModuleTargets[i];
-                swerveModuleVelocityTargets[i].setAngle(target.angle);
-                swerveModuleVelocityTargets[i].setLength(
-                    (target.speedMetersPerSecond / DrivetrainConstants.MAX_TRANSLATION_SPEED) * SWERVE_MODULE_SPREAD
-                );
-                swerveModuleAngleTargets[i].setAngle(target.angle);
-            }
         }
     }
 
@@ -315,25 +219,5 @@ public class Telemetry {
             electricityCategory,
             energyBreakdown.get(electricityCategory) + incrementJoules * JOULES_TO_WATT_HOURS
         );
-    }
-
-    private void populateLigaments(
-        MechanismLigament2d[] ligamentsTarget,
-        Mechanism2d[] mechanisms,
-        Vector<N2>[] rootPositions,
-        String rootName,
-        String ligamentName,
-        double length,
-        double lineWidth,
-        Color8Bit color
-    ) {
-        if (mechanisms.length != ligamentsTarget.length || mechanisms.length != rootPositions.length) {
-            throw new IllegalArgumentException("Array lengths must be equal");
-        }
-        for (int i = 0; i < ligamentsTarget.length; i++) {
-            ligamentsTarget[i] = mechanisms[i]
-                .getRoot(rootName, rootPositions[i].get(0), rootPositions[i].get(1))
-                .append(new MechanismLigament2d(ligamentName, length, 0, lineWidth, color));
-        }
     }
 }

@@ -5,8 +5,6 @@ import static edu.wpi.first.units.Units.Rotations;
 
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
-import com.ctre.phoenix6.hardware.CANcoder;
-import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.Timer;
@@ -17,23 +15,12 @@ import frc.robot.subsystems.intake.IntakeConstants.IntakeState;
 
 public class Intake extends SubsystemBase {
 
-    private final TalonFX pivotMotor;
-    private final TalonFX rollerMotor;
-    private final CANcoder pivotEncoder;
-
     private final MotionMagicVoltage pivotMotionMagicVoltage;
 
     private double rollerDutyCycle;
 
     public Intake() {
-        pivotMotor = new TalonFX(IntakeConstants.PIVOT_MOTOR_ID);
-        rollerMotor = new TalonFX(IntakeConstants.ROLLER_MOTOR_ID);
-        pivotEncoder = new CANcoder(IntakeConstants.PIVOT_ENCODER_ID);
-
-        pivotEncoder.getConfigurator().apply(IntakeConstants.PIVOT_ENCODER_CONFIGURATION);
         setPivotMotionMagicConfiguration(IntakeConstants.PIVOT_FAST_MOTION_MAGIC_CONFIGURATION);
-        pivotMotor.getConfigurator().apply(IntakeConstants.PIVOT_MOTOR_CONFIGURATION);
-        rollerMotor.getConfigurator().apply(IntakeConstants.ROLLER_MOTOR_CONFIGURATION);
 
         pivotMotionMagicVoltage = new MotionMagicVoltage(0.0);
         setPivotAngle(IntakeState.DOWN_OFF.pivotAngle);
@@ -45,7 +32,7 @@ public class Intake extends SubsystemBase {
         SmartDashboard.putNumber("intake angle", getPivotAngle().in(Degrees));
         SmartDashboard.putNumber(
             "intake pid error",
-            Units.rotationsToDegrees(pivotMotor.getClosedLoopError().getValueAsDouble())
+            Units.rotationsToDegrees(IntakeConstants.PIVOT_MOTOR.getClosedLoopError().getValueAsDouble())
         );
 
         if (getPivotAngle().in(Degrees) < 15.0) {
@@ -56,21 +43,21 @@ public class Intake extends SubsystemBase {
     }
 
     public void setPivotMotionMagicConfiguration(MotionMagicConfigs motionMagicConfigs) {
-        pivotMotor
-            .getConfigurator()
-            .apply(IntakeConstants.PIVOT_MOTOR_CONFIGURATION.withMotionMagic(motionMagicConfigs));
+        IntakeConstants.PIVOT_MOTOR.getConfigurator().apply(
+            IntakeConstants.PIVOT_MOTOR_CONFIGURATION.withMotionMagic(motionMagicConfigs)
+        );
     }
 
     public void setPivotAngle(Angle angle) {
-        pivotMotor.setControl(pivotMotionMagicVoltage.withPosition(angle));
+        IntakeConstants.PIVOT_MOTOR.setControl(pivotMotionMagicVoltage.withPosition(angle));
     }
 
     private Angle getPivotAngle() {
-        return Rotations.of(pivotMotor.getPosition().getValueAsDouble());
+        return Rotations.of(IntakeConstants.PIVOT_MOTOR.getPosition().getValueAsDouble());
     }
 
     public void setRollerDutyCycle(double dutyCycle) {
-        rollerMotor.set(dutyCycle);
+        IntakeConstants.ROLLER_MOTOR.set(dutyCycle);
     }
 
     public class ChangeStates extends Command {

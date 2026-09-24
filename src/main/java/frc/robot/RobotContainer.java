@@ -69,14 +69,14 @@ public class RobotContainer {
 
         // drivetrain bindings
         drivetrain.registerTelemetry(telemetry::telemetrizeDrivetrain);
-        RobotModeTriggers.disabled().whileTrue(drivetrain.new Drive(DriveMode.IDLE).ignoringDisable(true));
+        RobotModeTriggers.disabled().whileTrue(drivetrain.getDriveCommand(DriveMode.IDLE).ignoringDisable(true));
 
         // call the function that configures the robot bindings
         configureBindings();
     }
 
     private void configureBindings() {
-        drivetrain.setDefaultCommand(drivetrain.new Drive(DriveMode.TELEOP));
+        drivetrain.setDefaultCommand(drivetrain.getDriveCommand(DriveMode.TELEOP));
 
         operatorModality.zero().onTrue(
             Commands.runOnce(() -> {

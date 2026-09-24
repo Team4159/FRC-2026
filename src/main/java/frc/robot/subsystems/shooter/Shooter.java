@@ -1,6 +1,5 @@
 package frc.robot.subsystems.shooter;
 
-import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.RPM;
@@ -9,10 +8,7 @@ import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
-import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
-import edu.wpi.first.math.filter.Debouncer;
-import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -23,13 +19,6 @@ import frc.robot.subsystems.shooter.FeederConstants.FeederState;
 import frc.robot.subsystems.shooter.ShooterConstants.ShooterSetpoint;
 
 public class Shooter extends SubsystemBase {
-
-    //all TalonFX motors on the shooter (hood and feeder are X44, shooter motors are X60 but in code all TalonFX motors (Falcon, Kraken x44 and x60) all behave the same)
-    private final TalonFX hoodMotor, feederMotor, leftBottomFlywheelMotor, leftTopFlywheelMotor, rightTopFlywheelMotor, rightBottomFlywheelMotor;
-    //this was cooked for some reason never got a chance to figure out why so instead we just set each motor individually instead of using the leader/follower system
-    //private final TalonFX leaderShooterMotor;
-    //the CANCoder on the hood
-    private final CANcoder hoodEncoder;
 
     //Phoenix control requests
     //this allows for control systems to be run on the motor controllers (less work for roborio) because CTRE is actually good at this (unlike REV, for REV motors just use a WPILIB PID)
@@ -42,27 +31,7 @@ public class Shooter extends SubsystemBase {
     //the current manual angle setpoint in degrees
     private double manualAngle = 5.0;
 
-    private final Debouncer velocityDebouncer = new Debouncer(0.2, DebounceType.kBoth);
-
     public Shooter() {
-        //initialize motors and CANCoder using the CANIDs in constants
-        hoodMotor = new TalonFX(HoodConstants.MOTOR_ID);
-        hoodEncoder = new CANcoder(HoodConstants.ENCODER_ID);
-        feederMotor = new TalonFX(FeederConstants.MOTOR_ID);
-        leftBottomFlywheelMotor = new TalonFX(ShooterConstants.LEFT_BOTTOM_MOTOR_ID);
-        leftTopFlywheelMotor = new TalonFX(ShooterConstants.LEFT_TOP_MOTOR_ID);
-        rightTopFlywheelMotor = new TalonFX(ShooterConstants.RIGHT_TOP_MOTOR_ID);
-        rightBottomFlywheelMotor = new TalonFX(ShooterConstants.RIGHT_BOTTOM_MOTOR_ID);
-
-        //apply the configs
-        hoodMotor.getConfigurator().apply(HoodConstants.MOTOR_CONFIGURATION);
-        hoodEncoder.getConfigurator().apply(HoodConstants.ENCODER_CONFIGURATION);
-        feederMotor.getConfigurator().apply(FeederConstants.MOTOR_CONFIGURATION);
-        leftBottomFlywheelMotor.getConfigurator().apply(ShooterConstants.LEFT_MOTORS_CONFIGURATION);
-        leftTopFlywheelMotor.getConfigurator().apply(ShooterConstants.LEFT_MOTORS_CONFIGURATION);
-        rightTopFlywheelMotor.getConfigurator().apply(ShooterConstants.RIGHT_MOTORS_CONFIGURATION);
-        rightBottomFlywheelMotor.getConfigurator().apply(ShooterConstants.RIGHT_MOTORS_CONFIGURATION);
-
         //initialize the control requests(the setpoints are changed later and are currently meaningless)
         flywheelVelocityVoltage = new VelocityVoltage(0.0);
         hoodMotionMagicVoltage = new MotionMagicVoltage(0.0);
@@ -81,48 +50,24 @@ public class Shooter extends SubsystemBase {
     @Override
     public void periodic() {
         //just a bunch of smartdashboard logging used for tuning
-        SmartDashboard.putNumber("hood position", Units.rotationsToDegrees(hoodMotor.getPosition().getValueAsDouble()));
+        SmartDashboard.putNumber(
+            "hood position",
+            Units.rotationsToDegrees(HoodConstants.MOTOR.getPosition().getValueAsDouble())
+        );
         SmartDashboard.putNumber("hood target position", hoodMotionMagicVoltage.Position);
         SmartDashboard.putNumber("manual hood target", manualAngle);
-        SmartDashboard.putNumber("shooter velocity", getFlywheelMotorVelocity().in(RPM));
+        SmartDashboard.putNumber("shooter velocity", getFlywheelMotorVelocityTarget().in(RPM));
         SmartDashboard.putNumber("shooter velocity target", flywheelVelocityVoltage.getVelocityMeasure().in(RPM));
-
-        SmartDashboard.putNumber(
-            "bottom left shooter motor current",
-            leftBottomFlywheelMotor.getSupplyCurrent().getValue().in(Amps)
-        );
-        SmartDashboard.putNumber(
-            "top left shooter motor current",
-            leftTopFlywheelMotor.getSupplyCurrent().getValue().in(Amps)
-        );
-        SmartDashboard.putNumber(
-            "bottom right shooter motor current",
-            rightBottomFlywheelMotor.getSupplyCurrent().getValue().in(Amps)
-        );
-        SmartDashboard.putNumber(
-            "top right shooter motor current",
-            rightTopFlywheelMotor.getSupplyCurrent().getValue().in(Amps)
-        );
     }
 
     /** @param deisredAngularVelocity the desired angular velocity of the motors */
     public void setFlywheelVelocity(AngularVelocity desiredAngularVelocity) {
         //set the velocity target of the velocity voltage to the desired angular velocity
         flywheelVelocityVoltage.withVelocity(desiredAngularVelocity.in(RotationsPerSecond));
-        //leaderShooterMotor.setControl(shooterVelocityVoltage);
         //set the control of the motors to the velocityVoltage
-        leftBottomFlywheelMotor.setControl(
-            flywheelVelocityVoltage.withVelocity(desiredAngularVelocity.in(RotationsPerSecond))
-        );
-        leftTopFlywheelMotor.setControl(
-            flywheelVelocityVoltage.withVelocity(desiredAngularVelocity.in(RotationsPerSecond))
-        );
-        rightTopFlywheelMotor.setControl(
-            flywheelVelocityVoltage.withVelocity(desiredAngularVelocity.in(RotationsPerSecond))
-        );
-        rightBottomFlywheelMotor.setControl(
-            flywheelVelocityVoltage.withVelocity(desiredAngularVelocity.in(RotationsPerSecond))
-        );
+        for (TalonFX flywheelMotor : FlywheelConstants.MOTORS) {
+            flywheelMotor.setControl(flywheelVelocityVoltage);
+        }
     }
 
     public void setFlywheelMotorVelocity(ShooterSetpoint shooterSetpoint) {
@@ -139,22 +84,21 @@ public class Shooter extends SubsystemBase {
 
     /** stop all shooter motors */
     public void stopFlywheel() {
-        leftBottomFlywheelMotor.stopMotor();
-        leftTopFlywheelMotor.stopMotor();
-        rightTopFlywheelMotor.stopMotor();
-        rightBottomFlywheelMotor.stopMotor();
+        for (TalonFX flywheelMotor : FlywheelConstants.MOTORS) {
+            flywheelMotor.stopMotor();
+        }
     }
 
     /** @return the estimated initial speed of the ball after being shot from the shooter in m/s*/
     public double getFuelExitVelocity() {
-        double motorOmega = getFlywheelMotorVelocity().in(RadiansPerSecond);
+        double motorOmega = getFlywheelMotorVelocityTarget().in(RadiansPerSecond);
 
-        double shooterOmega = motorOmega * ShooterConstants.ROTOR_TO_WHEEL_RATIO;
+        double shooterOmega = motorOmega * FlywheelConstants.ROTOR_TO_WHEEL_RATIO;
 
-        double wheelTangentialSpeed = shooterOmega * ShooterConstants.WHEEL_RADIUS.in(Meters);
-        double rollerTangentialSpeed = shooterOmega * ShooterConstants.ROLLER_RADIUS.in(Meters);
+        double wheelTangentialSpeed = shooterOmega * FlywheelConstants.WHEEL_RADIUS.in(Meters);
+        double rollerTangentialSpeed = shooterOmega * FlywheelConstants.ROLLER_RADIUS.in(Meters);
 
-        return (ShooterConstants.FLYWHEEL_EFFICIENCY * (wheelTangentialSpeed + rollerTangentialSpeed)) / 2.0;
+        return (FlywheelConstants.SHOOT_EFFICIENCY * (wheelTangentialSpeed + rollerTangentialSpeed)) / 2.0;
     }
 
     // /** @return the estimated initial speed of the ball after being shot from the shooter in m/s*/
@@ -170,49 +114,43 @@ public class Shooter extends SubsystemBase {
     // }
 
     /** @return the average angular velocity of the shooter motors measured from all 4 shooter motors*/
-    public AngularVelocity getFlywheelMotorVelocity() {
-        return RadiansPerSecond.of(
-            (leftBottomFlywheelMotor.getVelocity().getValue().in(RadiansPerSecond) +
-                leftTopFlywheelMotor.getVelocity().getValue().in(RadiansPerSecond) +
-                rightTopFlywheelMotor.getVelocity().getValue().in(RadiansPerSecond) +
-                rightBottomFlywheelMotor.getVelocity().getValue().in(RadiansPerSecond)) /
-                4
-        );
+    public AngularVelocity getFlywheelMotorVelocityTarget() {
+        double sum = 0.0;
+        for (TalonFX flywheelMotor : FlywheelConstants.MOTORS) {
+            sum += flywheelMotor.getVelocity().getValue().in(RadiansPerSecond);
+        }
+        return RadiansPerSecond.of(sum / FlywheelConstants.MOTORS.length);
     }
 
     /** @return true if the shooter motors are at the target velocity (within tolerance), false otherwise*/
     public boolean isAtFlywheelVelocity() {
-        return velocityDebouncer.calculate(
-            leftBottomFlywheelMotor
-                .getClosedLoopReference()
-                .isNear(
-                    getFlywheelMotorVelocity().in(RotationsPerSecond),
-                    ShooterConstants.VELOCITY_TOLERANCE.in(RotationsPerSecond)
-                )
+        return getFlywheelMotorVelocityTarget().isNear(
+            flywheelVelocityVoltage.getVelocityMeasure(),
+            FlywheelConstants.VELOCITY_TARGET_TOLERANCE
         );
     }
 
     /** @ return true if the hood is at the right pitch within tolerance, false otherwise */
     public boolean isAtHoodPitch() {
-        return hoodMotor
-            .getClosedLoopReference()
-            .isNear(hoodMotor.getPosition().getValueAsDouble(), Units.degreesToRotations(2));
+        return HoodConstants.MOTOR.getPosition()
+            .getValue()
+            .isNear(hoodMotionMagicVoltage.getPositionMeasure(), Degrees.of(2));
     }
 
     /** @param dutyCycle the percentage (-1-1) of how much power is sent to the feeder motor*/
     public void setFeederDutyCycle(double dutyCycle) {
-        feederMotor.set(dutyCycle);
+        FeederConstants.MOTOR.set(dutyCycle);
     }
 
     /** stops the feeder */
     public void stopFeeder() {
-        feederMotor.stopMotor();
+        FeederConstants.MOTOR.stopMotor();
     }
 
     /** @param pitch set the desired angle of the hood*/
     public void setHoodPitch(Angle pitch) {
         //set the hood motor control to the motion magic with a desired position that is the desired angle
-        hoodMotor.setControl(hoodMotionMagicVoltage.withPosition(pitch));
+        HoodConstants.MOTOR.setControl(hoodMotionMagicVoltage.withPosition(pitch));
     }
 
     /** @param pitch the desired launch angle of the fuel
