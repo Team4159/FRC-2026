@@ -5,6 +5,7 @@ import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
@@ -28,9 +29,6 @@ public class PhotonVision extends SubsystemBase {
     );
     private final PhotonCamera leftShooterCam, rightShooterCam;
     private final PhotonPoseEstimator leftShooterEstimator, rightShooterEstimator;
-    private final Matrix<N3, N1> kSingleTagStdDevs = PhotonVisionConstants.SINGLE_TAG_STANDARD_DEVIATION;
-    private final Matrix<N3, N1> kMultiTagStdDevs = PhotonVisionConstants.MULTI_TAG_STANDARD_DEVIATION;
-
     private final Field2d testField = new Field2d();
 
     public PhotonVision(Drivetrain drivetrain) {
@@ -49,33 +47,8 @@ public class PhotonVision extends SubsystemBase {
         );
 
         testField.setRobotPose(drivetrain.getState().Pose);
-        testField
-            .getObject("rightCam")
-            .setPose(
-                drivetrain
-                    .getState()
-                    .Pose.plus(
-                        new Transform2d(
-                            PhotonVisionConstants.RIGHT_SHOOTER_CAMERA_TRANSFORM.getX(),
-                            PhotonVisionConstants.RIGHT_SHOOTER_CAMERA_TRANSFORM.getY(),
-                            PhotonVisionConstants.RIGHT_SHOOTER_CAMERA_TRANSFORM.getRotation().toRotation2d()
-                        )
-                    )
-            );
-        testField
-            .getObject("leftCam")
-            .setPose(
-                drivetrain
-                    .getState()
-                    .Pose.plus(
-                        new Transform2d(
-                            PhotonVisionConstants.LEFT_SHOOTER_CAMERA_TRANSFORM.getX(),
-                            PhotonVisionConstants.LEFT_SHOOTER_CAMERA_TRANSFORM.getY(),
-                            PhotonVisionConstants.LEFT_SHOOTER_CAMERA_TRANSFORM.getRotation().toRotation2d()
-                        )
-                    )
-            );
-
+        addCameraToTestField("leftCam", PhotonVisionConstants.LEFT_SHOOTER_CAMERA_TRANSFORM);
+        addCameraToTestField("rightCam", PhotonVisionConstants.RIGHT_SHOOTER_CAMERA_TRANSFORM);
         SmartDashboard.putData("vision test", testField);
     }
 
@@ -83,63 +56,39 @@ public class PhotonVision extends SubsystemBase {
     public void periodic() {
         //System.out.println("running pv");
         //left camera
-        Optional<EstimatedRobotPose> leftShooterEstimate = Optional.empty();
-        //loops through all unread camera results
-        for (PhotonPipelineResult leftShooterCamResult : leftShooterCam.getAllUnreadResults()) {
-            //get pose estimate
-            leftShooterEstimate = leftShooterEstimator.estimateCoprocMultiTagPose(leftShooterCamResult);
-            //multitag no longer defaults to single tag when no others are available so we have this
-            if (!leftShooterEstimate.isPresent()) {
-                leftShooterEstimate = leftShooterEstimator.estimateLowestAmbiguityPose(leftShooterCamResult);
-            }
-            //check if estimate exists
-            if (leftShooterEstimate.isPresent() && leftShooterCamResult.getBestTarget().getPoseAmbiguity() < 0.15) {
-                //set standard deviation
-                drivetrain.setVisionMeasurementStdDevs(
-                    calculateEstimationStdDevs(
-                        leftShooterEstimate,
-                        leftShooterCamResult.targets,
-                        leftShooterEstimator,
-                        kSingleTagStdDevs,
-                        kMultiTagStdDevs
-                    )
-                );
-                //send the pose estimate to the pose estimator
-                drivetrain.addVisionMeasurement(
-                    leftShooterEstimate.get().estimatedPose.toPose2d(),
-                    leftShooterEstimate.get().timestampSeconds
-                );
-            }
-        }
+        estimate(leftShooterCam, leftShooterEstimator);
+        estimate(rightShooterCam, rightShooterEstimator);
+    }
 
-        //right camera
-        Optional<EstimatedRobotPose> rightShooterEstimate = Optional.empty();
+    private void estimate(PhotonCamera camera, PhotonPoseEstimator estimator) {
+        Optional<EstimatedRobotPose> estimate = Optional.empty();
         //loops through all unread camera results
-        for (PhotonPipelineResult rightShooterCamResult : rightShooterCam.getAllUnreadResults()) {
+        for (PhotonPipelineResult result : camera.getAllUnreadResults()) {
             //get pose estimate
-            rightShooterEstimate = rightShooterEstimator.estimateCoprocMultiTagPose(rightShooterCamResult);
+            estimate = estimator.estimateCoprocMultiTagPose(result);
             //multitag no longer defaults to single tag when no others are available so we have this
-            if (!rightShooterEstimate.isPresent()) {
-                rightShooterEstimate = rightShooterEstimator.estimateLowestAmbiguityPose(rightShooterCamResult);
+            if (!estimate.isPresent()) {
+                estimate = estimator.estimateLowestAmbiguityPose(result);
             }
             //check if estimate exists
-            if (rightShooterEstimate.isPresent() && rightShooterCamResult.getBestTarget().getPoseAmbiguity() < 0.15) {
-                //set standard deviation
-                drivetrain.setVisionMeasurementStdDevs(
-                    calculateEstimationStdDevs(
-                        rightShooterEstimate,
-                        rightShooterCamResult.targets,
-                        rightShooterEstimator,
-                        kSingleTagStdDevs,
-                        kMultiTagStdDevs
-                    )
-                );
-                //send the pose estimate to the pose estimator
-                drivetrain.addVisionMeasurement(
-                    rightShooterEstimate.get().estimatedPose.toPose2d(),
-                    rightShooterEstimate.get().timestampSeconds
-                );
+            if (!estimate.isPresent()) {
+                continue;
             }
+            if (result.getBestTarget().getPoseAmbiguity() > PhotonVisionConstants.AMBIGUITY_THRESHOLD) {
+                continue;
+            }
+            //set standard deviation
+            drivetrain.setVisionMeasurementStdDevs(
+                calculateEstimationStdDevs(
+                    estimate,
+                    result.targets,
+                    estimator,
+                    PhotonVisionConstants.SINGLE_TAG_STANDARD_DEVIATION,
+                    PhotonVisionConstants.MULTI_TAG_STANDARD_DEVIATION
+                )
+            );
+            //send the pose estimate to the pose estimator
+            drivetrain.addVisionMeasurement(estimate.get().estimatedPose.toPose2d(), estimate.get().timestampSeconds);
         }
     }
 
@@ -165,7 +114,7 @@ public class PhotonVision extends SubsystemBase {
     //     return VecBuilder.fill(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
     // }
 
-    static Matrix<N3, N1> calculateEstimationStdDevs(
+    private Matrix<N3, N1> calculateEstimationStdDevs(
         Optional<EstimatedRobotPose> estimatedPose,
         List<PhotonTrackedTarget> targets,
         PhotonPoseEstimator photonEstimator,
@@ -179,7 +128,7 @@ public class PhotonVision extends SubsystemBase {
         // Pose present. Start running Heuristic
         var estStdDevs = singleTagStdDevs;
         int numTags = 0;
-        double avgDist = 0;
+        double avgDist = 0.0;
 
         // Precalculation - see how many tags we found, and calculate an average-distance metric
         for (var tgt : targets) {
@@ -212,5 +161,17 @@ public class PhotonVision extends SubsystemBase {
             estStdDevs = estStdDevs.times(1 + (avgDist * avgDist) / 60);
         }
         return estStdDevs;
+    }
+
+    private void addCameraToTestField(String name, Transform3d transform) {
+        testField
+            .getObject(name)
+            .setPose(
+                drivetrain
+                    .getState()
+                    .Pose.plus(
+                        new Transform2d(transform.getX(), transform.getY(), transform.getRotation().toRotation2d())
+                    )
+            );
     }
 }
