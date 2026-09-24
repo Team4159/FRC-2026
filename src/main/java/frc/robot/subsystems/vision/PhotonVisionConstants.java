@@ -27,5 +27,5 @@ public class PhotonVisionConstants {
         new Rotation3d(0, Units.degreesToRadians(-30), Units.degreesToRadians(5))
     );
 
-    public static final double AMBIGUITY_THRESHOLD = 0.15;
+    public static final double POSE_AMBIGUITY_THRESHOLD = 0.15;
 }

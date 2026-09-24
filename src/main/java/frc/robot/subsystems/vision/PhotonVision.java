@@ -54,8 +54,6 @@ public class PhotonVision extends SubsystemBase {
 
     @Override
     public void periodic() {
-        //System.out.println("running pv");
-        //left camera
         estimate(leftShooterCam, leftShooterEstimator);
         estimate(rightShooterCam, rightShooterEstimator);
     }
@@ -74,7 +72,7 @@ public class PhotonVision extends SubsystemBase {
             if (!estimate.isPresent()) {
                 continue;
             }
-            if (result.getBestTarget().getPoseAmbiguity() > PhotonVisionConstants.AMBIGUITY_THRESHOLD) {
+            if (result.getBestTarget().getPoseAmbiguity() > PhotonVisionConstants.POSE_AMBIGUITY_THRESHOLD) {
                 continue;
             }
             //set standard deviation
