@@ -22,12 +22,12 @@ public class SingleXboxOperatorModality implements OperatorModality {
     }
 
     @Override
-    public double driveX() {
+    public double translateX() {
         return -xbox.getLeftY();
     }
 
     @Override
-    public double driveY() {
+    public double translateY() {
         return -xbox.getLeftX();
     }
 

@@ -20,7 +20,6 @@ import frc.lib.AllianceUtil;
 import frc.robot.commands.AutoShoot;
 import frc.robot.operator.OperatorConstants.DriveFlag;
 import frc.robot.operator.OperatorModality;
-import java.util.function.Supplier;
 
 public class Drivetrain extends CommandSwerveDrivetrain {
 
@@ -43,9 +42,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     public final SwerveRequest.PointWheelsAt pointDrive = new SwerveRequest.PointWheelsAt();
     public final SwerveRequest.Idle idleDrive = new SwerveRequest.Idle();
 
-    private final Supplier<Double> inputDriveX;
-    private final Supplier<Double> inputDriveY;
-    private final Supplier<Double> inputRotation;
+    private final OperatorModality operatorModality;
 
     private final DriveFlags driveFlags = new DriveFlags();
 
@@ -60,12 +57,10 @@ public class Drivetrain extends CommandSwerveDrivetrain {
             TunerConstants.BackLeft,
             TunerConstants.BackRight
         );
-        this.inputDriveX = () -> operatorModality.driveX();
-        this.inputDriveY = () -> operatorModality.driveY();
-        this.inputRotation = () -> operatorModality.rotation();
+        this.operatorModality = operatorModality;
     }
 
-    public Command getDriveCommand(DriveMode driveMode) {
+    public Command createDriveCommand(DriveMode driveMode) {
         return new Drive(this, driveMode);
     }
 
@@ -81,7 +76,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         return MAX_ROTATION_SPEED * (driveFlags.getValue(DriveFlag.SLOW_MODE) ? SLOW_MODE_ROTATION_FACTOR : 1);
     }
 
-    public Translation2d getInputSpeedTranslation(boolean fieldRelative) {
+    public Translation2d getInputVelocityTranslation(boolean fieldRelative) {
         return getInputTranslation(fieldRelative).times(getMaxTranslationSpeed());
     }
 
@@ -93,30 +88,10 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         return getInputY(fieldRelative) * getMaxTranslationSpeed();
     }
 
-    public double getInputSpeedRotation() {
+    public double getInputVelocityRotation() {
         return getInputRotation() * getMaxRotationSpeed();
     }
 
-    /**
-     * @return the field relative translation input (-left joystick y input,
-     *         -left
-     *         joystick x input), from magnitude range -1 to 1. no deadzone is
-     *         applied
-     */
-    public Translation2d getRawInputTranslation(boolean fieldRelative) {
-        Translation2d rawInput = new Translation2d(inputDriveX.get(), inputDriveY.get());
-        if (fieldRelative && isInverted()) {
-            rawInput = rawInput.times(-1);
-        }
-        return rawInput;
-    }
-
-    /**
-     * @return the field relative translation input (-left joystick y input,
-     *         -left
-     *         joystick x input), from magnitude range -1 to 1. a deadzone is
-     *         applied.
-     */
     public Translation2d getInputTranslation(boolean fieldRelative) {
         Translation2d rawInput = getRawInputTranslation(fieldRelative);
         Vector<N2> filteredInputVector = rawInput.toVector();
@@ -133,65 +108,43 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         }
 
         // clamp values
-        if (filteredInputVector.norm() > 1) {
+        if (filteredInputVector.norm() > 1.0) {
             filteredInputVector = filteredInputVector.div(filteredInputVector.norm());
         }
 
         return new Translation2d(filteredInputVector);
     }
 
-    /**
-     * @return the field relative x input (-left joystick y input), from range -1
-     *         to
-     *         1. a deadzone and quadratic are applied for better control.
-     */
     public double getInputX(boolean fieldRelative) {
         return getInputTranslation(fieldRelative).getX();
     }
 
-    /**
-     * @return the field relative y input (-left joystick x input), from range -1
-     *         to
-     *         1. a deadzone and quadratic are applied for better control.
-     */
     public double getInputY(boolean fieldRelative) {
         return getInputTranslation(fieldRelative).getY();
     }
 
-    /**
-     * @return the field relative rotation input (-right joystick x), from range -1
-     *         to 1. no deadzone is applied
-     */
-    public double getRawInputRotationVelocity() {
-        return inputRotation.get();
-    }
-
-    /**
-     * @return the field relative rotation input (-right joystick x), from range -1
-     *         to 1. a deadzone and quadratic are applied for better control.
-     */
     public double getInputRotation() {
-        double rawInput = getRawInputRotationVelocity();
+        double rawInput = getRawInputRotation();
         double filteredInput = MathUtil.applyDeadband(Math.abs(rawInput), PRIMARY_ROTATION_DEADBAND, 1);
         return Math.abs(Math.pow(filteredInput, PRIMARY_ROTATION_EXPONENT)) * Math.signum(rawInput);
     }
 
     /**
-     * Creates a new auto factory for this drivetrain.
-     *
-     * @return AutoFactory for this drivetrain
+     * @return {@Code true} if there is no joystick input and the desired rotation
+     *         has been reached
      */
+    public boolean isDriveIdle() {
+        return getInputTranslation(false).getNorm() == 0.0 && getInputRotation() == 0.0;
+    }
+
+    public boolean canAutoBrake() {
+        return driveFlags.getValue(DriveFlag.AUTO_BRAKE) && isDriveIdle();
+    }
+
     public AutoFactory createAutoFactory() {
         return createAutoFactory((sample, isStart) -> {});
     }
 
-    /**
-     * Creates a new auto factory for this drivetrain with the given
-     * trajectory logger.
-     *
-     * @param trajLogger Logger for the trajectory
-     * @return AutoFactory for this drivetrain
-     */
     public AutoFactory createAutoFactory(TrajectoryLogger<SwerveSample> trajLogger) {
         return new AutoFactory(() -> getState().Pose, this::resetPose, this::followPath, true, this, trajLogger);
     }
@@ -248,7 +201,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
 
     /**
      * @param autoPathAutoShootMode if true the robot will run autoaim along the auto
-     *                            trajectory
+     *                            trajectoryF
      *                            a value of true will activate the AutoAim command
      *                            and a value of false will cancel it. it will also
      *                            schedule and cancel the auto aim command object
@@ -265,16 +218,24 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         }
     }
 
-    /**
-     * @return {@Code true} if there is no joystick input and the desired rotation
-     *         has been reached
-     */
-    public boolean isDriveIdle() {
-        return getInputTranslation(false).getNorm() == 0.0 && getInputRotation() == 0.0;
+    private Translation2d getRawInputTranslation(boolean fieldRelative) {
+        Translation2d rawInput = new Translation2d(getRawInputDriveX(), getRawInputDriveY());
+        if (fieldRelative && isInverted()) {
+            rawInput = rawInput.times(-1);
+        }
+        return rawInput;
     }
 
-    public boolean canAutoBrake() {
-        return driveFlags.getValue(DriveFlag.AUTO_BRAKE) && isDriveIdle();
+    private double getRawInputDriveX() {
+        return operatorModality.translateX();
+    }
+
+    private double getRawInputDriveY() {
+        return operatorModality.translateY();
+    }
+
+    private double getRawInputRotation() {
+        return operatorModality.rotation();
     }
 
     private boolean isInverted() {

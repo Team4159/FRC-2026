@@ -3,9 +3,9 @@ package frc.robot.operator;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 public interface OperatorModality {
-    double driveX();
+    double translateX();
 
-    double driveY();
+    double translateY();
 
     double rotation();
 

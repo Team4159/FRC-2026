@@ -72,7 +72,7 @@ public class Drive extends Command {
             }
             inputSpeedTranslation = new Translation2d(x * maxTranslationSpeed, y * maxTranslationSpeed);
         } else {
-            inputSpeedTranslation = drivetrain.getInputSpeedTranslation(true);
+            inputSpeedTranslation = drivetrain.getInputVelocityTranslation(true);
         }
 
         Optional<Rotation2d> desiredRotation = Optional.empty();
