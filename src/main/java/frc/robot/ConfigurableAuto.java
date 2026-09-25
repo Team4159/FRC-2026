@@ -11,8 +11,6 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.lib.AllianceUtil;
 import frc.lib.Elastic;
 import frc.lib.PoseTrajectory;
@@ -324,7 +322,7 @@ public class ConfigurableAuto {
                 .andThen(startToIntake1Traj.cmd())
                 .andThen(shooter::revFlywheel)
                 .andThen(intake1ToShoot1Traj.cmd())
-                .andThen(new ParallelDeadlineGroup(new WaitCommand(AutoConstants.SHOOT_TIME), getAutoShoot()))
+                .andThen(Commands.deadline(Commands.waitSeconds(AutoConstants.SHOOT_TIME), getAutoShoot()))
                 .andThen(shoot1ToIntake2Traj.cmd())
                 .andThen(shooter::revFlywheel)
                 .andThen(intake2ToShoot2Traj.cmd())

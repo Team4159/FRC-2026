@@ -10,7 +10,6 @@ import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.lib.AllianceUtil;
 import frc.lib.HIDRumble;
@@ -127,7 +126,7 @@ public class RobotContainer {
             .intake()
             .and(DriverStation::isTeleopEnabled)
             .whileTrue(
-                new ParallelCommandGroup(
+                Commands.parallel(
                     intake.new ChangeStates(IntakeState.DOWN_ON),
                     hopper.new ChangeState(HopperState.FEED)
                 )
@@ -137,7 +136,7 @@ public class RobotContainer {
             .outtake()
             .and(DriverStation::isTeleopEnabled)
             .whileTrue(
-                new ParallelCommandGroup(
+                Commands.parallel(
                     intake.new ChangeStates(IntakeState.DOWN_REVERSE),
                     hopper.new ChangeState(HopperState.REVERSE),
                     shooter.new ChangeFeederState(FeederState.UNJAM)
@@ -147,7 +146,7 @@ public class RobotContainer {
             .retractIntake()
             .and(DriverStation::isTeleopEnabled)
             .onTrue(
-                new ParallelCommandGroup(
+                Commands.parallel(
                     intake.new ChangeStates(IntakeState.UP_OFF),
                     hopper.new ChangeState(HopperState.STOP),
                     shooter.new ChangeFeederState(FeederState.STOP)
