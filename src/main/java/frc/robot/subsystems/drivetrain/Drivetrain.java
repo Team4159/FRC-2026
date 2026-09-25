@@ -1,8 +1,5 @@
 package frc.robot.subsystems.drivetrain;
 
-import static frc.robot.operator.OperatorConstants.*;
-import static frc.robot.subsystems.drivetrain.DrivetrainConstants.*;
-
 import choreo.Choreo.TrajectoryLogger;
 import choreo.auto.AutoFactory;
 import choreo.trajectory.SwerveSample;
@@ -19,6 +16,8 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.lib.AllianceUtil;
 import frc.robot.commands.AutoShoot;
 import frc.robot.operator.OperatorConstants.DriveFlag;
+import frc.robot.operator.OperatorConstants.DriveMode;
+import frc.robot.operator.OperatorConstants;
 import frc.robot.operator.OperatorModality;
 
 public class Drivetrain extends CommandSwerveDrivetrain {
@@ -30,14 +29,14 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         new SwerveRequest.FieldCentricFacingAngle()
             .withForwardPerspective(ForwardPerspectiveValue.BlueAlliance)
             .withDriveRequestType(DriveRequestType.Velocity)
-            .withHeadingPID(POINT_kP, POINT_kI, POINT_kD)
-            .withTargetRateFeedforward(POINT_FEED_FORWARD);
+            .withHeadingPID(DrivetrainConstants.POINT_kP, DrivetrainConstants.POINT_kI, DrivetrainConstants.POINT_kD)
+            .withTargetRateFeedforward(DrivetrainConstants.POINT_FEED_FORWARD);
     public final SwerveRequest.FieldCentricFacingAngle trajectoryFacingAngleDrive =
         new SwerveRequest.FieldCentricFacingAngle()
             .withForwardPerspective(ForwardPerspectiveValue.BlueAlliance)
             .withDriveRequestType(DriveRequestType.Velocity)
-            .withHeadingPID(POINT_kP, POINT_kI, POINT_kD)
-            .withTargetRateFeedforward(POINT_FEED_FORWARD);
+            .withHeadingPID(DrivetrainConstants.POINT_kP, DrivetrainConstants.POINT_kI, DrivetrainConstants.POINT_kD)
+            .withTargetRateFeedforward(DrivetrainConstants.POINT_FEED_FORWARD);
     public final SwerveRequest.SwerveDriveBrake brakeDrive = new SwerveRequest.SwerveDriveBrake();
     public final SwerveRequest.PointWheelsAt pointDrive = new SwerveRequest.PointWheelsAt();
     public final SwerveRequest.Idle idleDrive = new SwerveRequest.Idle();
@@ -69,11 +68,11 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     }
 
     public double getMaxTranslationSpeed() {
-        return MAX_TRANSLATION_SPEED * (driveFlags.getValue(DriveFlag.SLOW_MODE) ? SLOW_MODE_TRANSLATION_FACTOR : 1);
+        return DrivetrainConstants.MAX_TRANSLATION_SPEED * (driveFlags.getValue(DriveFlag.SLOW_MODE) ? OperatorConstants.SLOW_MODE_TRANSLATION_FACTOR : 1);
     }
 
     public double getMaxRotationSpeed() {
-        return MAX_ROTATION_SPEED * (driveFlags.getValue(DriveFlag.SLOW_MODE) ? SLOW_MODE_ROTATION_FACTOR : 1);
+        return DrivetrainConstants.MAX_ROTATION_SPEED * (driveFlags.getValue(DriveFlag.SLOW_MODE) ? OperatorConstants.SLOW_MODE_ROTATION_FACTOR : 1);
     }
 
     public Translation2d getInputVelocityTranslation(boolean fieldRelative) {
@@ -95,16 +94,16 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     public Translation2d getInputTranslation(boolean fieldRelative) {
         Translation2d rawInput = getRawInputTranslation(fieldRelative);
         Vector<N2> filteredInputVector = rawInput.toVector();
-        filteredInputVector = MathUtil.applyDeadband(filteredInputVector, PRIMARY_TRANSLATION_DEADBAND, 1);
+        filteredInputVector = MathUtil.applyDeadband(filteredInputVector, OperatorConstants.PRIMARY_TRANSLATION_DEADBAND, 1);
 
         // apply max radius
-        filteredInputVector = filteredInputVector.div(PRIMARY_TRANSLATION_RADIUS);
+        filteredInputVector = filteredInputVector.div(OperatorConstants.PRIMARY_TRANSLATION_RADIUS);
 
         // apply exponent
         if (filteredInputVector.norm() > 0.0) {
             filteredInputVector = filteredInputVector
                 .unit()
-                .times(Math.pow(filteredInputVector.norm(), PRIMARY_TRANSLATION_EXPONENT));
+                .times(Math.pow(filteredInputVector.norm(), OperatorConstants.PRIMARY_TRANSLATION_EXPONENT));
         }
 
         // clamp values
@@ -125,8 +124,8 @@ public class Drivetrain extends CommandSwerveDrivetrain {
 
     public double getInputRotation() {
         double rawInput = getRawInputRotation();
-        double filteredInput = MathUtil.applyDeadband(Math.abs(rawInput), PRIMARY_ROTATION_DEADBAND, 1);
-        return Math.abs(Math.pow(filteredInput, PRIMARY_ROTATION_EXPONENT)) * Math.signum(rawInput);
+        double filteredInput = MathUtil.applyDeadband(Math.abs(rawInput), OperatorConstants.PRIMARY_ROTATION_DEADBAND, 1);
+        return Math.abs(Math.pow(filteredInput, OperatorConstants.PRIMARY_ROTATION_EXPONENT)) * Math.signum(rawInput);
     }
 
     /**
