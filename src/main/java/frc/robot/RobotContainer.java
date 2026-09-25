@@ -25,6 +25,7 @@ import frc.robot.operator.OperatorConstants;
 import frc.robot.operator.OperatorConstants.DriveFlag;
 import frc.robot.operator.OperatorConstants.DriveMode;
 import frc.robot.operator.SingleXboxOperatorModality;
+import frc.robot.subsystems.drivetrain.DriveFlagToggler;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 import frc.robot.subsystems.hopper.Hopper;
 import frc.robot.subsystems.hopper.HopperConstants.HopperState;
@@ -89,17 +90,16 @@ public class RobotContainer {
         operatorModality
             .slowMode()
             .and(DriverStation::isTeleopEnabled)
-            .whileTrue(drivetrain.new DriveFlagToggler(DriveFlag.SLOW_MODE));
+            .whileTrue(new DriveFlagToggler(drivetrain, DriveFlag.SLOW_MODE));
         operatorModality
             .driverAssist()
             .and(DriverStation::isTeleopEnabled)
             .onTrue(
                 Commands.runOnce(() -> {
                     HIDRumble.rumble(operatorModality.getHID(), new RumbleRequest(RumbleType.kLeftRumble, 0.5, 0.25));
-                    drivetrain.setDriveFlagValue(
-                        DriveFlag.DRIVE_ASSIST,
-                        !drivetrain.getDriveFlagValue(DriveFlag.DRIVE_ASSIST)
-                    );
+                    drivetrain
+                        .getDriveFlags()
+                        .setValue(DriveFlag.DRIVE_ASSIST, !drivetrain.getDriveFlags().getValue(DriveFlag.DRIVE_ASSIST));
                 })
             );
         operatorModality

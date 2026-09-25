@@ -49,14 +49,17 @@ public class Drive extends Command {
 
         double maxTranslationSpeed = drivetrain.getMaxTranslationSpeed();
         double maxRotationSpeed = drivetrain.getMaxRotationSpeed();
-        if (drivetrain.getDriveFlagValue(DriveFlag.SLOW_MODE) && drivetrain.getDriveFlagValue(DriveFlag.MANUAL_ALIGN)) {
+        if (
+            drivetrain.getDriveFlags().getValue(DriveFlag.SLOW_MODE) &&
+            drivetrain.getDriveFlags().getValue(DriveFlag.MANUAL_ALIGN)
+        ) {
             maxTranslationSpeed *= ALIGN_MODE_SPEED_TRANSLATION_FACTOR;
             maxRotationSpeed *= ALIGN_MODE_SPEED_ROTATION_FACTOR;
         }
 
         Translation2d inputSpeedTranslation;
         double inputSpeedRotation = drivetrain.getInputRotation() * maxRotationSpeed;
-        if (drivetrain.getDriveFlagValue(DriveFlag.MANUAL_ALIGN)) {
+        if (drivetrain.getDriveFlags().getValue(DriveFlag.MANUAL_ALIGN)) {
             Translation2d input = drivetrain.getInputTranslation(true);
             double x = 0;
             double y = 0;
@@ -74,7 +77,7 @@ public class Drive extends Command {
 
         Optional<Rotation2d> desiredRotation = Optional.empty();
         if (
-            drivetrain.getDriveFlagValue(DriveFlag.INTAKE_ASSIST) &&
+            drivetrain.getDriveFlags().getValue(DriveFlag.INTAKE_ASSIST) &&
             drivetrain.getInputTranslation(true).getNorm() >= INTAKE_ROTATION_INPUT_DEADZONE
         ) {
             Angle angle;
@@ -107,9 +110,9 @@ public class Drive extends Command {
 
     private Optional<ChassisSpeeds> driveAssist() {
         if (
-            !drivetrain.getDriveFlagValue(DriveFlag.DRIVE_ASSIST) ||
+            !drivetrain.getDriveFlags().getValue(DriveFlag.DRIVE_ASSIST) ||
             !DriverStation.isTeleop() ||
-            drivetrain.getDriveFlagValue(DriveFlag.MANUAL_ALIGN)
+            drivetrain.getDriveFlags().getValue(DriveFlag.MANUAL_ALIGN)
         ) {
             return Optional.empty();
         }

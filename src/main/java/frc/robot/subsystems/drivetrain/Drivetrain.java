@@ -20,8 +20,6 @@ import frc.lib.AllianceUtil;
 import frc.robot.commands.AutoShoot;
 import frc.robot.operator.OperatorConstants.DriveFlag;
 import frc.robot.operator.OperatorModality;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.function.Supplier;
 
 public class Drivetrain extends CommandSwerveDrivetrain {
@@ -49,30 +47,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     private final Supplier<Double> inputDriveY;
     private final Supplier<Double> inputRotation;
 
-    private class DriveFlagValue {
-
-        public final boolean defaultValue;
-        public boolean value;
-
-        public DriveFlagValue(boolean defaultValue) {
-            this.defaultValue = defaultValue;
-            this.value = defaultValue;
-        }
-
-        public void reset() {
-            value = defaultValue;
-        }
-    }
-
-    private final Map<DriveFlag, DriveFlagValue> driveFlags = new HashMap<DriveFlag, DriveFlagValue>();
-
-    {
-        driveFlags.put(DriveFlag.SLOW_MODE, new DriveFlagValue(false));
-        driveFlags.put(DriveFlag.DRIVE_ASSIST, new DriveFlagValue(true));
-        driveFlags.put(DriveFlag.AUTO_BRAKE, new DriveFlagValue(true));
-        driveFlags.put(DriveFlag.INTAKE_ASSIST, new DriveFlagValue(false));
-        driveFlags.put(DriveFlag.MANUAL_ALIGN, new DriveFlagValue(false));
-    }
+    private final DriveFlags driveFlags = new DriveFlags();
 
     private boolean autoPathAutoShootMode = false;
     private AutoShoot autoShootCommand;
@@ -90,51 +65,20 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         this.inputRotation = () -> operatorModality.rotation();
     }
 
-    public class DriveFlagToggler extends Command {
-
-        private final DriveFlag driveFlag;
-
-        public DriveFlagToggler(DriveFlag driveFlag) {
-            this.driveFlag = driveFlag;
-        }
-
-        @Override
-        public void initialize() {
-            setDriveFlagValue(driveFlag, !getDriveFlagDefaultValue(driveFlag));
-        }
-
-        @Override
-        public void end(boolean interrupted) {
-            setDriveFlagValue(driveFlag, getDriveFlagDefaultValue(driveFlag));
-        }
-    }
-
     public Command getDriveCommand(DriveMode driveMode) {
         return new Drive(this, driveMode);
     }
 
-    public void setDriveFlagValue(DriveFlag driveFlag, boolean newValue) {
-        driveFlags.get(driveFlag).value = newValue;
-    }
-
-    public boolean getDriveFlagValue(DriveFlag driveFlag) {
-        return driveFlags.get(driveFlag).value;
-    }
-
-    public boolean getDriveFlagDefaultValue(DriveFlag driveFlag) {
-        return driveFlags.get(driveFlag).defaultValue;
-    }
-
-    public void resetDriveFlags() {
-        driveFlags.forEach((key, value) -> value.reset());
+    public DriveFlags getDriveFlags() {
+        return driveFlags;
     }
 
     public double getMaxTranslationSpeed() {
-        return MAX_TRANSLATION_SPEED * (getDriveFlagValue(DriveFlag.SLOW_MODE) ? SLOW_MODE_TRANSLATION_FACTOR : 1);
+        return MAX_TRANSLATION_SPEED * (driveFlags.getValue(DriveFlag.SLOW_MODE) ? SLOW_MODE_TRANSLATION_FACTOR : 1);
     }
 
     public double getMaxRotationSpeed() {
-        return MAX_ROTATION_SPEED * (getDriveFlagValue(DriveFlag.SLOW_MODE) ? SLOW_MODE_ROTATION_FACTOR : 1);
+        return MAX_ROTATION_SPEED * (driveFlags.getValue(DriveFlag.SLOW_MODE) ? SLOW_MODE_ROTATION_FACTOR : 1);
     }
 
     public Translation2d getInputSpeedTranslation(boolean fieldRelative) {
@@ -330,7 +274,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     }
 
     public boolean canAutoBrake() {
-        return getDriveFlagValue(DriveFlag.AUTO_BRAKE) && isDriveIdle();
+        return driveFlags.getValue(DriveFlag.AUTO_BRAKE) && isDriveIdle();
     }
 
     private boolean isInverted() {
