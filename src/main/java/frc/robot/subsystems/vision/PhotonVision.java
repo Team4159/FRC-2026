@@ -1,7 +1,5 @@
 package frc.robot.subsystems.vision;
 
-import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Transform2d;
@@ -23,47 +21,29 @@ import org.photonvision.targeting.PhotonTrackedTarget;
 public class PhotonVision extends SubsystemBase {
 
     private final Drivetrain drivetrain;
-    //IDK what the difference between welded and andymark is
-    private final AprilTagFieldLayout aprilTagFieldLayout = AprilTagFieldLayout.loadField(
-        AprilTagFields.k2026RebuiltWelded
-    );
-    private final PhotonCamera leftShooterCam, rightShooterCam;
-    private final PhotonPoseEstimator leftShooterEstimator, rightShooterEstimator;
+
     private final Field2d testField = new Field2d();
 
     public PhotonVision(Drivetrain drivetrain) {
         this.drivetrain = drivetrain;
-        //cameras
-        leftShooterCam = new PhotonCamera("leftShooter");
-        rightShooterCam = new PhotonCamera("rightShooter");
-        //estimators
-        leftShooterEstimator = new PhotonPoseEstimator(
-            aprilTagFieldLayout,
-            PhotonVisionConstants.LEFT_SHOOTER_CAMERA_TRANSFORM
-        );
-        rightShooterEstimator = new PhotonPoseEstimator(
-            aprilTagFieldLayout,
-            PhotonVisionConstants.RIGHT_SHOOTER_CAMERA_TRANSFORM
-        );
 
         testField.setRobotPose(drivetrain.getState().Pose);
-        addCameraToTestField("leftCam", PhotonVisionConstants.LEFT_SHOOTER_CAMERA_TRANSFORM);
-        addCameraToTestField("rightCam", PhotonVisionConstants.RIGHT_SHOOTER_CAMERA_TRANSFORM);
-        SmartDashboard.putData("vision test", testField);
+        addCameraToTestField("leftCamera", PhotonVisionConstants.LEFT_SHOOTER_CAMERA_TRANSFORM);
+        addCameraToTestField("rightCamera", PhotonVisionConstants.RIGHT_SHOOTER_CAMERA_TRANSFORM);
+        SmartDashboard.putData("Pose Testing", testField);
     }
 
     @Override
     public void periodic() {
-        estimate(leftShooterCam, leftShooterEstimator);
-        estimate(rightShooterCam, rightShooterEstimator);
+        estimate(PhotonVisionConstants.LEFT_SHOOTER_CAMERA, PhotonVisionConstants.LEFT_SHOOTER_POSE_ESTIMATOR);
+        estimate(PhotonVisionConstants.RIGHT_SHOOTER_CAMERA, PhotonVisionConstants.RIGHT_SHOOTER_POSE_ESTIMATOR);
     }
 
     private void estimate(PhotonCamera camera, PhotonPoseEstimator estimator) {
-        Optional<EstimatedRobotPose> estimate = Optional.empty();
         //loops through all unread camera results
         for (PhotonPipelineResult result : camera.getAllUnreadResults()) {
             //get pose estimate
-            estimate = estimator.estimateCoprocMultiTagPose(result);
+            Optional<EstimatedRobotPose> estimate = estimator.estimateCoprocMultiTagPose(result);
             //multitag no longer defaults to single tag when no others are available so we have this
             if (!estimate.isPresent()) {
                 estimate = estimator.estimateLowestAmbiguityPose(result);
