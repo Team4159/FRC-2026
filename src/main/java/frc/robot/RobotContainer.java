@@ -16,6 +16,7 @@ import frc.lib.HIDRumble;
 import frc.lib.HIDRumble.RumbleRequest;
 import frc.lib.PoseUtil;
 import frc.lib.Telemetry;
+import frc.robot.auto.ConfigurableAuto;
 import frc.robot.commands.AutoLob;
 import frc.robot.commands.AutoShoot;
 import frc.robot.commands.HubShoot;

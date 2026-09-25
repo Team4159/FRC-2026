@@ -145,12 +145,6 @@ public final class Constants {
         public static final double HUB_Z = Units.inchesToMeters(56.4);
     }
 
-    public static class AutoConstants {
-
-        /** units: seconds */
-        public static final double SHOOT_TIME = 3.5;
-    }
-
     public static class PhysicsConstants {
 
         /** Units:m/s^2 */

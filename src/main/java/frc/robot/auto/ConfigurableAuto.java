@@ -1,4 +1,4 @@
-package frc.robot;
+package frc.robot.auto;
 
 import choreo.auto.AutoFactory;
 import choreo.auto.AutoRoutine;
@@ -15,7 +15,6 @@ import frc.lib.AllianceUtil;
 import frc.lib.Elastic;
 import frc.lib.PoseTrajectory;
 import frc.lib.PoseUtil;
-import frc.robot.Constants.AutoConstants;
 import frc.robot.commands.AutoShoot;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 import frc.robot.subsystems.hopper.Hopper;
