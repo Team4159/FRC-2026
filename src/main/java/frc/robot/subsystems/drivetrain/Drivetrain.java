@@ -201,7 +201,7 @@ public class Drivetrain extends CommandSwerveDrivetrain {
 
     /**
      * @param autoPathAutoShootMode if true the robot will run autoaim along the auto
-     *                            trajectoryF
+     *                            trajectory
      *                            a value of true will activate the AutoAim command
      *                            and a value of false will cancel it. it will also
      *                            schedule and cancel the auto aim command object
