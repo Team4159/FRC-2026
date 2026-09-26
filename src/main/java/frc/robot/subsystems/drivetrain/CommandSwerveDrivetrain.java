@@ -50,6 +50,10 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     protected final PIDController m_pathYController = new PIDController(10, 0, 0);
     protected final PIDController m_pathThetaController = new PIDController(7, 0, 0);
 
+    {
+        m_pathThetaController.enableContinuousInput(-Math.PI, Math.PI);
+    }
+
     /* Swerve requests to apply during SysId characterization */
     private final SwerveRequest.SysIdSwerveTranslation m_translationCharacterization =
         new SwerveRequest.SysIdSwerveTranslation();

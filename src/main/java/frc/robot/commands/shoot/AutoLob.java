@@ -1,4 +1,4 @@
-package frc.robot.commands;
+package frc.robot.commands.shoot;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Radians;

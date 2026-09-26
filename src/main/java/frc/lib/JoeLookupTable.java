@@ -5,13 +5,15 @@ import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.RPM;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.subsystems.shooter.JoeLookupTableConstants;
-import frc.robot.subsystems.shooter.JoeLookupTableConstants.LookupTablePoint;
 import java.util.Set;
 
 public class JoeLookupTable {
+
+    public static record LookupTablePoint(AngularVelocity angularVelocity, double efficiency) {}
 
     /** @param distance distance away from hub
      * @return the corresponding ShotData object (desired motor angular velocity and efficiency) from linearly interpolating the best 2 joeLookupTable points

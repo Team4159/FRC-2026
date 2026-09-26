@@ -3,13 +3,11 @@ package frc.robot.subsystems.shooter;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.RPM;
 
-import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import java.util.Map;
+import frc.lib.JoeLookupTable.LookupTablePoint;
 
 public class JoeLookupTableConstants {
-
-    public static record LookupTablePoint(AngularVelocity angularVelocity, double efficiency) {}
 
     /**
      * adjust the angle of the hood down by this much (in radians for each

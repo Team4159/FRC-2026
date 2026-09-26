@@ -17,10 +17,10 @@ import frc.lib.HIDRumble.RumbleRequest;
 import frc.lib.PoseUtil;
 import frc.lib.Telemetry;
 import frc.robot.auto.ConfigurableAuto;
-import frc.robot.commands.AutoLob;
-import frc.robot.commands.AutoShoot;
-import frc.robot.commands.HubShoot;
-import frc.robot.commands.TowerShoot;
+import frc.robot.commands.shoot.AutoLob;
+import frc.robot.commands.shoot.AutoShoot;
+import frc.robot.commands.shoot.HubShoot;
+import frc.robot.commands.shoot.TowerShoot;
 import frc.robot.operator.OperatorConstants;
 import frc.robot.operator.OperatorConstants.DriveFlag;
 import frc.robot.operator.OperatorConstants.DriveMode;
@@ -64,9 +64,6 @@ public class RobotContainer {
         autoFactory = drivetrain.createAutoFactory();
         CommandScheduler.getInstance().schedule(autoFactory.warmupCmd()); // warmup command so auto starts instantly
         configurableAuto = new ConfigurableAuto(autoFactory, drivetrain, shooter, intake, hopper);
-        drivetrain.setAutonomousAutoShootCommand(
-            new AutoShoot(drivetrain, shooter, hopper, intake, true, Optional.empty())
-        );
 
         // drivetrain bindings
         drivetrain.registerTelemetry(telemetry::telemetrizeDrivetrain);

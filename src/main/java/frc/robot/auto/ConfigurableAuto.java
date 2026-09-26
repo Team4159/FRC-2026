@@ -15,7 +15,7 @@ import frc.lib.AllianceUtil;
 import frc.lib.Elastic;
 import frc.lib.PoseTrajectory;
 import frc.lib.PoseUtil;
-import frc.robot.commands.AutoShoot;
+import frc.robot.commands.shoot.AutoShoot;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 import frc.robot.subsystems.hopper.Hopper;
 import frc.robot.subsystems.intake.Intake;

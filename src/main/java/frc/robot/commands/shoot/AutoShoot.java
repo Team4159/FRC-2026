@@ -1,4 +1,4 @@
-package frc.robot.commands;
+package frc.robot.commands.shoot;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Meters;
@@ -40,7 +40,6 @@ import frc.robot.subsystems.shooter.FeederConstants.FeederState;
 import frc.robot.subsystems.shooter.FlywheelConstants;
 import frc.robot.subsystems.shooter.HoodConstants;
 import frc.robot.subsystems.shooter.JoeLookupTableConstants;
-import frc.robot.subsystems.shooter.JoeLookupTableConstants.LookupTablePoint;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.ShooterConstants.AutoShootStatus;
 import java.util.Optional;
@@ -71,12 +70,6 @@ public class AutoShoot extends Command {
 
     /** used to send the angle to the auto path controller for use in auto period */
     private double desiredOmega;
-
-    /**
-     * if the robot is in autonomous mode it will not apply speeds or require the
-     * drivetrain so different drive logic (ex. Choreo) can be used.
-     */
-    private boolean autonomousMode;
 
     /**
      * tells the robot to stop running swerve PID if already within tolerance to
@@ -133,8 +126,6 @@ public class AutoShoot extends Command {
         this.feedbackHID = feedbackHID;
 
         autoShootStatus = AutoShootStatus.WAITING;
-        this.autonomousMode = autonomousMode;
-        if (!autonomousMode) addRequirements(drivetrain, shooter, hopper);
 
         timer = new Timer();
     }
@@ -274,6 +265,19 @@ public class AutoShoot extends Command {
         SmartDashboard.putNumber("autoaim desired pitch", desiredHoodAngle.in(Degrees));
     }
 
+    @Override
+    public void end(boolean interrupted) {
+        shooter.restHood();
+        shooter.stopFlywheel();
+        shooter.setFeederDutyCycle(FeederState.STOP.dutyCycle);
+        hopper.setDutyCycle(HopperState.STOP.dutyCycle);
+        CommandScheduler.getInstance().schedule(intake.new ChangeStates(IntakeState.DOWN_OFF));
+    }
+
+    public void requireSubsystems() {
+        addRequirements(drivetrain, shooter, hopper);
+    }
+    
     /**
      * @param desiredAngle the desired field relative angle for the drivetrain
      *                     This also translates the robot using the getInputX() and
@@ -308,24 +312,18 @@ public class AutoShoot extends Command {
                 omega
             );
 
-            if (!autonomousMode) {
-                drivetrain.setControl(
-                    drivetrain.fieldCentricDrive
-                        .withVelocityX(chassisSpeeds.vxMetersPerSecond)
-                        .withVelocityY(chassisSpeeds.vyMetersPerSecond)
-                        .withRotationalRate(omega)
-                );
-            }
+            drivetrain.setControl(
+                drivetrain.fieldCentricDrive
+                    .withVelocityX(chassisSpeeds.vxMetersPerSecond)
+                    .withVelocityY(chassisSpeeds.vyMetersPerSecond)
+                    .withRotationalRate(omega)
+            );
             // this is so that the desired omega can be used in the command that controls
             // swerve in auto period
             desiredOmega = omega;
         } else {
-            if (!autonomousMode) {
-                drivetrain.setControl(drivetrain.brakeDrive);
-                desiredOmega = 0.0;
-            } else {
-                desiredOmega = omega;
-            }
+            drivetrain.setControl(drivetrain.brakeDrive);
+            desiredOmega = 0.0;
         }
     }
 
@@ -438,12 +436,4 @@ public class AutoShoot extends Command {
         return Radians.of(desiredPitch);
     }
 
-    @Override
-    public void end(boolean interrupted) {
-        shooter.restHood();
-        shooter.stopFlywheel();
-        shooter.setFeederDutyCycle(FeederState.STOP.dutyCycle);
-        hopper.setDutyCycle(HopperState.STOP.dutyCycle);
-        CommandScheduler.getInstance().schedule(intake.new ChangeStates(IntakeState.DOWN_OFF));
-    }
 }

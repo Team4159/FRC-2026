@@ -15,9 +15,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.lib.AllianceUtil;
-import frc.robot.commands.AutoShoot;
 import frc.robot.operator.OperatorConstants.DriveFlag;
 import frc.robot.operator.OperatorModality;
 
@@ -45,9 +43,6 @@ public class Drivetrain extends CommandSwerveDrivetrain {
     private final OperatorModality operatorModality;
 
     private final DriveFlags driveFlags = new DriveFlags();
-
-    private boolean autoPathAutoShootMode = false;
-    private AutoShoot autoShootCommand;
 
     public Drivetrain(OperatorModality operatorModality) {
         super(
@@ -149,11 +144,6 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         return new AutoFactory(() -> getState().Pose, this::resetPose, this::followPath, true, this, trajLogger);
     }
 
-    /** set the AutoAim command to be used for shooting while moving during auto */
-    public void setAutonomousAutoShootCommand(AutoShoot autoShootCommand) {
-        this.autoShootCommand = autoShootCommand;
-    }
-
     /**
      * Follows the given field-centric path sample with PID.
      *
@@ -172,24 +162,10 @@ public class Drivetrain extends CommandSwerveDrivetrain {
         // error
         targetSpeeds.vxMetersPerSecond += m_pathXController.calculate(pose.getX(), sample.x);
         targetSpeeds.vyMetersPerSecond += m_pathYController.calculate(pose.getY(), sample.y);
-
-        // omega is calculated differently depending on the mode
-        // if autoPathAutoAimMode is true and the setAutonomousAutoAimCommand() method
-        // was used to set the autoAimCommand, it will use the omega from the auto aim
-        // command to aim at the hub
-        // otherwise it will use target speeds and PID
-        if (autoPathAutoShootMode && autoShootCommand != null) {
-            // get the desired omega directly from the auto aim controller(instead of
-            // calculated speeds and PID)
-            targetSpeeds.omegaRadiansPerSecond = autoShootCommand.getDesiredOmega();
-        } else {
-            m_pathThetaController.enableContinuousInput(-Math.PI, Math.PI);
-            // get desired omega from calculated speeds and PID
-            targetSpeeds.omegaRadiansPerSecond += m_pathThetaController.calculate(
-                pose.getRotation().getRadians(),
-                sample.heading
-            );
-        }
+        targetSpeeds.omegaRadiansPerSecond += m_pathThetaController.calculate(
+            pose.getRotation().getRadians(),
+            sample.heading
+        );
         // send the calculated speeds to the drivetrain
         setControl(
             m_pathApplyFieldSpeeds
@@ -197,25 +173,6 @@ public class Drivetrain extends CommandSwerveDrivetrain {
                 .withWheelForceFeedforwardsX(sample.moduleForcesX())
                 .withWheelForceFeedforwardsY(sample.moduleForcesY())
         );
-    }
-
-    /**
-     * @param autoPathAutoShootMode if true the robot will run autoaim along the auto
-     *                            trajectory
-     *                            a value of true will activate the AutoAim command
-     *                            and a value of false will cancel it. it will also
-     *                            schedule and cancel the auto aim command object
-     *                            stored in the Drivetrain class.
-     *                            I hate this implementation but I have negative
-     *                            intelligence
-     */
-    public void setAutoPathAutoShootMode(boolean autoPathAutoShootMode) {
-        this.autoPathAutoShootMode = autoPathAutoShootMode;
-        if (autoPathAutoShootMode) {
-            CommandScheduler.getInstance().schedule(autoShootCommand);
-        } else {
-            CommandScheduler.getInstance().cancel(autoShootCommand);
-        }
     }
 
     private Translation2d getRawInputTranslation(boolean fieldRelative) {
