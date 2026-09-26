@@ -2,24 +2,22 @@ package frc.robot.subsystems.shooter;
 
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
-import static edu.wpi.first.units.Units.RotationsPerSecond;
 
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
-import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.lib.JoeLookupTable;
 import frc.lib.JoeLookupTable.LookupTablePoint;
+import frc.robot.Constants.FieldConstants;
+import frc.robot.Constants.PhysicsConstants;
+import frc.robot.subsystems.shooter.ShooterConstants.AutoShootStatus;
 
 public class ShotCalculator {
 
@@ -28,11 +26,16 @@ public class ShotCalculator {
         OUT_OF_RANGE,
     }
 
-    public record ShotCalculatorResult(ShotCalculatorStatus status, AngularVelocity angularVelocity, Angle pitch, Angle yaw) {
+    public record ShotCalculatorResult(
+        ShotCalculatorStatus status,
+        AngularVelocity angularVelocity,
+        Angle pitch,
+        Angle yaw
+    ) {
         public ShotCalculatorResult(ShotCalculatorStatus status) {
-            this(status, RotationsPerSecond.of(0.0), Radians.of(0.0), Radians.of(0.0));
+            this(status, RPM.of(0.0), Radians.of(0.0), Radians.of(0.0));
         }
-    };
+    }
 
     private static final double HEIGHT = FieldConstants.HUB_Z - Units.inchesToMeters(20);
 
@@ -40,9 +43,9 @@ public class ShotCalculator {
 
     private ShotCalculatorResult calculate(Translation2d target, Translation2d translation, ChassisSpeeds speeds) {
         // calculate desired pitch for hood angle
-        Angle pitch = getPitch();
-        double efficiency;
-        AngularVelocity angularVelocity;
+        AngularVelocity angularVelocity = RPM.of(0.0);
+        double efficiency = 1.0;
+        Angle pitch = getPitch(target, translation, angularVelocity, efficiency);
         Translation2d adjustedTranslation = translation;
         for (int i = 0; i < 2; i++) {
             // get desired angular velocity and efficiency from lookup table
@@ -54,13 +57,12 @@ public class ShotCalculator {
             // add the distance traveled during TOF to current robot pose to get the
             // adjusted robot pose
             // this will be used for shooting while moving adjustment
-            adjustedTranslation = translation.plus(new Translation2d(
-                speeds.vxMetersPerSecond * timeOfFlight,
-                speeds.vyMetersPerSecond * timeOfFlight
-            ));
+            adjustedTranslation = translation.plus(
+                new Translation2d(speeds.vxMetersPerSecond * timeOfFlight, speeds.vyMetersPerSecond * timeOfFlight)
+            );
 
             // recalculate desired hood angle with new adjustedPose (converges)
-            pitch = getPitch();
+            pitch = getPitch(target, translation, angularVelocity, efficiency);
         }
 
         // get desired angular velocity and efficiency from lookup table
@@ -75,15 +77,17 @@ public class ShotCalculator {
 
         // calculate robot theta based on adjusted robot pose
         // this allows for shooting while moving
-        Angle yaw = target
-            .minus(adjustedTranslation)
-            .getAngle()
-            .getMeasure();
+        Angle yaw = target.minus(adjustedTranslation).getAngle().getMeasure();
 
         return new ShotCalculatorResult(ShotCalculatorStatus.SUCCESS, angularVelocity, pitch, yaw);
     }
 
-    private Angle getPitch(Translation2d target, Translation2d translation, AngularVelocity angularVelocity, double efficiency) {
+    private Angle getPitch(
+        Translation2d target,
+        Translation2d translation,
+        AngularVelocity angularVelocity,
+        double efficiency
+    ) {
         double distance = translation.getDistance(target);
         double exitVelocity = calculateExitVelocity(angularVelocity, efficiency).baseUnitMagnitude();
         double desiredPitch = Math.atan(

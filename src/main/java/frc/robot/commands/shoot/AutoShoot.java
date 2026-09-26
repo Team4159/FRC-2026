@@ -28,6 +28,7 @@ import frc.lib.FuelSimulation;
 import frc.lib.HIDRumble;
 import frc.lib.HIDRumble.RumbleRequest;
 import frc.lib.JoeLookupTable;
+import frc.lib.JoeLookupTable.LookupTablePoint;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.PhysicsConstants;
 import frc.robot.subsystems.drivetrain.Drivetrain;
@@ -277,7 +278,7 @@ public class AutoShoot extends Command {
     public void requireSubsystems() {
         addRequirements(drivetrain, shooter, hopper);
     }
-    
+
     /**
      * @param desiredAngle the desired field relative angle for the drivetrain
      *                     This also translates the robot using the getInputX() and
@@ -435,5 +436,4 @@ public class AutoShoot extends Command {
         SmartDashboard.putNumber("autoaim desired pitch", Units.radiansToDegrees(desiredPitch));
         return Radians.of(desiredPitch);
     }
-
 }
