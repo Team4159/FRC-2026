@@ -14,8 +14,6 @@ import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
-import edu.wpi.first.math.filter.Debouncer;
-import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -46,8 +44,6 @@ public class Shooter extends SubsystemBase {
 
     //the current manual angle setpoint in degrees
     private double manualAngle = 5;
-
-    private final Debouncer velocityDebouncer = new Debouncer(0.2, DebounceType.kBoth);
 
     public Shooter() {
         //initialize motors and CANCoder using the CANIDs in constants
@@ -157,7 +153,10 @@ public class Shooter extends SubsystemBase {
 
     /** @return true if the shooter motors are at the target velocity (within tolerance), false otherwise*/
     public boolean isAtVelocity() {
-        return getShooterMotorVelocity().isNear(shooterVelocityVoltage.getVelocityMeasure(), ShooterConstants.SHOOTER_VELOCITY_TOLERANCE);
+        return getShooterMotorVelocity().isNear(
+            shooterVelocityVoltage.getVelocityMeasure(),
+            ShooterConstants.SHOOTER_VELOCITY_TOLERANCE
+        );
     }
 
     /** @ return true if the hood is at the right pitch within tolerance, false otherwise */

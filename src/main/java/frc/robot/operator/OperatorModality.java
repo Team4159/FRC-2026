@@ -28,4 +28,6 @@ public interface OperatorModality {
     Trigger towerShoot();
 
     Trigger autoLob();
+
+    Trigger revShooter();
 }

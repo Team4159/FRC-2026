@@ -86,6 +86,11 @@ public class SingleXboxOperatorModality implements OperatorModality {
         return autoShoot;
     }
 
+    @Override
+    public Trigger revShooter() {
+        return xbox.povLeft();
+    }
+
     public XboxController getHID() {
         return xbox.getHID();
     }
