@@ -154,7 +154,7 @@ public class Shooter extends SubsystemBase {
     /** @param pitch the desired launch angle of the fuel
      * adjusts the hood such to achieve the desired fuel launch angle
      */
-    public void setHoodPitchComplement(Angle pitch) {
+    public void setHoodTrajectoryPitch(Angle pitch) {
         //adjusthood is in terms of shooter angle where the angle of the shooter COM with respect to the horizontal is 0, to get this from trajectory angle must get the complement of the trajectory angle
         //subtract the hood offset which is the angle between the hood COM and the final hood roller
         setHoodPitch(Degrees.of(90).minus(pitch).minus(HoodConstants.PITCH_OFFSET));
@@ -164,7 +164,7 @@ public class Shooter extends SubsystemBase {
         if (shooterSetpoint.pitch.isEmpty()) {
             throw new IllegalArgumentException("Shooter setpoint pitch cannot be empty");
         }
-        setHoodPitchComplement(shooterSetpoint.pitch.get());
+        setHoodTrajectoryPitch(shooterSetpoint.pitch.get());
     }
 
     /** sets the desired angle of the hood to the resting angle(fits under the trench) */

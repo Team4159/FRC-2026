@@ -56,14 +56,14 @@ public class JoeLookupTableConstants {
         // Map.entry(Meters.of(3.5), new LookupTablePoint(RPM.of(2300), 0.95)),
         // Map.entry(Meters.of(4), new LookupTablePoint(RPM.of(2500), 0.90)),
         // Map.entry(Meters.of(4.5), new LookupTablePoint(RPM.of(2700), 0.85))
-        Map.entry(Meters.of(1.0), new LookupTablePoint(RPM.of(1800), 1.1)),
+        Map.entry(Meters.of(1.0), new LookupTablePoint(RPM.of(1800.0), 1.1)),
         Map.entry(Meters.of(1.5), new LookupTablePoint(RPM.of(1900), 1.05)),
         Map.entry(Meters.of(2.0), new LookupTablePoint(RPM.of(2000), 1.025)),
         Map.entry(Meters.of(2.5), new LookupTablePoint(RPM.of(2100), 1)),
-        Map.entry(Meters.of(3.0), new LookupTablePoint(RPM.of(2200), 1)),
-        Map.entry(Meters.of(3.5), new LookupTablePoint(RPM.of(2300), 0.97)),
-        Map.entry(Meters.of(4.0), new LookupTablePoint(RPM.of(2500), 0.90)),
-        Map.entry(Meters.of(4.5), new LookupTablePoint(RPM.of(2700), 0.85))
+        Map.entry(Meters.of(3.0), new LookupTablePoint(RPM.of(2200.0), 1)),
+        Map.entry(Meters.of(3.5), new LookupTablePoint(RPM.of(2300.0), 0.97)),
+        Map.entry(Meters.of(4.0), new LookupTablePoint(RPM.of(2500.0), 0.90)),
+        Map.entry(Meters.of(4.5), new LookupTablePoint(RPM.of(2700.0), 0.85))
     );
 
     public static final Distance MAX_DISTANCE = JOE_LOOKUP_TABLE.keySet().stream().max(Comparator.naturalOrder()).get();

@@ -23,7 +23,6 @@ import frc.robot.subsystems.intake.IntakeConstants.IntakeState;
 import frc.robot.subsystems.shooter.Shooter;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Optional;
 
 public class ConfigurableAuto {
 
@@ -346,7 +345,7 @@ public class ConfigurableAuto {
 
     private AutoShoot getAutoShoot() {
         //auto aim(autonomous mode is false because the point of autonomous mode is for SOTM it will use choreo for translation of the swerve and the auto aim for rotation but this is stationary)
-        return new AutoShoot(drivetrain, shooter, hopper, intake, false, Optional.empty());
+        return new AutoShoot(drivetrain, shooter, hopper, intake, false);
     }
 
     private void addSideOptions(SendableChooser<String> sideChooser) {

@@ -6,14 +6,11 @@ package frc.robot;
 
 import choreo.auto.AutoFactory;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.lib.AllianceUtil;
-import frc.lib.HIDRumble;
-import frc.lib.HIDRumble.RumbleRequest;
 import frc.lib.PoseUtil;
 import frc.lib.Telemetry;
 import frc.robot.auto.ConfigurableAuto;
@@ -24,6 +21,7 @@ import frc.robot.commands.shoot.TowerShoot;
 import frc.robot.operator.OperatorConstants;
 import frc.robot.operator.OperatorConstants.DriveFlag;
 import frc.robot.operator.OperatorConstants.DriveMode;
+import frc.robot.operator.RumbleFeedback;
 import frc.robot.operator.SingleXboxOperatorModality;
 import frc.robot.subsystems.drivetrain.DriveFlagToggler;
 import frc.robot.subsystems.drivetrain.Drivetrain;
@@ -34,7 +32,6 @@ import frc.robot.subsystems.intake.IntakeConstants.IntakeState;
 import frc.robot.subsystems.shooter.FeederConstants.FeederState;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.vision.PhotonVision;
-import java.util.Optional;
 
 public class RobotContainer {
 
@@ -78,7 +75,7 @@ public class RobotContainer {
 
         operatorModality.zero().onTrue(
             Commands.runOnce(() -> {
-                HIDRumble.rumble(operatorModality.getHID(), new RumbleRequest(RumbleType.kLeftRumble, 0.5, 0.25));
+                RumbleFeedback.zero(operatorModality.getHID());
                 drivetrain.seedFieldCentric();
             })
         );
@@ -93,7 +90,7 @@ public class RobotContainer {
             .and(DriverStation::isTeleopEnabled)
             .onTrue(
                 Commands.runOnce(() -> {
-                    HIDRumble.rumble(operatorModality.getHID(), new RumbleRequest(RumbleType.kLeftRumble, 0.5, 0.25));
+                    RumbleFeedback.toggleDriveAssist(operatorModality.getHID());
                     drivetrain
                         .getDriveFlags()
                         .setValue(DriveFlag.DRIVE_ASSIST, !drivetrain.getDriveFlags().getValue(DriveFlag.DRIVE_ASSIST));
@@ -103,16 +100,7 @@ public class RobotContainer {
             .autoShoot()
             .and(DriverStation::isTeleopEnabled)
             .and(() -> PoseUtil.isPoseBehindAllianceTrenches(AllianceUtil.getAlliance(), drivetrain.getState().Pose))
-            .whileTrue(
-                new AutoShoot(
-                    drivetrain,
-                    shooter,
-                    hopper,
-                    intake,
-                    false,
-                    Optional.of(operatorModality.getHID())
-                ).requireSubsystems()
-            );
+            .whileTrue(new AutoShoot(drivetrain, shooter, hopper, intake, true));
         operatorModality
             .hubShoot()
             .and(DriverStation::isTeleopEnabled)
@@ -125,7 +113,7 @@ public class RobotContainer {
             .autoLob()
             .and(DriverStation::isTeleopEnabled)
             .and(() -> !PoseUtil.isPoseBehindAllianceTrenches(AllianceUtil.getAlliance(), drivetrain.getState().Pose))
-            .whileTrue(new AutoLob(drivetrain, shooter, hopper, intake, false));
+            .whileTrue(new AutoLob(drivetrain, shooter, hopper, intake, true));
 
         operatorModality
             .intake()

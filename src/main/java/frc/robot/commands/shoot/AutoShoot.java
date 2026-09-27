@@ -6,15 +6,11 @@ import static edu.wpi.first.units.Units.Radians;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.wpilibj.GenericHID;
-import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.lib.AllianceUtil;
-import frc.lib.HIDRumble;
-import frc.lib.HIDRumble.RumbleRequest;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 import frc.robot.subsystems.drivetrain.DrivetrainConstants;
@@ -26,7 +22,6 @@ import frc.robot.subsystems.shooter.FeederConstants.FeederState;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.ShotCalculator;
 import frc.robot.subsystems.shooter.ShotCalculator.ShotCalculatorStatus;
-import java.util.Optional;
 
 public class AutoShoot extends Shoot {
 
@@ -36,11 +31,6 @@ public class AutoShoot extends Shoot {
     private final Hopper hopper;
     private final Intake intake;
 
-    /**
-     * Field relative swerve request used to drive the drivetrain with primary
-     * controller if not in autonomous mode.
-     */
-
     /** target pose2d (the hub based on alliance) */
     private Translation2d target;
 
@@ -49,21 +39,15 @@ public class AutoShoot extends Shoot {
     //     .getStructTopic("adjustedRobotPose", Pose2d.struct)
     //     .publish();
 
-    private Optional<GenericHID> feedbackHID;
-
-    public AutoShoot(
-        Drivetrain drivetrain,
-        Shooter shooter,
-        Hopper hopper,
-        Intake intake,
-        boolean autonomousMode,
-        Optional<GenericHID> feedbackHID
-    ) {
+    public AutoShoot(Drivetrain drivetrain, Shooter shooter, Hopper hopper, Intake intake, boolean requireSubsystems) {
         this.drivetrain = drivetrain;
         this.shooter = shooter;
         this.hopper = hopper;
         this.intake = intake;
-        this.feedbackHID = feedbackHID;
+
+        if (requireSubsystems) {
+            addRequirements(drivetrain, shooter, hopper);
+        }
     }
 
     @Override
@@ -85,10 +69,6 @@ public class AutoShoot extends Shoot {
 
         // check if in range, return if out of range
         if (result.status() == ShotCalculatorStatus.OUT_OF_RANGE) {
-            SmartDashboard.putString("Auto Aim Status", "Out of range");
-            if (feedbackHID.isPresent()) {
-                HIDRumble.rumble(feedbackHID.get(), new RumbleRequest(RumbleType.kLeftRumble, 0.5, 0.25));
-            }
             CommandScheduler.getInstance().cancel(this);
             return;
         }
@@ -97,7 +77,7 @@ public class AutoShoot extends Shoot {
         rotateSwerve(result.yaw().baseUnitMagnitude());
 
         // set the desired hood angle
-        shooter.setHoodPitchComplement(result.pitch());
+        shooter.setHoodTrajectoryPitch(result.pitch());
         shooter.setFlywheelVelocity(result.tangentialVelocity());
 
         // send tolerances to smart dashboard
@@ -130,11 +110,6 @@ public class AutoShoot extends Shoot {
         shooter.setFeederDutyCycle(FeederState.STOP.dutyCycle);
         hopper.setDutyCycle(HopperState.STOP.dutyCycle);
         CommandScheduler.getInstance().schedule(intake.new ChangeStates(IntakeState.DOWN_OFF));
-    }
-
-    public AutoShoot requireSubsystems() {
-        addRequirements(drivetrain, shooter, hopper);
-        return this;
     }
 
     /**

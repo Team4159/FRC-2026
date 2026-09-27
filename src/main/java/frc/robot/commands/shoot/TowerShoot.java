@@ -2,7 +2,6 @@ package frc.robot.commands.shoot;
 
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.subsystems.hopper.Hopper;
 import frc.robot.subsystems.hopper.HopperConstants.HopperState;
@@ -12,7 +11,7 @@ import frc.robot.subsystems.shooter.FeederConstants.FeederState;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.ShooterConstants.ShooterSetpoint;
 
-public class TowerShoot extends Command {
+public class TowerShoot extends Shoot {
 
     private final Shooter shooter;
     private final Intake intake;

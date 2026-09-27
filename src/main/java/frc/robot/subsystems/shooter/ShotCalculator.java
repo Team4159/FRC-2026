@@ -11,7 +11,6 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.PhysicsConstants;
 import frc.robot.subsystems.shooter.JoeLookupTable.LookupTablePoint;
 
@@ -53,6 +52,14 @@ public class ShotCalculator {
         );
     }
 
+    public static boolean inRange(double distance) {
+        return distance <= JoeLookupTableConstants.MAX_DISTANCE.baseUnitMagnitude();
+    }
+
+    public static boolean inRange(Translation2d t1, Translation2d t2) {
+        return inRange(t1.getDistance(t2));
+    }
+
     public static ShotCalculatorResult calculate(
         Translation2d target,
         Translation2d translation,
@@ -60,7 +67,7 @@ public class ShotCalculator {
     ) {
         double distanceToTarget = translation.getDistance(target);
         // check if in range, return if out of range
-        if (distanceToTarget > JoeLookupTableConstants.MAX_DISTANCE.in(Meters)) {
+        if (!inRange(distanceToTarget)) {
             return new ShotCalculatorResult(ShotCalculatorStatus.OUT_OF_RANGE);
         }
 
@@ -122,7 +129,6 @@ public class ShotCalculator {
             desiredPitch = Units.degreesToRadians(45);
         }
         desiredPitch = Math.min(desiredPitch, HoodConstants.MAX_PITCH.in(Radians));
-        SmartDashboard.putNumber("autoaim desired pitch", Units.radiansToDegrees(desiredPitch));
         return desiredPitch;
     }
 
@@ -149,11 +155,10 @@ public class ShotCalculator {
             Math.pow(vy, 2) - 2 * PhysicsConstants.GRAVITY * JoeLookupTableConstants.TARGET_HEIGHT
         );
         if (Double.isNaN(radical)) {
-            return 0;
+            return 0.0;
         }
         double numerator = vy + radical;
         double time = numerator / PhysicsConstants.GRAVITY;
-        SmartDashboard.putNumber("time of flight", time);
         return time;
     }
 }

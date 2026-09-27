@@ -6,8 +6,6 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
 
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Distance;
@@ -40,17 +38,17 @@ public final class Constants {
             new Translation2d(Units.inchesToMeters(651.22 - 182.11), Units.inchesToMeters(158.84))
         );
 
-        public static final Set<Pose2d> HUB_LOB_LOCATIONS = Set.of(
-            new Pose2d(2.5, 2.1, new Rotation2d()),
-            new Pose2d(2.5, 5.6, new Rotation2d())
+        public static final Set<Translation2d> HUB_LOB_LOCATIONS = Set.of(
+            new Translation2d(2.5, 2.1),
+            new Translation2d(2.5, 5.6)
         );
 
-        public static final Set<Pose2d> RED_LOB_LOCATIONS = Set.of(
-            new Pose2d(14.1, 2.1, new Rotation2d()),
-            new Pose2d(14.1, 5.6, new Rotation2d())
+        public static final Set<Translation2d> RED_LOB_LOCATIONS = Set.of(
+            new Translation2d(14.1, 2.1),
+            new Translation2d(14.1, 5.6)
         );
 
-        public static final Map<DriverStation.Alliance, Set<Pose2d>> LOB_LOCATIONS = Map.of(
+        public static final Map<DriverStation.Alliance, Set<Translation2d>> LOB_LOCATIONS = Map.of(
             Alliance.Blue,
             HUB_LOB_LOCATIONS,
             Alliance.Red,
