@@ -34,11 +34,8 @@ public class FlywheelConstants {
 
     public static final double SHOOT_EFFICIENCY = 0.80;
 
-    public static final Distance WHEEL_RADIUS = Inches.of(2.0);
-    public static final Distance ROLLER_RADIUS = Inches.of(0.75);
-
-    public static final double ROTOR_TO_WHEEL_RATIO = 1.0 / 1.0;
-    public static final double ROTOR_TO_ROLLER_RATIO = 7.0 / 6.0;
+    public static final Distance ROLLER_RADIUS = Inches.of(2.0);
+    public static final double ROTOR_TO_ROLLER_RATIO = 1.0 / 1.0;
 
     public static final AngularVelocity VELOCITY_TARGET_TOLERANCE = RPM.of(50.0);
 

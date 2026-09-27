@@ -104,7 +104,14 @@ public class RobotContainer {
             .and(DriverStation::isTeleopEnabled)
             .and(() -> PoseUtil.isPoseBehindAllianceTrenches(AllianceUtil.getAlliance(), drivetrain.getState().Pose))
             .whileTrue(
-                new AutoShoot(drivetrain, shooter, hopper, intake, false, Optional.of(operatorModality.getHID()))
+                new AutoShoot(
+                    drivetrain,
+                    shooter,
+                    hopper,
+                    intake,
+                    false,
+                    Optional.of(operatorModality.getHID())
+                ).requireSubsystems()
             );
         operatorModality
             .hubShoot()

@@ -33,11 +33,11 @@ public final class Constants {
 
     public static class FieldConstants {
 
-        public static final Map<DriverStation.Alliance, Pose2d> HUB_LOCATIONS = Map.of(
+        public static final Map<DriverStation.Alliance, Translation2d> HUB_LOCATIONS = Map.of(
             Alliance.Blue,
-            new Pose2d(Units.inchesToMeters(182.11), Units.inchesToMeters(158.84), new Rotation2d()),
+            new Translation2d(Units.inchesToMeters(182.11), Units.inchesToMeters(158.84)),
             Alliance.Red,
-            new Pose2d(Units.inchesToMeters(651.22 - 182.11), Units.inchesToMeters(158.84), new Rotation2d())
+            new Translation2d(Units.inchesToMeters(651.22 - 182.11), Units.inchesToMeters(158.84))
         );
 
         public static final Set<Pose2d> HUB_LOB_LOCATIONS = Set.of(

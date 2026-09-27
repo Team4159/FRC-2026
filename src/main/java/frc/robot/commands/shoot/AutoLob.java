@@ -15,7 +15,6 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.lib.AllianceUtil;
 import frc.lib.FuelSimulation;
@@ -33,7 +32,7 @@ import frc.robot.subsystems.shooter.ShooterConstants;
 import frc.robot.subsystems.shooter.ShooterConstants.AutoShootStatus;
 import frc.robot.subsystems.shooter.ShooterConstants.ShooterSetpoint;
 
-public class AutoLob extends Command {
+public class AutoLob extends Shoot {
 
     //Subsystems
     private final Drivetrain drivetrain;
@@ -120,7 +119,7 @@ public class AutoLob extends Command {
 
         for (int i = 0; i < 2; i++) {
             //calculate TOF(used for calculating adjusted robot pose)
-            double timeOfFlight = getTimeOfFlight(desiredHoodAngle, shooter.getFuelExitVelocity());
+            double timeOfFlight = getTimeOfFlight(desiredHoodAngle, shooter.getFuelExitVelocity().baseUnitMagnitude());
             //calculate the distance traveled by the robot during the time of flight
             Transform2d adjustedRobotPoseTransform = new Transform2d(
                 drivetrain.getState().Speeds.vxMetersPerSecond * timeOfFlight,
@@ -272,7 +271,7 @@ public class AutoLob extends Command {
         // distance from robot to target
         Translation2d robotTranslation = adjustedRobotPose.getTranslation();
         double distance = robotTranslation.getDistance(target.getTranslation());
-        double launchVelocity = shooter.getFuelExitVelocity();
+        double launchVelocity = shooter.getFuelExitVelocity().baseUnitMagnitude();
         if (RobotBase.isSimulation()) {
             launchVelocity = getSimLaunchVelocity();
         }

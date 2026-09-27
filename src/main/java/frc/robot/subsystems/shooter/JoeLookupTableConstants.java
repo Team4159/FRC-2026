@@ -3,9 +3,12 @@ package frc.robot.subsystems.shooter;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.RPM;
 
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Distance;
+import frc.robot.Constants.FieldConstants;
+import frc.robot.subsystems.shooter.JoeLookupTable.LookupTablePoint;
+import java.util.Comparator;
 import java.util.Map;
-import frc.lib.JoeLookupTable.LookupTablePoint;
 
 public class JoeLookupTableConstants {
 
@@ -16,8 +19,6 @@ public class JoeLookupTableConstants {
      * correction)
      */
     public static final double SHOOTER_DISTANCE_VELOCITY_CORRECTION = 0.01;
-
-    public static final Distance MAX_DISTANCE = Meters.of(4.5);
 
     // stores desired motor angular velocity and shooter efficiency based on position
     public static final Map<Distance, LookupTablePoint> JOE_LOOKUP_TABLE = Map.ofEntries(
@@ -64,4 +65,8 @@ public class JoeLookupTableConstants {
         Map.entry(Meters.of(4.0), new LookupTablePoint(RPM.of(2500), 0.90)),
         Map.entry(Meters.of(4.5), new LookupTablePoint(RPM.of(2700), 0.85))
     );
+
+    public static final Distance MAX_DISTANCE = JOE_LOOKUP_TABLE.keySet().stream().max(Comparator.naturalOrder()).get();
+
+    public static final double TARGET_HEIGHT = FieldConstants.HUB_Z - Units.inchesToMeters(20);
 }

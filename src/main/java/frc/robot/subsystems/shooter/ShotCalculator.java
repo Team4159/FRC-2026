@@ -2,7 +2,6 @@ package frc.robot.subsystems.shooter;
 
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
-import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 
@@ -13,11 +12,8 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.lib.JoeLookupTable;
-import frc.lib.JoeLookupTable.LookupTablePoint;
-import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.PhysicsConstants;
-import frc.robot.subsystems.shooter.ShooterConstants.AutoShootStatus;
+import frc.robot.subsystems.shooter.JoeLookupTable.LookupTablePoint;
 
 public class ShotCalculator {
 
@@ -28,74 +24,92 @@ public class ShotCalculator {
 
     public record ShotCalculatorResult(
         ShotCalculatorStatus status,
-        AngularVelocity angularVelocity,
+        LinearVelocity tangentialVelocity,
         Angle pitch,
         Angle yaw
     ) {
         public ShotCalculatorResult(ShotCalculatorStatus status) {
-            this(status, RPM.of(0.0), Radians.of(0.0), Radians.of(0.0));
+            this(status, MetersPerSecond.of(0.0), Radians.of(0.0), Radians.of(0.0));
         }
     }
 
-    private static final double HEIGHT = FieldConstants.HUB_Z - Units.inchesToMeters(20);
-
     private ShotCalculator() {}
 
-    private ShotCalculatorResult calculate(Translation2d target, Translation2d translation, ChassisSpeeds speeds) {
+    public static LinearVelocity angularVelocityToTangentialVelocity(AngularVelocity angularVelocity) {
+        return MetersPerSecond.of(
+            angularVelocity.baseUnitMagnitude() *
+                ((FlywheelConstants.ROLLER_RADIUS.baseUnitMagnitude() +
+                    HoodConstants.ROLLER_RADIUS.baseUnitMagnitude()) /
+                    2.0)
+        );
+    }
+
+    public static AngularVelocity tangentialVelocityToAngularVelocity(LinearVelocity tangentialVelocity) {
+        return RadiansPerSecond.of(
+            tangentialVelocity.baseUnitMagnitude() /
+                ((FlywheelConstants.ROLLER_RADIUS.baseUnitMagnitude() +
+                    HoodConstants.ROLLER_RADIUS.baseUnitMagnitude()) /
+                    2.0)
+        );
+    }
+
+    public static ShotCalculatorResult calculate(
+        Translation2d target,
+        Translation2d translation,
+        ChassisSpeeds fieldSpeeds
+    ) {
+        double distanceToTarget = translation.getDistance(target);
+        // check if in range, return if out of range
+        if (distanceToTarget > JoeLookupTableConstants.MAX_DISTANCE.in(Meters)) {
+            return new ShotCalculatorResult(ShotCalculatorStatus.OUT_OF_RANGE);
+        }
+
         // calculate desired pitch for hood angle
-        AngularVelocity angularVelocity = RPM.of(0.0);
-        double efficiency = 1.0;
-        Angle pitch = getPitch(target, translation, angularVelocity, efficiency);
+        LookupTablePoint lookupTablePoint = JoeLookupTable.getLookupTablePoint(Meters.of(distanceToTarget));
+        double tangentialVelocity = angularVelocityToTangentialVelocity(
+            lookupTablePoint.angularVelocity()
+        ).baseUnitMagnitude();
+        double efficiency = lookupTablePoint.efficiency();
+        double exitVelocity = calculateExitVelocity(tangentialVelocity, efficiency);
+
         Translation2d adjustedTranslation = translation;
-        for (int i = 0; i < 2; i++) {
-            // get desired angular velocity and efficiency from lookup table
-            LookupTablePoint lookupTablePoint = JoeLookupTable.getLookupTablePoint(Meters.of(getDistanceFromTarget()));
-            angularVelocity = lookupTablePoint.angularVelocity();
-            efficiency = lookupTablePoint.efficiency();
+        double pitch = calculatePitch(distanceToTarget, tangentialVelocity, efficiency);
+        for (int i = 0; i < 5; i++) {
             // calculate TOF(used for calculating adjusted robot pose)
-            double timeOfFlight = getTimeOfFlight(pitch, getAngularVelocity(angularVelocity));
+            double timeOfFlight = calculateTimeOfFlight(pitch, exitVelocity);
             // add the distance traveled during TOF to current robot pose to get the
             // adjusted robot pose
             // this will be used for shooting while moving adjustment
             adjustedTranslation = translation.plus(
-                new Translation2d(speeds.vxMetersPerSecond * timeOfFlight, speeds.vyMetersPerSecond * timeOfFlight)
+                new Translation2d(
+                    fieldSpeeds.vxMetersPerSecond * timeOfFlight,
+                    fieldSpeeds.vyMetersPerSecond * timeOfFlight
+                )
             );
-
             // recalculate desired hood angle with new adjustedPose (converges)
-            pitch = getPitch(target, translation, angularVelocity, efficiency);
-        }
-
-        // get desired angular velocity and efficiency from lookup table
-        LookupTablePoint lookupTablePoint = JoeLookupTable.getLookupTablePoint(Meters.of(getDistanceFromTarget()));
-        angularVelocity = lookupTablePoint.angularVelocity();
-        efficiency = lookupTablePoint.efficiency();
-
-        // check if in range, return if out of range
-        if (getDistanceFromTarget() > JoeLookupTableConstants.MAX_DISTANCE.in(Meters)) {
-            return new ShotCalculatorResult(ShotCalculatorStatus.OUT_OF_RANGE);
+            pitch = calculatePitch(adjustedTranslation.getDistance(target), tangentialVelocity, efficiency);
         }
 
         // calculate robot theta based on adjusted robot pose
         // this allows for shooting while moving
-        Angle yaw = target.minus(adjustedTranslation).getAngle().getMeasure();
+        double yaw = target.minus(adjustedTranslation).getAngle().getRadians();
 
-        return new ShotCalculatorResult(ShotCalculatorStatus.SUCCESS, angularVelocity, pitch, yaw);
+        return new ShotCalculatorResult(
+            ShotCalculatorStatus.SUCCESS,
+            MetersPerSecond.of(tangentialVelocity),
+            Radians.of(pitch),
+            Radians.of(yaw)
+        );
     }
 
-    private Angle getPitch(
-        Translation2d target,
-        Translation2d translation,
-        AngularVelocity angularVelocity,
-        double efficiency
-    ) {
-        double distance = translation.getDistance(target);
-        double exitVelocity = calculateExitVelocity(angularVelocity, efficiency).baseUnitMagnitude();
+    private static double calculatePitch(double distance, double tangentialVelocity, double efficiency) {
+        double exitVelocity = calculateExitVelocity(tangentialVelocity, efficiency);
         double desiredPitch = Math.atan(
             (Math.pow(exitVelocity, 2) +
                 Math.sqrt(
                     Math.pow(exitVelocity, 4) -
                         Math.pow(PhysicsConstants.GRAVITY * distance, 2) -
-                        2 * PhysicsConstants.GRAVITY * HEIGHT * Math.pow(exitVelocity, 2)
+                        2 * PhysicsConstants.GRAVITY * JoeLookupTableConstants.TARGET_HEIGHT * Math.pow(exitVelocity, 2)
                 )) /
                 (PhysicsConstants.GRAVITY * distance)
         );
@@ -106,19 +120,40 @@ public class ShotCalculator {
             // the minimum possible hood angle on the physical shooter is 45, so no
             // additional calculation is needed, just set to 45
             desiredPitch = Units.degreesToRadians(45);
-            autoShootStatus = AutoShootStatus.OUT_OF_RANGE;
         }
         desiredPitch = Math.min(desiredPitch, HoodConstants.MAX_PITCH.in(Radians));
         SmartDashboard.putNumber("autoaim desired pitch", Units.radiansToDegrees(desiredPitch));
-        return Radians.of(desiredPitch);
+        return desiredPitch;
     }
 
-    private LinearVelocity calculateExitVelocity(AngularVelocity angularVelocity, double efficiency) {
-        double angularVelocityDouble = angularVelocity.in(RadiansPerSecond) * FlywheelConstants.ROTOR_TO_WHEEL_RATIO;
+    private static double calculateExitVelocity(double tangentialVelocity, double efficiency) {
+        double angularVelocity = tangentialVelocityToAngularVelocity(
+            MetersPerSecond.of(tangentialVelocity)
+        ).baseUnitMagnitude();
+        double wheelTangentialSpeed = angularVelocity * FlywheelConstants.ROLLER_RADIUS.baseUnitMagnitude();
+        double rollerTangentialSpeed = angularVelocity * HoodConstants.ROLLER_RADIUS.baseUnitMagnitude();
+        return ((wheelTangentialSpeed + rollerTangentialSpeed) / 2.0) * efficiency;
+    }
 
-        double wheelTangentialSpeed = angularVelocityDouble * FlywheelConstants.WHEEL_RADIUS.in(Meters);
-        double rollerTangentialSpeed = angularVelocityDouble * FlywheelConstants.ROLLER_RADIUS.in(Meters);
-
-        return MetersPerSecond.of((efficiency * (wheelTangentialSpeed + rollerTangentialSpeed)) / 2);
+    private static double calculateTimeOfFlight(double pitch, double exitVelocity) {
+        // initial y component of launch velocity
+        double vy = exitVelocity * Math.sin(pitch);
+        // the calculation is based on delta y = vy * TOF - (1/2)g * TOF^2 (where g is a
+        // positive constant)
+        // the delta y for TOF would be the height
+        // the equation then becomes 0 = -(1/2)g * TOF^2 + vy * TOF - height -> 0 =
+        // (1/2)g * TOF^2 - vy * TOF + height
+        // then use quadratic formula and always add the radical to get the 2nd time the
+        // fuel is at the target height (so that it is on the way down)
+        double radical = Math.sqrt(
+            Math.pow(vy, 2) - 2 * PhysicsConstants.GRAVITY * JoeLookupTableConstants.TARGET_HEIGHT
+        );
+        if (Double.isNaN(radical)) {
+            return 0;
+        }
+        double numerator = vy + radical;
+        double time = numerator / PhysicsConstants.GRAVITY;
+        SmartDashboard.putNumber("time of flight", time);
+        return time;
     }
 }

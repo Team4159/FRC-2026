@@ -2,6 +2,7 @@ package frc.robot.subsystems.shooter;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
@@ -17,6 +18,7 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Distance;
 import frc.robot.Robot;
 
 public class HoodConstants {
@@ -55,6 +57,9 @@ public class HoodConstants {
     public static final Angle PITCH_OFFSET = Degrees.of(7.6743605);
     public static final Angle RESTING_PITCH = Degrees.of(-5.8019605);
     public static final Angle MAX_PITCH = Degrees.of(85.0);
+
+    public static final Distance ROLLER_RADIUS = Inches.of(0.75);
+    public static final double ROTOR_TO_ROLLER_RATIO = 7.0 / 6.0;
 
     static {
         MOTOR.getConfigurator().apply(MOTOR_CONFIGURATION);

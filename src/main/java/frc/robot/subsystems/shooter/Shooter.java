@@ -1,7 +1,6 @@
 package frc.robot.subsystems.shooter;
 
 import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
@@ -12,6 +11,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -56,9 +56,9 @@ public class Shooter extends SubsystemBase {
     }
 
     /** @param deisredAngularVelocity the desired angular velocity of the motors */
-    public void setFlywheelVelocity(AngularVelocity desiredAngularVelocity) {
+    public void setFlywheelVelocity(AngularVelocity angularVelocity) {
         //set the velocity target of the velocity voltage to the desired angular velocity
-        flywheelVelocityVoltage.withVelocity(desiredAngularVelocity.in(RotationsPerSecond));
+        flywheelVelocityVoltage.withVelocity(angularVelocity.in(RotationsPerSecond));
         //set the control of the motors to the velocityVoltage
         for (TalonFX flywheelMotor : FlywheelConstants.MOTORS) {
             flywheelMotor.setControl(flywheelVelocityVoltage);
@@ -67,6 +67,14 @@ public class Shooter extends SubsystemBase {
 
     public void setFlywheelMotorVelocity(ShooterSetpoint shooterSetpoint) {
         setFlywheelVelocity(shooterSetpoint.angularVelocity);
+    }
+
+    public void setFlywheelVelocity(LinearVelocity tangentialVelocity) {
+        setFlywheelVelocity(
+            ShotCalculator.tangentialVelocityToAngularVelocity(tangentialVelocity).times(
+                FlywheelConstants.ROTOR_TO_ROLLER_RATIO
+            )
+        );
     }
 
     public void restFlywheel() {
@@ -85,15 +93,10 @@ public class Shooter extends SubsystemBase {
     }
 
     /** @return the estimated initial speed of the ball after being shot from the shooter in m/s*/
-    public double getFuelExitVelocity() {
-        double motorOmega = getFlywheelMotorVelocityTarget().in(RadiansPerSecond);
-
-        double shooterOmega = motorOmega * FlywheelConstants.ROTOR_TO_WHEEL_RATIO;
-
-        double wheelTangentialSpeed = shooterOmega * FlywheelConstants.WHEEL_RADIUS.in(Meters);
-        double rollerTangentialSpeed = shooterOmega * FlywheelConstants.ROLLER_RADIUS.in(Meters);
-
-        return (FlywheelConstants.SHOOT_EFFICIENCY * (wheelTangentialSpeed + rollerTangentialSpeed)) / 2.0;
+    public LinearVelocity getFuelExitVelocity() {
+        return ShotCalculator.angularVelocityToTangentialVelocity(getFlywheelMotorVelocityTarget())
+            .times(FlywheelConstants.ROTOR_TO_ROLLER_RATIO)
+            .times(FlywheelConstants.SHOOT_EFFICIENCY);
     }
 
     // /** @return the estimated initial speed of the ball after being shot from the shooter in m/s*/
