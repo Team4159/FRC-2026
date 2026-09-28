@@ -98,7 +98,7 @@ public class ConfigurableAuto {
      */
     public AutoRoutine getRoutine() {
         if (generatedRoutine == null) {
-            generatedRoutine = generateRoutine(true);
+            generatedRoutine = generateRoutine();
         }
         return generatedRoutine;
     }
@@ -209,7 +209,9 @@ public class ConfigurableAuto {
         SmartDashboard.putData("Auto/Shoot 1", shootChooser1);
         SmartDashboard.putData("Auto/Intake 2", intakeChooser2);
         SmartDashboard.putData("Auto/Shoot 2", shootChooser2);
-        SmartDashboard.putData("Auto/Generate", Commands.runOnce(() -> generateRoutine(true)).ignoringDisable(true));
+        SmartDashboard.putData("Auto/Generate", Commands.runOnce(() -> {
+           generatedRoutine = generateRoutine();
+        }).ignoringDisable(true));
         SmartDashboard.putData("Auto/Generated Routine Display", generatedRoutineDisplay);
     }
 
@@ -217,7 +219,7 @@ public class ConfigurableAuto {
      * will send elastic notifications on the status of the auto
      * @return an AutoRoutine object of the generated routine
      */
-    private AutoRoutine generateRoutine(boolean display) {
+    private AutoRoutine generateRoutine() {
         final AutoRoutine routine = factory.newRoutine("Generated Auto");
 
         // if the direction is none return the default routine (does absolutely nothing) and send a special notification to let the drivers know they selected a useless auto (could be good if auto is cooked though)
@@ -237,16 +239,16 @@ public class ConfigurableAuto {
             //if so generate an outpost auto
             // outpost auto
             if (intakeChooser1.getSelected().contains("Outpost")) {
-                return generateOutpostRoutine(routine, display);
+                return generateOutpostRoutine(routine);
             }
 
-            return generateMiddleRoutine(routine, display);
+            return generateMiddleRoutine(routine);
         }
 
-        return generateStandardRoutine(routine, display);
+        return generateStandardRoutine(routine);
     }
 
-    private AutoRoutine generateOutpostRoutine(AutoRoutine routine, boolean display) {
+    private AutoRoutine generateOutpostRoutine(AutoRoutine routine) {
         // TODO: there are currently no outpost routines
         final String direction = sideChooser.getSelected();
         //these are the names of the trajectories
@@ -275,15 +277,13 @@ public class ConfigurableAuto {
         startToIntakeTraj.atTime("stopIntake").onTrue(intake.new ChangeStates(IntakeState.DOWN_OFF));
 
         //update the display field if the display boolean is true
-        if (display) {
-            updateField(startToIntakeTraj, intakeToShootTraj);
-        }
+        updateField(startToIntakeTraj, intakeToShootTraj);
         displayGenerationStatus(startToIntakeTraj, intakeToShootTraj);
 
         return routine;
     }
 
-    private AutoRoutine generateMiddleRoutine(AutoRoutine routine, boolean display) {
+    private AutoRoutine generateMiddleRoutine(AutoRoutine routine) {
         final String direction = sideChooser.getSelected();
         final String startToShootName = direction + "StartToShoot";
 
@@ -293,15 +293,13 @@ public class ConfigurableAuto {
             .active()
             .onTrue(startToShootTraj.resetOdometry().andThen(startToShootTraj.cmd()).andThen(getAutoShoot()));
 
-        if (display) {
-            updateField(startToShootTraj);
-        }
+        updateField(startToShootTraj);
         displayGenerationStatus(startToShootTraj);
 
         return routine;
     }
 
-    private AutoRoutine generateStandardRoutine(AutoRoutine routine, boolean display) {
+    private AutoRoutine generateStandardRoutine(AutoRoutine routine) {
         final String direction = sideChooser.getSelected();
         //get all the chooser results as strings to make things cleaner
         final String intake1 = intakeChooser1.getSelected();
@@ -349,9 +347,7 @@ public class ConfigurableAuto {
         shoot1ToIntake2Traj.atTime("intake").onTrue(intake.new ChangeStates(IntakeState.DOWN_ON));
         shoot1ToIntake2Traj.atTime("stopIntake").onTrue(intake.new ChangeStates(IntakeState.DOWN_OFF));
 
-        if (display) {
-            updateField(startToIntake1Traj, intake1ToShoot1Traj, shoot1ToIntake2Traj, intake2ToShoot2Traj);
-        }
+        updateField(startToIntake1Traj, intake1ToShoot1Traj, shoot1ToIntake2Traj, intake2ToShoot2Traj);
         displayGenerationStatus(startToIntake1Traj, intake1ToShoot1Traj, shoot1ToIntake2Traj, intake2ToShoot2Traj);
 
         return routine;
