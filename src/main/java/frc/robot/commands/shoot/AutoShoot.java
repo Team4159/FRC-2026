@@ -53,8 +53,8 @@ public class AutoShoot extends Shoot {
     @Override
     public void initialize() {
         this.target = FieldConstants.HUB_LOCATIONS.get(AllianceUtil.getAlliance());
-        shooter.setFeederDutyCycle(FeederState.STOP.dutyCycle);
-        hopper.setDutyCycle(HopperState.STOP.dutyCycle);
+        shooter.setFeederDutyCycle(FeederState.STOP);
+        hopper.setDutyCycle(HopperState.STOP);
         CommandScheduler.getInstance().schedule(intake.new BounceIntake());
     }
 
@@ -88,8 +88,8 @@ public class AutoShoot extends Shoot {
         if (shooter.isAtHoodPitch() && shooter.isAtFlywheelVelocity() && isAtDesiredRotation(result.yaw())) {
             // shoot the fuel if at the right pitch
             SmartDashboard.putString("Auto Aim Status", "Shooting");
-            shooter.setFeederDutyCycle(FeederState.FEED.dutyCycle);
-            hopper.setDutyCycle(HopperState.FEED.dutyCycle);
+            shooter.setFeederDutyCycle(FeederState.FEED);
+            hopper.setDutyCycle(HopperState.FEED);
         } else {
             //otherwise just wait
             SmartDashboard.putString("Auto Aim Status", "Waiting");
@@ -107,8 +107,8 @@ public class AutoShoot extends Shoot {
     public void end(boolean interrupted) {
         shooter.restHood();
         shooter.stopFlywheel();
-        shooter.setFeederDutyCycle(FeederState.STOP.dutyCycle);
-        hopper.setDutyCycle(HopperState.STOP.dutyCycle);
+        shooter.setFeederDutyCycle(FeederState.STOP);
+        hopper.setDutyCycle(HopperState.STOP);
         CommandScheduler.getInstance().schedule(intake.new ChangeStates(IntakeState.DOWN_OFF));
     }
 

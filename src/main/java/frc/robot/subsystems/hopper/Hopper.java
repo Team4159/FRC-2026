@@ -12,6 +12,10 @@ public class Hopper extends SubsystemBase {
         HopperConstants.MOTOR.set(dutyCycle);
     }
 
+    public void setDutyCycle(HopperState state) {
+        setDutyCycle(state);
+    }
+
     public void stop() {
         HopperConstants.MOTOR.stopMotor();
     }
@@ -27,7 +31,7 @@ public class Hopper extends SubsystemBase {
 
         @Override
         public void initialize() {
-            Hopper.this.setDutyCycle(hopperState.dutyCycle);
+            Hopper.this.setDutyCycle(hopperState);
         }
 
         @Override

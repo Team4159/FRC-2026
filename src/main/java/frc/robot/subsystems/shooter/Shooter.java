@@ -99,18 +99,6 @@ public class Shooter extends SubsystemBase {
             .times(FlywheelConstants.SHOOT_EFFICIENCY);
     }
 
-    // /** @return the estimated initial speed of the ball after being shot from the shooter in m/s*/
-    // public double getFuelSpeedWithCustomEfficiency(double efficiency){
-    //     double motorOmega = getShooterMotorVelocity().in(RadiansPerSecond);
-
-    //     double shooterOmega = motorOmega * ShooterConstants.ratio;
-
-    //     double wheelTangentialSpeed = shooterOmega * ShooterConstants.kShooterWheelRadius.in(Meters);
-    //     double rollerTangentialSpeed = shooterOmega * ShooterConstants.kShooterRollerRadius.in(Meters);
-
-    //     return efficiency * (wheelTangentialSpeed + rollerTangentialSpeed)/2;
-    // }
-
     /** @return the average angular velocity of the shooter motors measured from all 4 shooter motors*/
     public AngularVelocity getFlywheelMotorVelocityTarget() {
         double sum = 0.0;
@@ -138,6 +126,10 @@ public class Shooter extends SubsystemBase {
     /** @param dutyCycle the percentage (-1-1) of how much power is sent to the feeder motor*/
     public void setFeederDutyCycle(double dutyCycle) {
         FeederConstants.MOTOR.set(dutyCycle);
+    }
+
+    public void setFeederDutyCycle(FeederState state) {
+        setFeederDutyCycle(state);
     }
 
     /** stops the feeder */
@@ -224,7 +216,7 @@ public class Shooter extends SubsystemBase {
         @Override
         public void initialize() {
             //set the feeder dutyCycle to the percentage in the state object
-            Shooter.this.setFeederDutyCycle(feederState.dutyCycle);
+            Shooter.this.setFeederDutyCycle(feederState);
         }
 
         @Override

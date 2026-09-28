@@ -93,13 +93,13 @@ public class AutoLob extends Shoot {
         AutoShootStatus autoShootStatus = AutoShootStatus.WAITING;
         if (!timer.hasElapsed(ShooterConstants.BACKWARDS_TIME)) {
             //run neck backwards if at the beginning
-            shooter.setFeederDutyCycle(FeederState.UNJAM.dutyCycle);
-            hopper.setDutyCycle(HopperState.STOP.dutyCycle);
+            shooter.setFeederDutyCycle(FeederState.UNJAM);
+            hopper.setDutyCycle(HopperState.STOP);
         } else if (shooter.isAtHoodPitch() && shooter.isAtFlywheelVelocity() && isAtDesiredRotation(Radians.of(yaw))) {
             //shoot the fuel if at the right pitch
             autoShootStatus = AutoShootStatus.SHOOT;
-            shooter.setFeederDutyCycle(FeederState.FEED.dutyCycle);
-            hopper.setDutyCycle(HopperState.FEED.dutyCycle);
+            shooter.setFeederDutyCycle(FeederState.FEED);
+            hopper.setDutyCycle(HopperState.FEED);
         }
         SmartDashboard.putString("Auto Aim Status", autoShootStatus.name());
 
@@ -191,8 +191,8 @@ public class AutoLob extends Shoot {
         shooter.restHood();
         //shooter.setSpeed(ShooterConstants.restingAngularVelocity);
         shooter.stopFlywheel();
-        shooter.setFeederDutyCycle(FeederState.STOP.dutyCycle);
-        hopper.setDutyCycle(HopperState.STOP.dutyCycle);
+        shooter.setFeederDutyCycle(FeederState.STOP);
+        hopper.setDutyCycle(HopperState.STOP);
         CommandScheduler.getInstance().schedule(intake.new ChangeStates(IntakeState.BOUNCE_UP));
     }
 
