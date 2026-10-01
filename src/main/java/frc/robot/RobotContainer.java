@@ -6,33 +6,32 @@ package frc.robot;
 
 import choreo.auto.AutoFactory;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
-import frc.lib.HIDRumble;
-import frc.lib.HIDRumble.RumbleRequest;
+import frc.lib.AllianceUtil;
+import frc.lib.PoseUtil;
 import frc.lib.Telemetry;
-import frc.robot.Constants.FeederConstants.FeederState;
-import frc.robot.Constants.HopperConstants.HopperState;
-import frc.robot.Constants.IntakeConstants.IntakeState;
-import frc.robot.Constants.OperatorConstants;
-import frc.robot.Constants.OperatorConstants.DriveFlag;
-import frc.robot.Constants.OperatorConstants.DriveMode;
-import frc.robot.commands.AutoLob;
-import frc.robot.commands.AutoShoot;
-import frc.robot.commands.HubShoot;
-import frc.robot.commands.TowerShoot;
+import frc.robot.auto.ConfigurableAuto;
+import frc.robot.commands.shoot.AutoLob;
+import frc.robot.commands.shoot.AutoShoot;
+import frc.robot.commands.shoot.HubShoot;
+import frc.robot.commands.shoot.TowerShoot;
+import frc.robot.operator.OperatorConstants;
+import frc.robot.operator.OperatorConstants.DriveFlag;
+import frc.robot.operator.OperatorConstants.DriveMode;
+import frc.robot.operator.RumbleFeedback;
 import frc.robot.operator.SingleXboxOperatorModality;
-import frc.robot.subsystems.Drivetrain;
-import frc.robot.subsystems.Hopper;
-import frc.robot.subsystems.Intake;
-import frc.robot.subsystems.LEDs;
-import frc.robot.subsystems.PhotonVision;
-import frc.robot.subsystems.Shooter;
-import java.util.Optional;
+import frc.robot.subsystems.drivetrain.DriveFlagToggler;
+import frc.robot.subsystems.drivetrain.Drivetrain;
+import frc.robot.subsystems.hopper.Hopper;
+import frc.robot.subsystems.hopper.HopperConstants.HopperSetpoint;
+import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.IntakeConstants.IntakeSetpoint;
+import frc.robot.subsystems.shooter.FeederConstants.FeederSetpoint;
+import frc.robot.subsystems.shooter.Shooter;
+import frc.robot.subsystems.vision.PhotonVision;
 
 public class RobotContainer {
 
@@ -47,7 +46,6 @@ public class RobotContainer {
     private final Intake intake = new Intake();
     private final Shooter shooter = new Shooter();
     private final Hopper hopper = new Hopper();
-    private final LEDs leds = new LEDs();
     private final Drivetrain drivetrain = new Drivetrain(operatorModality);
 
     @SuppressWarnings("unused")
@@ -55,32 +53,33 @@ public class RobotContainer {
     private final PhotonVision photonVision = new PhotonVision(drivetrain);
 
     /* Path follower */
-    private final AutoFactory autoFactory;
-    private final ConfigurableAuto configurableAuto;
+    private final AutoFactory autoFactory = drivetrain.createAutoFactory();
+    private final ConfigurableAuto configurableAuto = new ConfigurableAuto(
+        autoFactory,
+        drivetrain,
+        shooter,
+        intake,
+        hopper
+    );
 
     public RobotContainer() {
         // Choreo Auto
-        autoFactory = drivetrain.createAutoFactory();
         CommandScheduler.getInstance().schedule(autoFactory.warmupCmd()); // warmup command so auto starts instantly
-        configurableAuto = new ConfigurableAuto(autoFactory, drivetrain, shooter, intake, hopper, leds);
-        drivetrain.setAutonomousAutoShootCommand(
-            new AutoShoot(drivetrain, shooter, hopper, intake, leds, true, Optional.empty())
-        );
 
         // drivetrain bindings
         drivetrain.registerTelemetry(telemetry::telemetrizeDrivetrain);
-        RobotModeTriggers.disabled().whileTrue(drivetrain.new Drive(DriveMode.IDLE).ignoringDisable(true));
+        RobotModeTriggers.disabled().whileTrue(drivetrain.createDriveCommand(DriveMode.IDLE).ignoringDisable(true));
 
         // call the function that configures the robot bindings
         configureBindings();
     }
 
     private void configureBindings() {
-        drivetrain.setDefaultCommand(drivetrain.new Drive(DriveMode.TELEOP));
+        drivetrain.setDefaultCommand(drivetrain.createDriveCommand(DriveMode.TELEOP));
 
         operatorModality.zero().onTrue(
             Commands.runOnce(() -> {
-                HIDRumble.rumble(operatorModality.getHID(), new RumbleRequest(RumbleType.kLeftRumble, 0.5, 0.25));
+                RumbleFeedback.zero(operatorModality.getHID());
                 drivetrain.seedFieldCentric();
             })
         );
@@ -88,57 +87,64 @@ public class RobotContainer {
         // teleop mode
         operatorModality
             .slowMode()
-            .and(DriverStation::isTeleop)
-            .whileTrue(drivetrain.new DriveFlagToggler(DriveFlag.SLOW_MODE));
+            .and(DriverStation::isTeleopEnabled)
+            .whileTrue(new DriveFlagToggler(drivetrain, DriveFlag.SLOW_MODE));
         operatorModality
             .driverAssist()
-            .and(DriverStation::isTeleop)
+            .and(DriverStation::isTeleopEnabled)
             .onTrue(
                 Commands.runOnce(() -> {
-                    HIDRumble.rumble(operatorModality.getHID(), new RumbleRequest(RumbleType.kLeftRumble, 0.5, 0.25));
-                    drivetrain.setDriveFlagValue(
-                        DriveFlag.DRIVE_ASSIST,
-                        !drivetrain.getDriveFlagValue(DriveFlag.DRIVE_ASSIST)
-                    );
+                    RumbleFeedback.toggleDriveAssist(operatorModality.getHID());
+                    drivetrain
+                        .getDriveFlags()
+                        .setValue(DriveFlag.DRIVE_ASSIST, !drivetrain.getDriveFlags().getValue(DriveFlag.DRIVE_ASSIST));
                 })
             );
         operatorModality
             .autoShoot()
-            .and(DriverStation::isTeleop)
-            .whileTrue(
-                new AutoShoot(drivetrain, shooter, hopper, intake, leds, false, Optional.of(operatorModality.getHID()))
-            );
+            .and(DriverStation::isTeleopEnabled)
+            .and(() -> PoseUtil.isPoseBehindAllianceTrenches(AllianceUtil.getAlliance(), drivetrain.getState().Pose))
+            .whileTrue(new AutoShoot(drivetrain, shooter, hopper, intake, true));
         operatorModality
             .hubShoot()
-            .and(DriverStation::isTeleop)
+            .and(DriverStation::isTeleopEnabled)
             .whileTrue(new HubShoot(shooter, intake, hopper));
         operatorModality
             .towerShoot()
-            .and(DriverStation::isTeleop)
+            .and(DriverStation::isTeleopEnabled)
             .whileTrue(new TowerShoot(shooter, intake, hopper));
         operatorModality
             .autoLob()
-            .and(DriverStation::isTeleop)
-            .whileTrue(new AutoLob(drivetrain, shooter, hopper, intake, leds, false));
-
+            .and(DriverStation::isTeleopEnabled)
+            .and(() -> !PoseUtil.isPoseBehindAllianceTrenches(AllianceUtil.getAlliance(), drivetrain.getState().Pose))
+            .whileTrue(new AutoLob(drivetrain, shooter, hopper, intake, true));
         operatorModality
             .intake()
-            .and(DriverStation::isTeleop)
+            .and(DriverStation::isTeleopEnabled)
             .whileTrue(
-                new ParallelCommandGroup(
-                    intake.new ChangeStates(IntakeState.DOWN_ON),
-                    hopper.new ChangeState(HopperState.FEED)
+                Commands.parallel(
+                    intake.new ChangeSetpoints(IntakeSetpoint.DOWN_ON),
+                    hopper.new ChangeSetpoint(HopperSetpoint.FEED)
                 )
-            ); // .onFalse(intake.new
-        // ChangeStates(IntakeState.BOUNCE_UP));
+            );
         operatorModality
             .outtake()
-            .and(DriverStation::isTeleop)
+            .and(DriverStation::isTeleopEnabled)
             .whileTrue(
-                new ParallelCommandGroup(
-                    intake.new ChangeStates(IntakeState.DOWN_REV),
-                    hopper.new ChangeState(HopperState.REVERSE),
-                    shooter.new ChangeState(FeederState.UNJAM)
+                Commands.parallel(
+                    intake.new ChangeSetpoints(IntakeSetpoint.DOWN_REVERSE),
+                    hopper.new ChangeSetpoint(HopperSetpoint.REVERSE),
+                    shooter.new ChangeFeederSetpoint(FeederSetpoint.UNJAM)
+                )
+            );
+        operatorModality
+            .retractIntake()
+            .and(DriverStation::isTeleopEnabled)
+            .onTrue(
+                Commands.parallel(
+                    intake.new ChangeSetpoints(IntakeSetpoint.UP_OFF),
+                    hopper.new ChangeSetpoint(HopperSetpoint.STOP),
+                    shooter.new ChangeFeederSetpoint(FeederSetpoint.STOP)
                 )
             );
     }

@@ -15,8 +15,10 @@ public class HubTracker {
     }
 
     public static Optional<Alliance> getActiveHub() {
-        double matchTime = DriverStation.getMatchTime();
-        Optional<Alliance> autoWinnerOptional = getAutoWinner();
+        return getActiveHub(DriverStation.getMatchTime(), getAutoWinner());
+    }
+
+    static Optional<Alliance> getActiveHub(double matchTime, Optional<Alliance> autoWinnerOptional) {
         if (matchTime > 130 || matchTime <= 30 || autoWinnerOptional.isEmpty()) {
             return Optional.empty();
         }
@@ -37,11 +39,13 @@ public class HubTracker {
     }
 
     public static Optional<Double> getTimeUntilNextActiveHub() {
-        if (getAutoWinner().isEmpty()) {
+        return getTimeUntilNextActiveHub(DriverStation.getMatchTime(), getAutoWinner().isPresent());
+    }
+
+    static Optional<Double> getTimeUntilNextActiveHub(double matchTime, boolean autoWinnerKnown) {
+        if (!autoWinnerKnown) {
             return Optional.empty();
         }
-
-        double matchTime = DriverStation.getMatchTime();
 
         if (matchTime > 105) {
             return Optional.of(matchTime - 105);
@@ -57,8 +61,14 @@ public class HubTracker {
     }
 
     public static Optional<Alliance> getAutoWinner() {
-        String gameData = DriverStation.getGameSpecificMessage();
-        return switch (gameData.isEmpty() ? gameData.charAt(0) : ' ') {
+        return getAutoWinner(DriverStation.getGameSpecificMessage());
+    }
+
+    static Optional<Alliance> getAutoWinner(String gameData) {
+        if (gameData == null || gameData.isEmpty()) {
+            return Optional.empty();
+        }
+        return switch (gameData.charAt(0)) {
             case 'B' -> Optional.of(Alliance.Blue);
             case 'R' -> Optional.of(Alliance.Red);
             default -> Optional.empty();

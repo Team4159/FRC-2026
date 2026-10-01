@@ -9,27 +9,25 @@ public class SingleXboxOperatorModality implements OperatorModality {
     private final CommandXboxController xbox;
     private final double triggerThreshold;
 
-    private final Trigger autoShootBase, autoShoot;
-    private final Trigger hubShootBase, hubShoot;
-    private final Trigger towerShoot;
+    private final Trigger autoShoot, hubShoot, towerShoot;
 
     public SingleXboxOperatorModality(int port, double triggerThreshold) {
         this.xbox = new CommandXboxController(port);
         this.triggerThreshold = triggerThreshold;
-        autoShootBase = xbox.rightTrigger(triggerThreshold);
-        hubShootBase = xbox.rightBumper();
+        Trigger autoShootBase = xbox.rightBumper();
+        Trigger hubShootBase = xbox.rightTrigger(triggerThreshold);
         towerShoot = autoShootBase.and(hubShootBase);
-        autoShoot = autoShootBase.and(towerShoot.negate());
-        hubShoot = hubShootBase.and(towerShoot.negate());
+        autoShoot = autoShootBase.and(hubShootBase.negate());
+        hubShoot = hubShootBase.and(autoShootBase.negate());
     }
 
     @Override
-    public double driveX() {
+    public double translateX() {
         return -xbox.getLeftY();
     }
 
     @Override
-    public double driveY() {
+    public double translateY() {
         return -xbox.getLeftX();
     }
 
@@ -64,6 +62,11 @@ public class SingleXboxOperatorModality implements OperatorModality {
     }
 
     @Override
+    public Trigger retractIntake() {
+        return xbox.b();
+    }
+
+    @Override
     public Trigger autoShoot() {
         return autoShoot;
     }
@@ -80,7 +83,12 @@ public class SingleXboxOperatorModality implements OperatorModality {
 
     @Override
     public Trigger autoLob() {
-        return xbox.a();
+        return autoShoot;
+    }
+
+    @Override
+    public Trigger revShooter() {
+        return xbox.povLeft();
     }
 
     public XboxController getHID() {

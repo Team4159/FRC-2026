@@ -3,9 +3,9 @@ package frc.robot.operator;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 public interface OperatorModality {
-    double driveX();
+    double translateX();
 
-    double driveY();
+    double translateY();
 
     double rotation();
 
@@ -19,6 +19,8 @@ public interface OperatorModality {
 
     Trigger outtake();
 
+    Trigger retractIntake();
+
     Trigger autoShoot();
 
     Trigger hubShoot();
@@ -26,4 +28,6 @@ public interface OperatorModality {
     Trigger towerShoot();
 
     Trigger autoLob();
+
+    Trigger revShooter();
 }

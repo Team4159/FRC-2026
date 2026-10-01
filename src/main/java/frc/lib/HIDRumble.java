@@ -6,7 +6,9 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,38 +20,45 @@ import java.util.Map;
  */
 public class HIDRumble {
 
-    private static final double kDefaultRequestDuration = Units.millisecondsToSeconds(50);
-    private static final int kDefaultRequestPriority = 0;
-    private static final boolean kRumblePersistWhileDisabled = false;
+    private static final double DEFAULT_REQUEST_DURATION = Units.millisecondsToSeconds(50.0);
+    private static final int DEFAULT_REQUEST_PRIORITY = 0;
+    private static final boolean RUMBLE_PERSIST_WHILE_DISABLED = false;
+
+    private static final HashMap<GenericHID, RumbleManager> RUMBLE_MANAGERS = new HashMap<>();
 
     private static boolean rumbleEnabled = true;
-
-    private static final HashMap<GenericHID, RumbleManager> rumbleManagerMap = new HashMap<>();
 
     @SuppressWarnings("unused")
     private static final HIDRumble instance = new HIDRumble();
 
     private HIDRumble() {
-        new SubsystemBase() {
-            @Override
-            public void periodic() {
+        CommandScheduler.getInstance()
+            .getActiveButtonLoop()
+            .bind(() -> {
                 // update all rumble managers
-                for (Map.Entry<GenericHID, RumbleManager> rumbleManagerEntry : rumbleManagerMap.entrySet()) {
+                for (Map.Entry<GenericHID, RumbleManager> rumbleManagerEntry : RUMBLE_MANAGERS.entrySet()) {
                     RumbleManager rumbleManager = rumbleManagerEntry.getValue();
                     rumbleManager.update();
                 }
-            }
-        };
+            });
     }
 
     public static void rumble(GenericHID hid, RumbleRequest rumbleRequest) {
-        RumbleManager existingRumbleManager = rumbleManagerMap.get(hid);
-        RumbleManager rumbleManager = (existingRumbleManager != null) ? existingRumbleManager : new RumbleManager(hid);
+        RumbleManager existingRumbleManager = RUMBLE_MANAGERS.get(hid);
+        RumbleManager rumbleManager = existingRumbleManager != null ? existingRumbleManager : new RumbleManager(hid);
         rumbleManager.request(rumbleRequest);
     }
 
     public static void rumble(CommandGenericHID commandHid, RumbleRequest rumbleRequest) {
         rumble(commandHid.getHID(), rumbleRequest);
+    }
+
+    public static Command rumbleCommand(GenericHID hid, RumbleRequest rumbleRequest) {
+        return Commands.runOnce(() -> rumble(hid, rumbleRequest));
+    }
+
+    public static Command rumbleCommand(CommandGenericHID commandHid, RumbleRequest rumbleRequest) {
+        return rumbleCommand(commandHid.getHID(), rumbleRequest);
     }
 
     public static void enable(boolean enabled) {
@@ -65,7 +74,7 @@ public class HIDRumble {
 
         public RumbleManager(GenericHID hid) {
             this.hid = hid;
-            HIDRumble.rumbleManagerMap.put(hid, this);
+            HIDRumble.RUMBLE_MANAGERS.put(hid, this);
         }
 
         public void request(RumbleRequest rumbleRequest) {
@@ -78,7 +87,7 @@ public class HIDRumble {
         public void update() {
             boolean robotEnabled = DriverStation.isEnabled();
 
-            if (!robotEnabled && !kRumblePersistWhileDisabled) {
+            if (!robotEnabled && !RUMBLE_PERSIST_WHILE_DISABLED) {
                 rumbleRequestList.clear();
                 highestPriorityRequestIndex = 0;
             } else {
@@ -86,11 +95,12 @@ public class HIDRumble {
                 boolean removedHighestPriorityRequest = false;
                 while (removeIterator.hasNext()) {
                     RumbleRequest rumbleRequest = removeIterator.next();
-                    if (rumbleRequest.isExpired()) {
-                        removeIterator.remove();
-                        if (rumbleRequest.priority == highestPriorityRequestIndex) {
-                            removedHighestPriorityRequest = true;
-                        }
+                    if (!rumbleRequest.isExpired()) {
+                        continue;
+                    }
+                    removeIterator.remove();
+                    if (rumbleRequest.priority == highestPriorityRequestIndex) {
+                        removedHighestPriorityRequest = true;
                     }
                 }
                 if (removedHighestPriorityRequest) {
@@ -159,23 +169,23 @@ public class HIDRumble {
         }
 
         public RumbleRequest(RumbleType rumbleType, double strength) {
-            this(rumbleType, strength, kDefaultRequestDuration, kDefaultRequestPriority);
+            this(rumbleType, strength, DEFAULT_REQUEST_DURATION, DEFAULT_REQUEST_PRIORITY);
         }
 
         public RumbleRequest(double strength) {
-            this(RumbleType.kBothRumble, strength, kDefaultRequestDuration, kDefaultRequestPriority);
+            this(RumbleType.kBothRumble, strength, DEFAULT_REQUEST_DURATION, DEFAULT_REQUEST_PRIORITY);
         }
 
         public RumbleRequest(RumbleType rumbleType, double strength, int priority) {
-            this(rumbleType, strength, kDefaultRequestDuration, priority);
+            this(rumbleType, strength, DEFAULT_REQUEST_DURATION, priority);
         }
 
         public RumbleRequest(RumbleType rumbleType, double strength, double duration) {
-            this(rumbleType, strength, duration, kDefaultRequestPriority);
+            this(rumbleType, strength, duration, DEFAULT_REQUEST_PRIORITY);
         }
 
         public RumbleRequest(double strength, int priority) {
-            this(RumbleType.kBothRumble, strength, kDefaultRequestDuration, priority);
+            this(RumbleType.kBothRumble, strength, DEFAULT_REQUEST_DURATION, priority);
         }
 
         public boolean isExpired() {
