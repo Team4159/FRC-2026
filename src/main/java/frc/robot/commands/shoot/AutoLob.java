@@ -1,13 +1,11 @@
 package frc.robot.commands.shoot;
 
-import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Radians;
 
 import edu.wpi.first.math.MathSharedStore;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -68,6 +66,8 @@ public class AutoLob extends Shoot {
     public void initialize() {
         CommandScheduler.getInstance().schedule(intake.new BounceIntake());
         initializeTime = MathSharedStore.getTimestamp();
+        shooter.setFeederDutyCycle(FeederSetpoint.UNJAM);
+        hopper.setDutyCycle(HopperSetpoint.STOP);
         shooter.setFlywheelMotorVelocity(ShooterSetpoint.LOB);
         timer.reset();
     }
@@ -93,11 +93,7 @@ public class AutoLob extends Shoot {
         double yaw = target.minus(translation).getAngle().getRadians();
 
         AutoShootStatus autoShootStatus = AutoShootStatus.WAITING;
-        if (!timer.hasElapsed(ShooterConstants.BACKWARDS_TIME)) {
-            //run neck backwards if at the beginning
-            shooter.setFeederDutyCycle(FeederSetpoint.UNJAM);
-            hopper.setDutyCycle(HopperSetpoint.STOP);
-        } else if (shooter.isAtHoodPitch() && shooter.isAtFlywheelVelocity() && isAtDesiredRotation(Radians.of(yaw))) {
+        if (timer.hasElapsed(ShooterConstants.BACKWARDS_TIME) && isReadyToShoot(drivetrain, shooter, Radians.of(yaw))) {
             //shoot the fuel if at the right pitch
             autoShootStatus = AutoShootStatus.SHOOT;
             shooter.setFeederDutyCycle(FeederSetpoint.FEED);
@@ -113,7 +109,7 @@ public class AutoLob extends Shoot {
 
         SmartDashboard.putBoolean("isAtPitch", shooter.isAtHoodPitch());
         SmartDashboard.putBoolean("isAtVelocity", shooter.isAtFlywheelVelocity());
-        SmartDashboard.putBoolean("swerve isatangle", isAtDesiredRotation(Radians.of(yaw)));
+        SmartDashboard.putBoolean("swerve isatangle", isAtDesiredRotation(drivetrain.getState(), Radians.of(yaw)));
 
         //AdvantageScope fuel simulation
         if (RobotBase.isSimulation()) {
@@ -137,10 +133,6 @@ public class AutoLob extends Shoot {
         shooter.setFeederDutyCycle(FeederSetpoint.STOP);
         hopper.setDutyCycle(HopperSetpoint.STOP);
         CommandScheduler.getInstance().schedule(intake.new ChangeSetpoints(IntakeSetpoint.BOUNCE_UP));
-    }
-
-    private boolean isAtDesiredRotation(Angle angle) {
-        return drivetrain.getState().Pose.getRotation().getMeasure().isNear(angle, Degrees.of(5));
     }
 
     /** @return currently returns theoretical max that declines at a rate of 0.1 m/s (to simulate shooter slowing down over time), but when implemented with shooter will return current launch velocity based on shooter angular velocity */

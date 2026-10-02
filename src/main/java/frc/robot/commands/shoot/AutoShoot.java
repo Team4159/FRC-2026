@@ -4,14 +4,12 @@ import static edu.wpi.first.units.Units.Degrees;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.lib.AllianceUtil;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.subsystems.drivetrain.Drivetrain;
-import frc.robot.subsystems.drivetrain.DrivetrainConstants;
 import frc.robot.subsystems.hopper.Hopper;
 import frc.robot.subsystems.hopper.HopperConstants.HopperSetpoint;
 import frc.robot.subsystems.intake.Intake;
@@ -81,9 +79,9 @@ public class AutoShoot extends Shoot {
         // send tolerances to smart dashboard
         SmartDashboard.putBoolean("isAtPitch", shooter.isAtHoodPitch());
         SmartDashboard.putBoolean("isAtVelocity", shooter.isAtFlywheelVelocity());
-        SmartDashboard.putBoolean("swerve isatangle", isAtDesiredRotation(result.yaw()));
+        SmartDashboard.putBoolean("swerve isatangle", isAtDesiredRotation(state, result.yaw()));
 
-        if (shooter.isAtHoodPitch() && shooter.isAtFlywheelVelocity() && isAtDesiredRotation(result.yaw())) {
+        if (isReadyToShoot(drivetrain, shooter, result.yaw())) {
             // shoot the fuel if at the right pitch
             SmartDashboard.putString("Auto Aim Status", "Shooting");
             shooter.setFeederDutyCycle(FeederSetpoint.FEED);
@@ -108,14 +106,6 @@ public class AutoShoot extends Shoot {
         shooter.setFeederDutyCycle(FeederSetpoint.STOP);
         hopper.setDutyCycle(HopperSetpoint.STOP);
         CommandScheduler.getInstance().schedule(intake.new ChangeSetpoints(IntakeSetpoint.DOWN_OFF));
-    }
-
-    private boolean isAtDesiredRotation(Angle angle) {
-        return drivetrain
-            .getState()
-            .Pose.getRotation()
-            .getMeasure()
-            .isNear(angle, DrivetrainConstants.AUTO_SHOOT_TOLERANCE);
     }
 
     /** Units: meters */

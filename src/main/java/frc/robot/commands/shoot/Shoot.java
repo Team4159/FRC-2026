@@ -6,16 +6,28 @@ import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
 import edu.wpi.first.math.MathSharedStore;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.lib.FuelSimulation;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 import frc.robot.subsystems.drivetrain.DrivetrainConstants;
+import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.ShotCalculator.ShotCalculatorResult;
 
 public abstract class Shoot extends Command {
 
     private double lastSimShoot = -1.0;
+
+    protected boolean isReadyToShoot(Drivetrain drivetrain, Shooter shooter, Angle yaw) {
+        return (
+            shooter.isAtHoodPitch() && shooter.isAtFlywheelVelocity() && isAtDesiredRotation(drivetrain.getState(), yaw)
+        );
+    }
+
+    protected boolean isAtDesiredRotation(SwerveDriveState state, Angle angle) {
+        return state.Pose.getRotation().getMeasure().isNear(angle, DrivetrainConstants.AUTO_SHOOT_TOLERANCE);
+    }
 
     /**
      * @param yaw the desired field relative angle for the drivetrain
