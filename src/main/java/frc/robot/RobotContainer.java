@@ -66,17 +66,16 @@ public class RobotContainer {
         // Choreo Auto
         CommandScheduler.getInstance().schedule(autoFactory.warmupCmd()); // warmup command so auto starts instantly
 
-        // drivetrain bindings
+        // drivetrain
         drivetrain.registerTelemetry(telemetry::telemetrizeDrivetrain);
         RobotModeTriggers.disabled().whileTrue(drivetrain.createDriveCommand(DriveMode.IDLE).ignoringDisable(true));
+        drivetrain.setDefaultCommand(drivetrain.createDriveCommand(DriveMode.TELEOP));
 
         // call the function that configures the robot bindings
         configureBindings();
     }
 
     private void configureBindings() {
-        drivetrain.setDefaultCommand(drivetrain.createDriveCommand(DriveMode.TELEOP));
-
         operatorModality.zero().onTrue(
             Commands.runOnce(() -> {
                 RumbleFeedback.zero(operatorModality.getHID());
