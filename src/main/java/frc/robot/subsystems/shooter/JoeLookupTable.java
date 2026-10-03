@@ -54,8 +54,8 @@ public class JoeLookupTable {
             distance.minus(bestFitDistance).abs(Inches) /
             (bestFitDistance.minus(distance).abs(Inches) + secondBestFitDistance.minus(distance).abs(Inches));
 
-        SmartDashboard.putNumber("linear interpolation", linearInterpolation);
-        SmartDashboard.putNumber("bestFitDistance", bestFitDistance.in(Meters));
+        SmartDashboard.putNumber("Shooter/Auto Aim/linear interpolation", linearInterpolation);
+        SmartDashboard.putNumber("Shooter/Auto Aim/bestFitDistance", bestFitDistance.in(Meters));
 
         //return a new ShotData object with the interpolated angular velocity and efficiency.
         return new LookupTablePoint(

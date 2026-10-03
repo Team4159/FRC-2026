@@ -76,27 +76,22 @@ public class AutoShoot extends Shoot {
         shooter.setHoodTrajectoryPitch(result.pitch());
         shooter.setFlywheelVelocity(result.tangentialVelocity());
 
-        // send tolerances to smart dashboard
-        SmartDashboard.putBoolean("isAtPitch", shooter.isAtHoodPitch());
-        SmartDashboard.putBoolean("isAtVelocity", shooter.isAtFlywheelVelocity());
-        SmartDashboard.putBoolean("swerve isatangle", isAtDesiredRotation(state, result.yaw()));
-
         if (isReadyToShoot(drivetrain, shooter, result.yaw())) {
             // shoot the fuel if at the right pitch
-            SmartDashboard.putString("Auto Aim Status", "Shooting");
+            SmartDashboard.putString("Shooter/Auto Aim/ Status", "Shooting");
             shooter.setFeederDutyCycle(FeederSetpoint.FEED);
             hopper.setDutyCycle(HopperSetpoint.FEED);
         } else {
             //otherwise just wait
-            SmartDashboard.putString("Auto Aim Status", "Waiting");
+            SmartDashboard.putString("Shooter/Auto Aim/ Status", "Waiting");
         }
 
         if (RobotBase.isSimulation()) {
             simShoot(result, state);
         }
 
-        SmartDashboard.putNumber("distance from hub", getDistanceFromHub());
-        SmartDashboard.putNumber("autoaim desired pitch", result.pitch().in(Degrees));
+        SmartDashboard.putNumber("Shooter/Auto Aim/distance to hub", getDistanceToHub());
+        SmartDashboard.putNumber("Shooter/Auto Aim/ desired pitch", result.pitch().in(Degrees));
     }
 
     @Override
@@ -109,7 +104,7 @@ public class AutoShoot extends Shoot {
     }
 
     /** Units: meters */
-    private double getDistanceFromHub() {
+    private double getDistanceToHub() {
         return drivetrain.getState().Pose.getTranslation().getDistance(target);
     }
 }

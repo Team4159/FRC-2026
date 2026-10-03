@@ -30,7 +30,7 @@ public class PhotonVision extends SubsystemBase {
         testField.setRobotPose(drivetrain.getState().Pose);
         addCameraToTestField("leftCamera", PhotonVisionConstants.LEFT_SHOOTER_CAMERA_TRANSFORM);
         addCameraToTestField("rightCamera", PhotonVisionConstants.RIGHT_SHOOTER_CAMERA_TRANSFORM);
-        SmartDashboard.putData("Pose Testing", testField);
+        SmartDashboard.putData("Vision Pose Testing", testField);
     }
 
     @Override

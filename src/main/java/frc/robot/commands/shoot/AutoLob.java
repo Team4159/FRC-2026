@@ -99,17 +99,13 @@ public class AutoLob extends Shoot {
             shooter.setFeederDutyCycle(FeederSetpoint.FEED);
             hopper.setDutyCycle(HopperSetpoint.FEED);
         }
-        SmartDashboard.putString("Auto Aim Status", autoShootStatus.name());
+        SmartDashboard.putString("Shooter/Auto Aim/ Status", autoShootStatus.name());
 
         //rotate the swerve to the desired angle
         rotateSwerve(drivetrain, yaw);
 
         //set the desired hood angle
         shooter.setHoodTrajectoryPitch(Radians.of(desiredHoodAngle));
-
-        SmartDashboard.putBoolean("isAtPitch", shooter.isAtHoodPitch());
-        SmartDashboard.putBoolean("isAtVelocity", shooter.isAtFlywheelVelocity());
-        SmartDashboard.putBoolean("swerve isatangle", isAtDesiredRotation(drivetrain.getState(), Radians.of(yaw)));
 
         //AdvantageScope fuel simulation
         if (RobotBase.isSimulation()) {

@@ -29,9 +29,9 @@ public class Intake extends SubsystemBase {
 
     @Override
     public void periodic() {
-        SmartDashboard.putNumber("intake angle", getPivotAngle().in(Degrees));
+        SmartDashboard.putNumber("Intake/angle", getPivotAngle().in(Degrees));
         SmartDashboard.putNumber(
-            "intake pid error",
+            "Intake/pid error",
             Units.rotationsToDegrees(IntakeConstants.PIVOT_MOTOR.getClosedLoopError().getValueAsDouble())
         );
 

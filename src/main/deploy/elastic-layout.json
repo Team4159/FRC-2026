@@ -8,14 +8,14 @@
         "layouts": [],
         "containers": [
           {
-            "title": "Pose Testing",
+            "title": "Vision Pose Testing",
             "x": 0.0,
             "y": 0.0,
             "width": 640.0,
             "height": 384.0,
             "type": "Field",
             "properties": {
-              "topic": "/SmartDashboard/Pose Testing",
+              "topic": "/SmartDashboard/Vision Pose Testing",
               "period": 0.06,
               "field_game": "Rebuilt",
               "robot_width": 0.85,

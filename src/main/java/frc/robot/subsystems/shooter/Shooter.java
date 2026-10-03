@@ -56,6 +56,8 @@ public class Shooter extends SubsystemBase {
             "Shooter/shooter velocity target",
             flywheelVelocityVoltage.getVelocityMeasure().in(RPM)
         );
+        SmartDashboard.putBoolean("Shooter/at hood pitch", isAtHoodPitch());
+        SmartDashboard.putBoolean("Shooter/at flywheel velocity", isAtFlywheelVelocity());
     }
 
     /** @param deisredAngularVelocity the desired angular velocity of the motors */

@@ -1,7 +1,6 @@
 package frc.robot.commands.shoot;
 
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.subsystems.hopper.Hopper;
 import frc.robot.subsystems.hopper.HopperConstants.HopperSetpoint;
@@ -61,9 +60,6 @@ public class ManualShoot extends Shoot {
             shooter.setFeederDutyCycle(FeederSetpoint.STOP);
             hopper.setDutyCycle(HopperSetpoint.STOP);
         }
-
-        SmartDashboard.putBoolean("isAtPitch", shooter.isAtHoodPitch());
-        SmartDashboard.putBoolean("isAtVelocity", shooter.isAtFlywheelVelocity());
     }
 
     @Override
