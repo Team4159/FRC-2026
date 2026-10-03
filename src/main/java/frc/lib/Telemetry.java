@@ -1,12 +1,9 @@
 package frc.lib;
 
-import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.networktables.DoubleArrayPublisher;
 import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
@@ -81,15 +78,7 @@ public class Telemetry {
         }
     }
 
-    private final NetworkTable subsystemTable = networkTableInstance.getTable("Subsystems");
-    private final NetworkTable drivetrainTable = subsystemTable.getSubTable("Drivetrain");
-    private final StructPublisher<Pose2d> drivetrainPosePublisher = drivetrainTable
-        .getStructTopic("Pose", Pose2d.struct)
-        .publish();
-
     private static boolean running = false;
-
-    private SwerveDriveState lastDrivetrainState;
 
     public Telemetry() {
         start();
@@ -111,29 +100,6 @@ public class Telemetry {
         }
         aggregateData();
         logData();
-    }
-
-    public void telemetrizeDrivetrain(SwerveDriveState drivetrainState) {
-        lastDrivetrainState = drivetrainState;
-
-        // SignalLogger.writeStruct("DriveState/Pose", Pose2d.struct, drivetrainState.Pose);
-        // SignalLogger.writeStruct("DriveState/Speeds", ChassisSpeeds.struct, drivetrainState.Speeds);
-        // SignalLogger.writeStructArray(
-        //     "DriveState/ModuleStates",
-        //     SwerveModuleState.struct,
-        //     drivetrainState.ModuleStates
-        // );
-        // SignalLogger.writeStructArray(
-        //     "DriveState/ModuleTargets",
-        //     SwerveModuleState.struct,
-        //     drivetrainState.ModuleTargets
-        // );
-        // SignalLogger.writeStructArray(
-        //     "DriveState/ModulePositions",
-        //     SwerveModulePosition.struct,
-        //     drivetrainState.ModulePositions
-        // );
-        // SignalLogger.writeDouble("DriveState/OdometryPeriod", drivetrainState.OdometryPeriod, "seconds");
     }
 
     private void aggregateData() {
@@ -208,10 +174,6 @@ public class Telemetry {
             double current = currentBreakdown.get(electricityCategory);
             publisher.set(current);
         });
-
-        if (lastDrivetrainState != null) {
-            drivetrainPosePublisher.set(lastDrivetrainState.Pose);
-        }
     }
 
     private void incrementEnergyBreakdown(ElectricityCategory electricityCategory, double incrementJoules) {

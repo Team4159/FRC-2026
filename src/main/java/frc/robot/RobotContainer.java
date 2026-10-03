@@ -67,7 +67,6 @@ public class RobotContainer {
         CommandScheduler.getInstance().schedule(autoFactory.warmupCmd()); // warmup command so auto starts instantly
 
         // drivetrain
-        drivetrain.registerTelemetry(telemetry::telemetrizeDrivetrain);
         RobotModeTriggers.disabled().whileTrue(drivetrain.createDriveCommand(DriveMode.IDLE).ignoringDisable(true));
         drivetrain.setDefaultCommand(drivetrain.createDriveCommand(DriveMode.TELEOP));
 

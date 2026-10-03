@@ -3,8 +3,10 @@ package frc.robot.subsystems.drivetrain;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.ctre.phoenix6.swerve.SwerveRequest.ForwardPerspectiveValue;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.lib.AllianceUtil;
 import frc.robot.operator.OperatorConstants;
@@ -40,6 +42,17 @@ public class Drivetrain extends CommandSwerveDrivetrain {
             TunerConstants.BackRight
         );
         this.operatorModality = operatorModality;
+    }
+
+    @Override
+    public void periodic() {
+        super.periodic();
+        Pose2d pose = getState().Pose;
+        SmartDashboard.putNumberArray("Drivetrain/Pose", new double[] {
+            pose.getX(),
+            pose.getY(),
+            pose.getRotation().getRadians(),
+        });
     }
 
     public Command createDriveCommand(DriveMode driveMode) {
