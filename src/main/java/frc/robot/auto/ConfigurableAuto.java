@@ -227,10 +227,10 @@ public class ConfigurableAuto {
 
     private AutoRoutine generateOutpostRoutine(AutoRoutine routine) {
         // TODO: there are currently no outpost routines
-        final String direction = sideChooser.getSelected();
+        final String side = sideChooser.getSelected();
         //these are the names of the trajectories
         //for the outpost auto the only configurable part is the start point though
-        final String startToIntakeName = AutoPathNames.outpostStartToIntake(direction);
+        final String startToIntakeName = AutoPathNames.outpostStartToIntake(side);
         final String intakeToShootName = AutoPathNames.outpostIntakeToShoot();
 
         //load the trajectories with the names
@@ -260,8 +260,8 @@ public class ConfigurableAuto {
     }
 
     private AutoRoutine generateMiddleRoutine(AutoRoutine routine) {
-        final String direction = sideChooser.getSelected();
-        final String startToShootName = AutoPathNames.middleStartToShoot(direction);
+        final String side = sideChooser.getSelected();
+        final String startToShootName = AutoPathNames.middleStartToShoot(side);
 
         final AutoTrajectory startToShootTraj = routine.trajectory(startToShootName);
 
@@ -276,7 +276,7 @@ public class ConfigurableAuto {
     }
 
     private AutoRoutine generateStandardRoutine(AutoRoutine routine) {
-        final String direction = sideChooser.getSelected();
+        final String side = sideChooser.getSelected();
         //get all the chooser results as strings to make things cleaner
         final String intake1 = intakeChooser1.getSelected();
         final String shoot1 = shootChooser1.getSelected();
@@ -294,7 +294,7 @@ public class ConfigurableAuto {
         AutoTrajectory intake1ToShoot1Traj = routine.trajectory(intake1ToShoot1Name);
         AutoTrajectory shoot1ToIntake2Traj = routine.trajectory(shoot1ToIntake2Name);
         AutoTrajectory intake2ToShoot2Traj = routine.trajectory(intake2ToShoot2Name);
-        if (direction.contains("L")) {
+        if (side.contains("L")) {
             startToIntake1Traj = startToIntake1Traj.mirrorY();
             intake1ToShoot1Traj = intake1ToShoot1Traj.mirrorY();
             shoot1ToIntake2Traj = shoot1ToIntake2Traj.mirrorY();
