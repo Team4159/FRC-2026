@@ -31,9 +31,11 @@ public class ConfigurableAuto {
     shoot choosers were originally relevant for if the robot should climb after shooting, this is no longer the case. now it can be used to select the bump auto mode (which is closer for more accurate shooting) but it was unreliable (not enough testing) and currently only exists for left side far and close intaking
 
     these choosers are just of type String and they will correspond to the trajectory names for the configurable system to work properly*/
-    private final SendableChooser<String> sideChooser, intakeChooser1, shootChooser1, intakeChooser2, shootChooser2;
-    //climb chooser and everything related to climb has been commented but it was originally used to select which side to climb on
-    //climbSideChooser;
+    private final SendableChooser<String> sideChooser = AutoDashboardConfiguration.sideChooser();
+    private final SendableChooser<String> intakeChooser1 = AutoDashboardConfiguration.intakeChooser();
+    private final SendableChooser<String> shootChooser1 = AutoDashboardConfiguration.shootChooser();
+    private final SendableChooser<String> intakeChooser2 = AutoDashboardConfiguration.intakeChooser();
+    private final SendableChooser<String> shootChooser2 = AutoDashboardConfiguration.shootChooser();
 
     /** this field is on the auto tab of elastic to display the auto path once it is generated
     the term "generated" here is not actually generating the choreo paths themselves, but it does take awhile to load each individual path on roborio which is why it needs to be "generated" before the match starts*/
@@ -64,14 +66,6 @@ public class ConfigurableAuto {
         this.shooter = shooter;
         this.intake = intake;
         this.hopper = hopper;
-
-        // sendable choosers
-        // initialize the sendablechooser objects
-        sideChooser = AutoDashboardConfiguration.sideChooser();
-        intakeChooser1 = AutoDashboardConfiguration.intakeChooser();
-        shootChooser1 = AutoDashboardConfiguration.shootChooser();
-        intakeChooser2 = AutoDashboardConfiguration.intakeChooser();
-        shootChooser2 = AutoDashboardConfiguration.shootChooser();
 
         displayWidgets();
     }
@@ -243,6 +237,7 @@ public class ConfigurableAuto {
             .onTrue(
                 startToIntakeTraj
                     .resetOdometry()
+                    .andThen(Commands.waitTime(AutoDashboardConfiguration.getStartDelay()))
                     .andThen(startToIntakeTraj.cmd())
                     .andThen(intakeToShootTraj.cmd())
                     .andThen(getAutoShoot())
@@ -267,7 +262,13 @@ public class ConfigurableAuto {
 
         routine
             .active()
-            .onTrue(startToShootTraj.resetOdometry().andThen(startToShootTraj.cmd()).andThen(getAutoShoot()));
+            .onTrue(
+                startToShootTraj
+                    .resetOdometry()
+                    .andThen(Commands.waitTime(AutoDashboardConfiguration.getStartDelay()))
+                    .andThen(startToShootTraj.cmd())
+                    .andThen(getAutoShoot())
+            );
 
         updateField(startToShootTraj);
         displayGenerationStatus(startToShootTraj);
@@ -305,10 +306,11 @@ public class ConfigurableAuto {
             //resetOdometry() at the start sets the robot inital position to the start point of the 1st trajectory
             startToIntake1Traj
                 .resetOdometry()
+                .andThen(Commands.waitTime(AutoDashboardConfiguration.getStartDelay()))
                 .andThen(startToIntake1Traj.cmd())
                 .andThen(shooter::revFlywheel)
                 .andThen(intake1ToShoot1Traj.cmd())
-                .andThen(Commands.deadline(Commands.waitSeconds(AutoConstants.SHOOT_TIME), getAutoShoot()))
+                .andThen(Commands.deadline(Commands.waitTime(AutoConstants.SHOOT_TIME), getAutoShoot()))
                 .andThen(shoot1ToIntake2Traj.cmd())
                 .andThen(shooter::revFlywheel)
                 .andThen(intake2ToShoot2Traj.cmd())

@@ -1,5 +1,8 @@
 package frc.robot.auto;
 
+import static edu.wpi.first.units.Units.Seconds;
+
+import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -7,6 +10,10 @@ import edu.wpi.first.wpilibj2.command.Command;
 
 /** Creates and publishes the controls consumed by Elastic's Auto dashboard tab. */
 public final class AutoDashboardConfiguration {
+
+    private static final String KEY_DIRECTORY = "Auto/";
+
+    private static final double START_DELAY_DEFAULT = 0.0;
 
     private AutoDashboardConfiguration() {}
 
@@ -38,6 +45,10 @@ public final class AutoDashboardConfiguration {
         return chooser;
     }
 
+    public static Time getStartDelay() {
+        return Seconds.of(SmartDashboard.getNumber(key("Start Delay"), START_DELAY_DEFAULT));
+    }
+
     public static void publish(
         SendableChooser<String> sideChooser,
         SendableChooser<String> intakeChooser1,
@@ -47,12 +58,17 @@ public final class AutoDashboardConfiguration {
         Command generateCommand,
         Field2d generatedRoutineDisplay
     ) {
-        SmartDashboard.putData("Auto/Side", sideChooser);
-        SmartDashboard.putData("Auto/Intake 1", intakeChooser1);
-        SmartDashboard.putData("Auto/Shoot 1", shootChooser1);
-        SmartDashboard.putData("Auto/Intake 2", intakeChooser2);
-        SmartDashboard.putData("Auto/Shoot 2", shootChooser2);
-        SmartDashboard.putData("Auto/Generate", generateCommand);
-        SmartDashboard.putData("Auto/Generated Routine Display", generatedRoutineDisplay);
+        SmartDashboard.setDefaultNumber(key("Start Delay"), START_DELAY_DEFAULT);
+        SmartDashboard.putData(key("Side"), sideChooser);
+        SmartDashboard.putData(key("Intake 1"), intakeChooser1);
+        SmartDashboard.putData(key("Shoot 1"), shootChooser1);
+        SmartDashboard.putData(key("Intake 2"), intakeChooser2);
+        SmartDashboard.putData(key("Shoot 2"), shootChooser2);
+        SmartDashboard.putData(key("Generate"), generateCommand);
+        SmartDashboard.putData(key("Generated Routine Display"), generatedRoutineDisplay);
+    }
+
+    private static String key(String name) {
+        return KEY_DIRECTORY + name;
     }
 }

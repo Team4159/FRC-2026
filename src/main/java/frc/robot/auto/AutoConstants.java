@@ -1,7 +1,10 @@
 package frc.robot.auto;
 
+import static edu.wpi.first.units.Units.Seconds;
+
+import edu.wpi.first.units.measure.Time;
+
 public class AutoConstants {
 
-    /** units: seconds */
-    public static final double SHOOT_TIME = 3.5;
+    public static final Time SHOOT_TIME = Seconds.of(3.5);
 }
