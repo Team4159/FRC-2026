@@ -39,7 +39,7 @@
           {
             "title": "Generate",
             "x": 256.0,
-            "y": 128.0,
+            "y": 256.0,
             "width": 256.0,
             "height": 128.0,
             "type": "Command",
@@ -106,7 +106,7 @@
             "title": "Side",
             "x": 256.0,
             "y": 0.0,
-            "width": 128.0,
+            "width": 256.0,
             "height": 128.0,
             "type": "ComboBox Chooser",
             "properties": {
@@ -119,8 +119,8 @@
             "title": "Generated Routine Display",
             "x": 512.0,
             "y": 0.0,
-            "width": 768.0,
-            "height": 640.0,
+            "width": 640.0,
+            "height": 384.0,
             "type": "Field",
             "properties": {
               "topic": "/SmartDashboard/Auto/Generated Routine Display",
@@ -137,17 +137,29 @@
             }
           },
           {
-            "title": "Start Delay",
+            "title": "Shoot Time",
             "x": 384.0,
-            "y": 0.0,
+            "y": 128.0,
             "width": 128.0,
             "height": 128.0,
-            "type": "Text Display",
+            "type": "ComboBox Chooser",
+            "properties": {
+              "topic": "/SmartDashboard/Auto/Shoot Time",
+              "period": 0.06,
+              "sort_options": false
+            }
+          },
+          {
+            "title": "Start Delay",
+            "x": 256.0,
+            "y": 128.0,
+            "width": 128.0,
+            "height": 128.0,
+            "type": "ComboBox Chooser",
             "properties": {
               "topic": "/SmartDashboard/Auto/Start Delay",
               "period": 0.06,
-              "data_type": "double",
-              "show_submit_button": false
+              "sort_options": false
             }
           }
         ]

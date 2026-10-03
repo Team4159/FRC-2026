@@ -13,9 +13,19 @@ public final class AutoDashboardConfiguration {
 
     private static final String KEY_DIRECTORY = "Auto/";
 
-    private static final double START_DELAY_DEFAULT = 0.0;
-
     private AutoDashboardConfiguration() {}
+
+    public static SendableChooser<Time> startDelayChooser() {
+        SendableChooser<Time> chooser = new SendableChooser<>();
+        addTimeRangeChooserOptions(chooser, Seconds, 10.0, 0, 10, AutoConstants.START_DELAY_DEFAULT.in(Seconds));
+        return chooser;
+    }
+
+    public static SendableChooser<Time> shootTimeChooser() {
+        SendableChooser<Time> chooser = new SendableChooser<>();
+        addTimeRangeChooserOptions(chooser, Seconds, 10.0, 0, 5, AutoConstants.SHOOT_TIME_DEFAULT.in(Seconds));
+        return chooser;
+    }
 
     public static SendableChooser<String> sideChooser() {
         SendableChooser<String> chooser = new SendableChooser<>();
@@ -45,11 +55,9 @@ public final class AutoDashboardConfiguration {
         return chooser;
     }
 
-    public static Time getStartDelay() {
-        return Seconds.of(SmartDashboard.getNumber(key("Start Delay"), START_DELAY_DEFAULT));
-    }
-
     public static void publish(
+        SendableChooser<Time> startDelayChooser,
+        SendableChooser<Time> shootTimeChooser,
         SendableChooser<String> sideChooser,
         SendableChooser<String> intakeChooser1,
         SendableChooser<String> shootChooser1,
@@ -58,7 +66,8 @@ public final class AutoDashboardConfiguration {
         Command generateCommand,
         Field2d generatedRoutineDisplay
     ) {
-        SmartDashboard.setDefaultNumber(key("Start Delay"), START_DELAY_DEFAULT);
+        SmartDashboard.putData(key("Start Delay"), startDelayChooser);
+        SmartDashboard.putData(key("Shoot Time"), shootTimeChooser);
         SmartDashboard.putData(key("Side"), sideChooser);
         SmartDashboard.putData(key("Intake 1"), intakeChooser1);
         SmartDashboard.putData(key("Shoot 1"), shootChooser1);
@@ -70,5 +79,20 @@ public final class AutoDashboardConfiguration {
 
     private static String key(String name) {
         return KEY_DIRECTORY + name;
+    }
+
+    private static void addTimeRangeChooserOptions(
+        SendableChooser<Time> chooser,
+        edu.wpi.first.units.TimeUnit unit,
+        double resolution,
+        int lower,
+        int upper,
+        double defaultValue
+    ) {
+        for (int i = (int) (lower * resolution); i <= Math.ceil(upper * resolution); i++) {
+            double time = i / resolution;
+            chooser.addOption(String.valueOf(time) + unit.symbol(), unit.of(time));
+        }
+        chooser.setDefaultOption(String.valueOf(defaultValue) + unit.symbol(), unit.of(defaultValue));
     }
 }

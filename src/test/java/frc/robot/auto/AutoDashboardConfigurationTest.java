@@ -21,6 +21,8 @@ class AutoDashboardConfigurationTest {
 
     @Test
     void exposesConfiguredDefaultsBeforeASelectionIsMade() {
+        assertEquals(AutoConstants.START_DELAY_DEFAULT, AutoDashboardConfiguration.startDelayChooser().getSelected());
+        assertEquals(AutoConstants.SHOOT_TIME_DEFAULT, AutoDashboardConfiguration.shootTimeChooser().getSelected());
         assertEquals("None", AutoDashboardConfiguration.sideChooser().getSelected());
         assertEquals("None", AutoDashboardConfiguration.intakeChooser().getSelected());
         assertEquals("None", AutoDashboardConfiguration.shootChooser().getSelected());
@@ -29,6 +31,8 @@ class AutoDashboardConfigurationTest {
     @Test
     void publishesEveryElasticAutoControlToSmartDashboard() {
         AutoDashboardConfiguration.publish(
+            AutoDashboardConfiguration.startDelayChooser(),
+            AutoDashboardConfiguration.shootTimeChooser(),
             AutoDashboardConfiguration.sideChooser(),
             AutoDashboardConfiguration.intakeChooser(),
             AutoDashboardConfiguration.shootChooser(),
@@ -41,7 +45,10 @@ class AutoDashboardConfigurationTest {
         NetworkTable dashboard = NetworkTableInstance.getDefault().getTable("SmartDashboard");
         assertArrayEquals(
             new String[] { "Left", "Right", "Mid", "None" },
-            dashboard.getSubTable("Auto/Side").getEntry("options").getStringArray(new String[0])
+            dashboard
+                .getSubTable("Auto/Side")
+                .getEntry("options")
+                .getStringArray(new String[0])
         );
         assertEquals("None", dashboard.getSubTable("Auto/Side").getEntry("default").getString(""));
         assertTrue(dashboard.containsKey("Auto/Generate/.type"));

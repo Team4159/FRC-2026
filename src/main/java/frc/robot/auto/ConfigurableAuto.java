@@ -6,6 +6,7 @@ import choreo.auto.AutoTrajectory;
 import choreo.trajectory.SwerveSample;
 import choreo.trajectory.Trajectory;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -31,6 +32,8 @@ public class ConfigurableAuto {
     shoot choosers were originally relevant for if the robot should climb after shooting, this is no longer the case. now it can be used to select the bump auto mode (which is closer for more accurate shooting) but it was unreliable (not enough testing) and currently only exists for left side far and close intaking
 
     these choosers are just of type String and they will correspond to the trajectory names for the configurable system to work properly*/
+    private final SendableChooser<Time> startDelayChooser = AutoDashboardConfiguration.startDelayChooser();
+    private final SendableChooser<Time> shootTimeChooser = AutoDashboardConfiguration.shootTimeChooser();
     private final SendableChooser<String> sideChooser = AutoDashboardConfiguration.sideChooser();
     private final SendableChooser<String> intakeChooser1 = AutoDashboardConfiguration.intakeChooser();
     private final SendableChooser<String> shootChooser1 = AutoDashboardConfiguration.shootChooser();
@@ -174,6 +177,8 @@ public class ConfigurableAuto {
      */
     private void displayWidgets() {
         AutoDashboardConfiguration.publish(
+            startDelayChooser,
+            shootTimeChooser,
             sideChooser,
             intakeChooser1,
             shootChooser1,
@@ -221,11 +226,10 @@ public class ConfigurableAuto {
 
     private AutoRoutine generateOutpostRoutine(AutoRoutine routine) {
         // TODO: there are currently no outpost routines
-        final String side = sideChooser.getSelected();
-        //these are the names of the trajectories
-        //for the outpost auto the only configurable part is the start point though
-        final String startToIntakeName = AutoPathNames.outpostStartToIntake(side);
-        final String intakeToShootName = AutoPathNames.outpostIntakeToShoot();
+        Time startDelay = startDelayChooser.getSelected();
+        String side = sideChooser.getSelected();
+        String startToIntakeName = AutoPathNames.outpostStartToIntake(side);
+        String intakeToShootName = AutoPathNames.outpostIntakeToShoot();
 
         //load the trajectories with the names
         final AutoTrajectory startToIntakeTraj = routine.trajectory(startToIntakeName);
@@ -237,7 +241,7 @@ public class ConfigurableAuto {
             .onTrue(
                 startToIntakeTraj
                     .resetOdometry()
-                    .andThen(Commands.waitTime(AutoDashboardConfiguration.getStartDelay()))
+                    .andThen(Commands.waitTime(startDelay))
                     .andThen(startToIntakeTraj.cmd())
                     .andThen(intakeToShootTraj.cmd())
                     .andThen(getAutoShoot())
@@ -255,8 +259,9 @@ public class ConfigurableAuto {
     }
 
     private AutoRoutine generateMiddleRoutine(AutoRoutine routine) {
-        final String side = sideChooser.getSelected();
-        final String startToShootName = AutoPathNames.middleStartToShoot(side);
+        Time startDelay = startDelayChooser.getSelected();
+        String side = sideChooser.getSelected();
+        String startToShootName = AutoPathNames.middleStartToShoot(side);
 
         final AutoTrajectory startToShootTraj = routine.trajectory(startToShootName);
 
@@ -265,7 +270,7 @@ public class ConfigurableAuto {
             .onTrue(
                 startToShootTraj
                     .resetOdometry()
-                    .andThen(Commands.waitTime(AutoDashboardConfiguration.getStartDelay()))
+                    .andThen(Commands.waitTime(startDelay))
                     .andThen(startToShootTraj.cmd())
                     .andThen(getAutoShoot())
             );
@@ -277,18 +282,19 @@ public class ConfigurableAuto {
     }
 
     private AutoRoutine generateStandardRoutine(AutoRoutine routine) {
-        final String side = sideChooser.getSelected();
-        //get all the chooser results as strings to make things cleaner
-        final String intake1 = intakeChooser1.getSelected();
-        final String shoot1 = shootChooser1.getSelected();
-        final String intake2 = intakeChooser2.getSelected();
-        final String shoot2 = shootChooser2.getSelected();
+        Time startDelay = startDelayChooser.getSelected();
+        Time shootTime = shootTimeChooser.getSelected();
+        String side = sideChooser.getSelected();
+        String intake1 = intakeChooser1.getSelected();
+        String shoot1 = shootChooser1.getSelected();
+        String intake2 = intakeChooser2.getSelected();
+        String shoot2 = shootChooser2.getSelected();
 
         //create the names of the trajectories from the sendable chooser data concatenated together along with other words like "To" so it matches the names of the choreo trajectories
-        final String startToIntake1Name = AutoPathNames.startToIntake(intake1);
-        final String intake1ToShoot1Name = AutoPathNames.intakeToShoot(intake1, shoot1);
-        final String shoot1ToIntake2Name = AutoPathNames.shootToIntake(shoot1, intake2);
-        final String intake2ToShoot2Name = AutoPathNames.intakeToShoot(intake2, shoot2);
+        String startToIntake1Name = AutoPathNames.startToIntake(intake1);
+        String intake1ToShoot1Name = AutoPathNames.intakeToShoot(intake1, shoot1);
+        String shoot1ToIntake2Name = AutoPathNames.shootToIntake(shoot1, intake2);
+        String intake2ToShoot2Name = AutoPathNames.intakeToShoot(intake2, shoot2);
 
         //load the AutoTrajectories using the names
         AutoTrajectory startToIntake1Traj = routine.trajectory(startToIntake1Name);
@@ -306,11 +312,11 @@ public class ConfigurableAuto {
             //resetOdometry() at the start sets the robot inital position to the start point of the 1st trajectory
             startToIntake1Traj
                 .resetOdometry()
-                .andThen(Commands.waitTime(AutoDashboardConfiguration.getStartDelay()))
+                .andThen(Commands.waitTime(startDelay))
                 .andThen(startToIntake1Traj.cmd())
                 .andThen(shooter::revFlywheel)
                 .andThen(intake1ToShoot1Traj.cmd())
-                .andThen(Commands.deadline(Commands.waitTime(AutoConstants.SHOOT_TIME), getAutoShoot()))
+                .andThen(Commands.deadline(Commands.waitTime(shootTime), getAutoShoot()))
                 .andThen(shoot1ToIntake2Traj.cmd())
                 .andThen(shooter::revFlywheel)
                 .andThen(intake2ToShoot2Traj.cmd())
