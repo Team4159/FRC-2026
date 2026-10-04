@@ -196,7 +196,7 @@ public class ConfigurableAuto {
      * @return an AutoRoutine object of the generated routine
      */
     private AutoRoutine generateRoutine() {
-        final AutoRoutine routine = factory.newRoutine("Generated Auto");
+        AutoRoutine routine = factory.newRoutine("Generated Auto");
 
         // if the direction is none return the default routine (does absolutely nothing) and send a special notification to let the drivers know they selected a useless auto (could be good if auto is cooked though)
         if (sideChooser.getSelected().equals("None")) {
@@ -232,8 +232,8 @@ public class ConfigurableAuto {
         String intakeToShootName = AutoPathNames.outpostIntakeToShoot();
 
         //load the trajectories with the names
-        final AutoTrajectory startToIntakeTraj = routine.trajectory(startToIntakeName);
-        final AutoTrajectory intakeToShootTraj = routine.trajectory(intakeToShootName);
+        AutoTrajectory startToIntakeTraj = routine.trajectory(startToIntakeName);
+        AutoTrajectory intakeToShootTraj = routine.trajectory(intakeToShootName);
 
         //routine.active().onTrue() runs at the start of the auto
         routine
@@ -263,7 +263,7 @@ public class ConfigurableAuto {
         String side = sideChooser.getSelected();
         String startToShootName = AutoPathNames.middleStartToShoot(side);
 
-        final AutoTrajectory startToShootTraj = routine.trajectory(startToShootName);
+        AutoTrajectory startToShootTraj = routine.trajectory(startToShootName);
 
         routine
             .active()
