@@ -42,9 +42,9 @@
    "tmax":1.0,
    "cof":1.2,
    "bumper":{
-    "front":0.4318,
-    "side":0.4318,
-    "back":0.4318
+    "front":0.4445,
+    "side":0.4445,
+    "back":0.4445
    },
    "differentialTrackWidth":0.5588
   },
@@ -70,5 +70,5 @@
   "splits":[0]
  },
  "events":[
-   {"name":"Marker", "from":{"target":0, "targetTimestamp":null, "offset":{"exp":"0 s", "val":0.0}}, "event":null}]
+   {"name":"Marker", "from":{"target":0, "targetTimestamp":0.0, "offset":{"exp":"0 s", "val":0.0}}, "event":null}]
 }
