@@ -17,27 +17,13 @@ public final class AutoDashboardConfiguration {
 
     public static SendableChooser<Time> startDelayChooser() {
         SendableChooser<Time> chooser = new SendableChooser<>();
-        addTimeRangeChooserOptions(
-            chooser,
-            Seconds,
-            10.0,
-            0,
-            10,
-            AutoConstants.START_DELAY_DEFAULT.in(Seconds)
-        );
+        addTimeRangeChooserOptions(chooser, Seconds, 10.0, 0, 10, AutoConstants.START_DELAY_DEFAULT.in(Seconds));
         return chooser;
     }
 
     public static SendableChooser<Time> shootTimeChooser() {
         SendableChooser<Time> chooser = new SendableChooser<>();
-        addTimeRangeChooserOptions(
-            chooser,
-            Seconds,
-            10.0,
-            0,
-            5,
-            AutoConstants.SHOOT_TIME_DEFAULT.in(Seconds)
-        );
+        addTimeRangeChooserOptions(chooser, Seconds, 10.0, 0, 5, AutoConstants.SHOOT_TIME_DEFAULT.in(Seconds));
         return chooser;
     }
 
@@ -88,10 +74,7 @@ public final class AutoDashboardConfiguration {
         SmartDashboard.putData(key("Intake 2"), intakeChooser2);
         SmartDashboard.putData(key("Shoot 2"), shootChooser2);
         SmartDashboard.putData(key("Generate"), generateCommand);
-        SmartDashboard.putData(
-            key("Generated Routine Display"),
-            generatedRoutineDisplay
-        );
+        SmartDashboard.putData(key("Generated Routine Display"), generatedRoutineDisplay);
     }
 
     private static String key(String name) {
@@ -106,20 +89,10 @@ public final class AutoDashboardConfiguration {
         int upper,
         double defaultValue
     ) {
-        for (
-            int i = (int) (lower * resolution);
-            i <= Math.ceil(upper * resolution);
-            i++
-        ) {
+        for (int i = (int) (lower * resolution); i <= Math.ceil(upper * resolution); i++) {
             double time = i / resolution;
-            chooser.addOption(
-                String.valueOf(time) + unit.symbol(),
-                unit.of(time)
-            );
+            chooser.addOption(String.valueOf(time) + unit.symbol(), unit.of(time));
         }
-        chooser.setDefaultOption(
-            String.valueOf(defaultValue) + unit.symbol(),
-            unit.of(defaultValue)
-        );
+        chooser.setDefaultOption(String.valueOf(defaultValue) + unit.symbol(), unit.of(defaultValue));
     }
 }
