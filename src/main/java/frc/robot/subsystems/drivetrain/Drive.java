@@ -2,8 +2,6 @@ package frc.robot.subsystems.drivetrain;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Meters;
-import static frc.robot.operator.OperatorConstants.INTAKE_ROTATION_INPUT_DEADZONE;
-import static frc.robot.operator.OperatorConstants.TRENCH_ASSIST_ALIGN_STRENGTH;
 
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import edu.wpi.first.math.Pair;
@@ -70,7 +68,7 @@ public class Drive extends Command {
         Optional<Rotation2d> desiredRotation = Optional.empty();
         if (
             drivetrain.getDriveFlags().getValue(DriveFlag.INTAKE_ASSIST) &&
-            drivetrain.getInputTranslation(true).getNorm() >= INTAKE_ROTATION_INPUT_DEADZONE
+            drivetrain.getInputTranslation(true).getNorm() >= OperatorConstants.INTAKE_ROTATION_INPUT_DEADZONE
         ) {
             Angle angle;
             int angleSign = (int) Math.signum(drivetrain.getInputRotation());
@@ -168,7 +166,7 @@ public class Drive extends Command {
             }
 
             double vy =
-                TRENCH_ASSIST_ALIGN_STRENGTH *
+                OperatorConstants.TRENCH_ASSIST_ALIGN_STRENGTH *
                 Math.signum(errorY.magnitude()) *
                 Math.abs(drivetrain.getInputVelocityX(true));
             double influence = OperatorConstants.TRENCH_ASSIST_ALIGN_INFLUENCE * drivetrain.getInputVelocityY(true);
