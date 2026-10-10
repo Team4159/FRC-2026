@@ -29,6 +29,63 @@ import java.util.Set;
  */
 public final class Constants {
 
+    // these constants have been centralized here to make it quicker and plainer to reflect real-life constants
+    public static class PeripheralConstants {
+
+        public static enum MotorId {
+            HOPPER_FEEDER(30),
+            INTAKE_PIVOT(6),
+            INTAKE_ROLLER(7),
+            SHOOTER_HOOD(8),
+            SHOOTER_NECK_FEEDER(20),
+            SHOOTER_FLYWHEEL_BOTTOM_LEFT(9),
+            SHOOTER_FLYWHEEL_TOP_LEFT(10),
+            SHOOTER_FLYWHEEL_BOTTOM_RIGHT(11),
+            SHOOTER_FLYWHEEL_TOP_RIGHT(12);
+
+            public final int id;
+
+            private MotorId(int id) {
+                this.id = id;
+            }
+        }
+
+        public static enum EncoderId {
+            INTAKE_PIVOT(1),
+            SHOOTER_HOOD(2);
+
+            public final int id;
+
+            private EncoderId(int id) {
+                this.id = id;
+            }
+        }
+
+        public static enum RotorSensorMechanismDriveRatio {
+            INTAKE_PIVOT(25.0, 2.0),
+            SHOOTER_HOOD(125.0, 34 / 16); // 34/16=2 lol
+
+            public final double rotorToSensorRatio;
+            public final double sensorToMechanismRatio;
+
+            private RotorSensorMechanismDriveRatio(double rotorToSensorRatio, double sensorToMechanismRatio) {
+                this.rotorToSensorRatio = rotorToSensorRatio;
+                this.sensorToMechanismRatio = sensorToMechanismRatio;
+            }
+        }
+
+        // not used in code
+        public static enum RotorMechanismDriveRatio {
+            INTAKE_ROLLER(5.0);
+
+            public final double rotorToMechanismRatio;
+
+            private RotorMechanismDriveRatio(double rotorToMechanismRatio) {
+                this.rotorToMechanismRatio = rotorToMechanismRatio;
+            }
+        }
+    }
+
     public static class FieldConstants {
 
         public static final Map<DriverStation.Alliance, Translation2d> HUB_LOCATIONS = Map.of(

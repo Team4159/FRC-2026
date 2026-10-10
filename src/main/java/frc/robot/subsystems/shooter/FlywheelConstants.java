@@ -13,13 +13,14 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
+import frc.robot.Constants.PeripheralConstants.MotorId;
 
 public class FlywheelConstants {
 
-    public static final TalonFX LEFT_BOTTOM_MOTOR = new TalonFX(9);
-    public static final TalonFX LEFT_TOP_MOTOR = new TalonFX(10);
-    public static final TalonFX RIGHT_BOTTOM_MOTOR = new TalonFX(11);
-    public static final TalonFX RIGHT_TOP_MOTOR = new TalonFX(12);
+    public static final TalonFX LEFT_BOTTOM_MOTOR = new TalonFX(MotorId.SHOOTER_FLYWHEEL_BOTTOM_LEFT.id);
+    public static final TalonFX LEFT_TOP_MOTOR = new TalonFX(MotorId.SHOOTER_FLYWHEEL_TOP_LEFT.id);
+    public static final TalonFX RIGHT_BOTTOM_MOTOR = new TalonFX(MotorId.SHOOTER_FLYWHEEL_BOTTOM_RIGHT.id);
+    public static final TalonFX RIGHT_TOP_MOTOR = new TalonFX(MotorId.SHOOTER_FLYWHEEL_TOP_RIGHT.id);
     public static final TalonFX[] MOTORS = { LEFT_BOTTOM_MOTOR, LEFT_TOP_MOTOR, RIGHT_BOTTOM_MOTOR, RIGHT_TOP_MOTOR };
 
     // shooter motors config

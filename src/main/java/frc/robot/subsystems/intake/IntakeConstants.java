@@ -16,6 +16,9 @@ import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import edu.wpi.first.units.measure.Angle;
+import frc.robot.Constants.PeripheralConstants.EncoderId;
+import frc.robot.Constants.PeripheralConstants.MotorId;
+import frc.robot.Constants.PeripheralConstants.RotorSensorMechanismDriveRatio;
 import frc.robot.Robot;
 
 public class IntakeConstants {
@@ -36,17 +39,17 @@ public class IntakeConstants {
         }
     }
 
-    public static final TalonFX PIVOT_MOTOR = new TalonFX(Robot.isReal() ? 6 : 36);
-    public static final CANcoder PIVOT_ENCODER = new CANcoder(1);
-    public static final TalonFX ROLLER_MOTOR = new TalonFX(Robot.isReal() ? 7 : 37);
+    public static final TalonFX PIVOT_MOTOR = new TalonFX(Robot.isReal() ? MotorId.INTAKE_PIVOT.id : 36);
+    public static final CANcoder PIVOT_ENCODER = new CANcoder(EncoderId.INTAKE_PIVOT.id);
+    public static final TalonFX ROLLER_MOTOR = new TalonFX(Robot.isReal() ? MotorId.INTAKE_ROLLER.id : 37);
 
     public static final TalonFXConfiguration PIVOT_MOTOR_CONFIGURATION = new TalonFXConfiguration() {
         {
             Slot0.withKP(60.0).withKI(1.0).withKD(0.0).withKG(0.07).withGravityType(GravityTypeValue.Arm_Cosine);
             Feedback.withFeedbackRemoteSensorID(PIVOT_ENCODER.getDeviceID())
                 .withFeedbackSensorSource(FeedbackSensorSourceValue.RemoteCANcoder)
-                .withSensorToMechanismRatio(2.0)
-                .withRotorToSensorRatio(25.0);
+                .withRotorToSensorRatio(RotorSensorMechanismDriveRatio.INTAKE_PIVOT.rotorToSensorRatio)
+                .withSensorToMechanismRatio(RotorSensorMechanismDriveRatio.INTAKE_PIVOT.sensorToMechanismRatio);
             CurrentLimits.withSupplyCurrentLimitEnable(true)
                 .withSupplyCurrentLimit(Amps.of(30.0))
                 .withStatorCurrentLimitEnable(true)

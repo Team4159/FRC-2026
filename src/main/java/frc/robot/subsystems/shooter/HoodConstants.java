@@ -19,12 +19,15 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
+import frc.robot.Constants.PeripheralConstants.EncoderId;
+import frc.robot.Constants.PeripheralConstants.MotorId;
+import frc.robot.Constants.PeripheralConstants.RotorSensorMechanismDriveRatio;
 import frc.robot.Robot;
 
 public class HoodConstants {
 
-    public static final TalonFX MOTOR = new TalonFX(Robot.isReal() ? 8 : 38);
-    public static final CANcoder ENCODER = new CANcoder(2);
+    public static final TalonFX MOTOR = new TalonFX(Robot.isReal() ? MotorId.SHOOTER_HOOD.id : 38);
+    public static final CANcoder ENCODER = new CANcoder(EncoderId.SHOOTER_HOOD.id);
 
     public static final TalonFXConfiguration MOTOR_CONFIGURATION = new TalonFXConfiguration() {
         {
@@ -38,8 +41,8 @@ public class HoodConstants {
             CurrentLimits.withSupplyCurrentLimitEnable(true).withSupplyCurrentLimit(Amps.of(20.0));
             Feedback.withFeedbackRemoteSensorID(ENCODER.getDeviceID())
                 .withFeedbackSensorSource(FeedbackSensorSourceValue.RemoteCANcoder)
-                .withSensorToMechanismRatio((double) (34 / 16))
-                .withRotorToSensorRatio(125.0);
+                .withRotorToSensorRatio(RotorSensorMechanismDriveRatio.SHOOTER_HOOD.rotorToSensorRatio)
+                .withSensorToMechanismRatio(RotorSensorMechanismDriveRatio.SHOOTER_HOOD.sensorToMechanismRatio);
             MotionMagic.withMotionMagicCruiseVelocity(RotationsPerSecond.of(40.0))
                 .withMotionMagicAcceleration(RotationsPerSecondPerSecond.of(80.0))
                 .withMotionMagicJerk(RotationsPerSecondPerSecond.of(1600.0).per(Seconds));

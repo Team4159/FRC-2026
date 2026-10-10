@@ -6,6 +6,7 @@ import static edu.wpi.first.units.Units.Inches;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.units.measure.Distance;
+import frc.robot.Constants.PeripheralConstants.MotorId;
 
 public class HopperConstants {
 
@@ -21,7 +22,7 @@ public class HopperConstants {
         }
     }
 
-    public static final TalonFX MOTOR = new TalonFX(30);
+    public static final TalonFX MOTOR = new TalonFX(MotorId.HOPPER_FEEDER.id);
 
     public static final TalonFXConfiguration MOTOR_CONFIGURATION = new TalonFXConfiguration() {
         {

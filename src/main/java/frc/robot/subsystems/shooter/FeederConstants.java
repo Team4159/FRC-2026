@@ -5,6 +5,7 @@ import static edu.wpi.first.units.Units.Amps;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import frc.robot.Constants.PeripheralConstants.MotorId;
 
 public class FeederConstants {
 
@@ -20,7 +21,7 @@ public class FeederConstants {
         }
     }
 
-    public static final TalonFX MOTOR = new TalonFX(20);
+    public static final TalonFX MOTOR = new TalonFX(MotorId.SHOOTER_NECK_FEEDER.id);
 
     public static final TalonFXConfiguration MOTOR_CONFIGURATION = new TalonFXConfiguration() {
         {
