@@ -84,7 +84,6 @@ public class IntakeConstants {
             CurrentLimits.withSupplyCurrentLimitEnable(true).withSupplyCurrentLimit(Amps.of(40.0));
         }
     };
-    public static final double ROLLER_GEAR_RATIO = 1.0 / 5.0;
 
     static {
         PIVOT_MOTOR.getConfigurator().apply(PIVOT_MOTOR_CONFIGURATION);
