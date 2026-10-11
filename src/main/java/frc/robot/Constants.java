@@ -95,7 +95,7 @@ public final class Constants {
             new Translation2d(Units.inchesToMeters(651.22 - 182.11), Units.inchesToMeters(158.84))
         );
 
-        public static final Set<Translation2d> HUB_LOB_LOCATIONS = Set.of(
+        public static final Set<Translation2d> BLUE_LOB_LOCATIONS = Set.of(
             new Translation2d(2.5, 2.1),
             new Translation2d(2.5, 5.6)
         );
@@ -107,7 +107,7 @@ public final class Constants {
 
         public static final Map<Alliance, Set<Translation2d>> LOB_LOCATIONS = Map.of(
             Alliance.Blue,
-            HUB_LOB_LOCATIONS,
+            BLUE_LOB_LOCATIONS,
             Alliance.Red,
             RED_LOB_LOCATIONS
         );
