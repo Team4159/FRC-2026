@@ -6,7 +6,7 @@ import static edu.wpi.first.units.Units.RPM;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Distance;
 import frc.robot.Constants.FieldConstants;
-import frc.robot.subsystems.shooter.JoeLookupTable.LookupTablePoint;
+import frc.robot.subsystems.shooter.ShotCalculator.LookupTablePoint;
 import java.util.Comparator;
 import java.util.Map;
 
