@@ -9,7 +9,6 @@ import static edu.wpi.first.units.Units.*;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Distance;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.subsystems.drivetrain.DrivetrainConstants;
 import java.util.Map;
@@ -88,7 +87,7 @@ public final class Constants {
 
     public static class FieldConstants {
 
-        public static final Map<DriverStation.Alliance, Translation2d> HUB_LOCATIONS = Map.of(
+        public static final Map<Alliance, Translation2d> HUB_LOCATIONS = Map.of(
             Alliance.Blue,
             new Translation2d(Units.inchesToMeters(182.11), Units.inchesToMeters(158.84)),
             Alliance.Red,
@@ -105,7 +104,7 @@ public final class Constants {
             new Translation2d(14.1, 5.6)
         );
 
-        public static final Map<DriverStation.Alliance, Set<Translation2d>> LOB_LOCATIONS = Map.of(
+        public static final Map<Alliance, Set<Translation2d>> LOB_LOCATIONS = Map.of(
             Alliance.Blue,
             HUB_LOB_LOCATIONS,
             Alliance.Red,
