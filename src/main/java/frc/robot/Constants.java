@@ -37,6 +37,7 @@ public final class Constants {
             INTAKE_ROLLER(7),
             SHOOTER_HOOD(8),
             SHOOTER_NECK_FEEDER(20),
+            // as seen from the front of the robot
             SHOOTER_FLYWHEEL_BOTTOM_LEFT(9),
             SHOOTER_FLYWHEEL_TOP_LEFT(10),
             SHOOTER_FLYWHEEL_BOTTOM_RIGHT(11),
