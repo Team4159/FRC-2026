@@ -150,7 +150,7 @@ public class ConfigurableAuto {
             //loop through the choreo trajectory to get an ArrayList of Pose2ds
             ArrayList<Pose2d> poses = new ArrayList<>();
             Collections.addAll(poses, choreoTrajectory.getPoses());
-            if (AllianceUtil.getAlliance().equals(Alliance.Red)) {
+            if (AllianceUtil.getAlliance() == Alliance.Red) {
                 for (int i = 0; i < poses.size(); i++) {
                     poses.set(i, PoseUtil.flipPoseAlongMiddleXY(poses.get(i)));
                 }
