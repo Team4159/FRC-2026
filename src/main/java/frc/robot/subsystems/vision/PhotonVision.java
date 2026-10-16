@@ -27,16 +27,16 @@ public class PhotonVision extends SubsystemBase {
     public PhotonVision(Drivetrain drivetrain) {
         this.drivetrain = drivetrain;
 
-        testField.setRobotPose(drivetrain.getState().Pose);
         addCameraToTestField("leftCamera", PhotonVisionConstants.LEFT_SHOOTER_CAMERA_TRANSFORM);
         addCameraToTestField("rightCamera", PhotonVisionConstants.RIGHT_SHOOTER_CAMERA_TRANSFORM);
         SmartDashboard.putData("Vision Pose Testing", testField);
     }
-
+    
     @Override
     public void periodic() {
         estimate(PhotonVisionConstants.LEFT_SHOOTER_CAMERA, PhotonVisionConstants.LEFT_SHOOTER_POSE_ESTIMATOR);
         estimate(PhotonVisionConstants.RIGHT_SHOOTER_CAMERA, PhotonVisionConstants.RIGHT_SHOOTER_POSE_ESTIMATOR);
+        testField.setRobotPose(drivetrain.getState().Pose);
     }
 
     private void estimate(PhotonCamera camera, PhotonPoseEstimator estimator) {
