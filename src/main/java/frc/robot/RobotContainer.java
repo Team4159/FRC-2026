@@ -18,11 +18,11 @@ import frc.robot.commands.shoot.AutoLob;
 import frc.robot.commands.shoot.AutoShoot;
 import frc.robot.commands.shoot.HubShoot;
 import frc.robot.commands.shoot.TowerShoot;
+import frc.robot.operator.DualXboxOperatorModality;
 import frc.robot.operator.OperatorConstants;
 import frc.robot.operator.OperatorConstants.DriveFlag;
 import frc.robot.operator.OperatorConstants.DriveMode;
 import frc.robot.operator.RumbleFeedback;
-import frc.robot.operator.SingleXboxOperatorModality;
 import frc.robot.subsystems.drivetrain.DriveFlagToggler;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 import frc.robot.subsystems.hopper.Hopper;
@@ -37,8 +37,9 @@ public class RobotContainer {
 
     private final Telemetry telemetry = new Telemetry();
 
-    private final SingleXboxOperatorModality operatorModality = new SingleXboxOperatorModality(
+    private final DualXboxOperatorModality operatorModality = new DualXboxOperatorModality(
         OperatorConstants.PRIMARY_CONTROLLER_PORT,
+        OperatorConstants.SECONDARY_CONTROLLER_PORT,
         OperatorConstants.PRIMARY_TRIGGER_THRESHOLD
     );
 
@@ -77,7 +78,7 @@ public class RobotContainer {
     private void configureBindings() {
         operatorModality.zero().onTrue(
             Commands.runOnce(() -> {
-                RumbleFeedback.zero(operatorModality.getHID());
+                RumbleFeedback.zero(operatorModality.getPrimaryHID());
                 drivetrain.seedFieldCentric();
             })
         );
@@ -92,7 +93,7 @@ public class RobotContainer {
             .and(DriverStation::isTeleopEnabled)
             .onTrue(
                 Commands.runOnce(() -> {
-                    RumbleFeedback.toggleDriveAssist(operatorModality.getHID());
+                    RumbleFeedback.toggleDriveAssist(operatorModality.getPrimaryHID());
                     drivetrain
                         .getDriveFlags()
                         .setValue(DriveFlag.DRIVE_ASSIST, !drivetrain.getDriveFlags().getValue(DriveFlag.DRIVE_ASSIST));
@@ -145,6 +146,10 @@ public class RobotContainer {
                     shooter.new ChangeFeederSetpoint(FeederSetpoint.STOP)
                 )
             );
+        operatorModality
+            .revShooter()
+            .and(DriverStation::isTeleopEnabled)
+            .onTrue(Commands.runEnd(() -> shooter.revFlywheel(), () -> shooter.stopFlywheel(), shooter));
     }
 
     public Command getAutonomousCommand() {

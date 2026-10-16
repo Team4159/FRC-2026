@@ -12,7 +12,6 @@ import java.util.Optional;
 public class ShooterConstants {
 
     public static enum ShooterSetpoint {
-        RESTING(RPM.of(0.0)),
         REV(RPM.of(1000.0)),
         LOB(RPM.of(2000.0)),
         FROM_HUB(RPM.of(2500.0), Degrees.of(75.0)),
