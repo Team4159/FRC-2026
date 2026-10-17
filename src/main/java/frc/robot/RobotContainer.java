@@ -123,7 +123,11 @@ public class RobotContainer {
             .whileTrue(
                 Commands.parallel(
                     intake.new ChangeSetpoints(IntakeSetpoint.DOWN_ON),
-                    hopper.new ChangeSetpoint(HopperSetpoint.FEED)
+                    hopper.new ChangeSetpoint(HopperSetpoint.FEED),
+                    Commands.sequence(
+                        Commands.waitSeconds(1.0),
+                        Commands.runOnce(intake::stopIntakePivotMotor)
+                    )
                 )
             );
         operatorModality
@@ -133,7 +137,11 @@ public class RobotContainer {
                 Commands.parallel(
                     intake.new ChangeSetpoints(IntakeSetpoint.DOWN_REVERSE),
                     hopper.new ChangeSetpoint(HopperSetpoint.REVERSE),
-                    shooter.new ChangeFeederSetpoint(FeederSetpoint.UNJAM)
+                    shooter.new ChangeFeederSetpoint(FeederSetpoint.UNJAM),
+                    Commands.sequence(
+                        Commands.waitSeconds(1.0),
+                        Commands.runOnce(intake::stopIntakePivotMotor)
+                    )
                 )
             );
         operatorModality
@@ -143,7 +151,11 @@ public class RobotContainer {
                 Commands.parallel(
                     intake.new ChangeSetpoints(IntakeSetpoint.UP_OFF),
                     hopper.new ChangeSetpoint(HopperSetpoint.STOP),
-                    shooter.new ChangeFeederSetpoint(FeederSetpoint.STOP)
+                    shooter.new ChangeFeederSetpoint(FeederSetpoint.STOP),
+                    Commands.sequence(
+                        Commands.waitSeconds(1.0),
+                        Commands.runOnce(intake::stopIntakePivotMotor)
+                    )
                 )
             );
         operatorModality
