@@ -22,7 +22,7 @@ import frc.robot.operator.DualXboxOperatorModality;
 import frc.robot.operator.OperatorConstants;
 import frc.robot.operator.OperatorConstants.DriveFlag;
 import frc.robot.operator.OperatorConstants.DriveMode;
-import frc.robot.operator.RumbleFeedback;
+// import frc.robot.operator.RumbleFeedback;
 import frc.robot.subsystems.drivetrain.DriveFlagToggler;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 import frc.robot.subsystems.hopper.Hopper;
@@ -35,7 +35,7 @@ import frc.robot.subsystems.vision.PhotonVision;
 
 public class RobotContainer {
 
-    private final Telemetry telemetry = new Telemetry();
+    // private final Telemetry telemetry = new Telemetry();
 
     private final DualXboxOperatorModality operatorModality = new DualXboxOperatorModality(
         OperatorConstants.PRIMARY_CONTROLLER_PORT,
@@ -78,7 +78,7 @@ public class RobotContainer {
     private void configureBindings() {
         operatorModality.zero().onTrue(
             Commands.runOnce(() -> {
-                RumbleFeedback.zero(operatorModality.getPrimaryHID());
+                // RumbleFeedback.zero(operatorModality.getPrimaryHID());
                 drivetrain.seedFieldCentric();
             })
         );
@@ -93,7 +93,7 @@ public class RobotContainer {
             .and(DriverStation::isTeleopEnabled)
             .onTrue(
                 Commands.runOnce(() -> {
-                    RumbleFeedback.toggleDriveAssist(operatorModality.getPrimaryHID());
+                    // RumbleFeedback.toggleDriveAssist(operatorModality.getPrimaryHID());
                     drivetrain
                         .getDriveFlags()
                         .setValue(DriveFlag.DRIVE_ASSIST, !drivetrain.getDriveFlags().getValue(DriveFlag.DRIVE_ASSIST));
@@ -160,6 +160,6 @@ public class RobotContainer {
     }
 
     public void periodic() {
-        telemetry.update();
+        // telemetry.update();
     }
 }

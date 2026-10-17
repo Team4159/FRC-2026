@@ -1,6 +1,7 @@
 package frc.robot.subsystems.intake;
 
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.Rotations;
 
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
@@ -50,10 +51,11 @@ public class Intake extends SubsystemBase {
 
     public void setPivotAngle(Angle angle) {
         IntakeConstants.PIVOT_MOTOR.setControl(pivotMotionMagicDutyCycle.withPosition(angle));
+        SmartDashboard.putNumber("Intake/tgtAngle", angle.in(Degrees));
     }
 
     private Angle getPivotAngle() {
-        return Rotations.of(IntakeConstants.PIVOT_MOTOR.getPosition().getValueAsDouble());
+        return IntakeConstants.PIVOT_MOTOR.getPosition().getValue();
     }
 
     public void setRollerDutyCycle(double dutyCycle) {

@@ -62,8 +62,8 @@ public final class Constants {
         }
 
         public static enum RotorSensorMechanismDriveRatio {
-            INTAKE_PIVOT(25.0, 2.0),
-            SHOOTER_HOOD(125.0, 34 / 16); // 34/16=2 lol
+            INTAKE_PIVOT(1.00, 25.00 * 32.00 / 18.00),
+            SHOOTER_HOOD(125.00, 34 / 16); // 34/16=2 lol
 
             public final double rotorToSensorRatio;
             public final double sensorToMechanismRatio;

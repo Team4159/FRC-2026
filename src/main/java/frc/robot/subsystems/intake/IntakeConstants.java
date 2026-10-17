@@ -2,6 +2,7 @@ package frc.robot.subsystems.intake;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
@@ -9,7 +10,10 @@ import static edu.wpi.first.units.Units.Seconds;
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.TalonFX;
+
+import edu.wpi.first.units.Unit;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.PeripheralConstants.MotorId;
 import frc.robot.Constants.PeripheralConstants.RotorSensorMechanismDriveRatio;
 import frc.robot.Robot;
@@ -17,11 +21,11 @@ import frc.robot.Robot;
 public class IntakeConstants {
 
     public static enum IntakeSetpoint {
-        DOWN_ON(Degrees.of(-120.0), 1.0),
-        DOWN_OFF(Degrees.of(-120.0), 0.0),
-        DOWN_REVERSE(Degrees.of(-120.0), -1.0),
-        UP_OFF(Degrees.of(0.0), 0.0),
-        BOUNCE_UP(Degrees.of(-60.0), 0.0);
+        DOWN_ON(Rotations.of(-5000), 1.0),
+        DOWN_OFF(Rotations.of(-5000), 0.0),
+        DOWN_REVERSE(Rotations.of(-5000), -1.0),
+        UP_OFF(Rotations.of(2400), 0.0),
+        BOUNCE_UP(Rotations.of(-5000), 0.0);
 
         public final Angle pivotAngle;
         public final double rollerDutyCycle;
@@ -39,7 +43,7 @@ public class IntakeConstants {
 
     public static final TalonFXConfiguration PIVOT_MOTOR_CONFIGURATION = new TalonFXConfiguration() {
         {
-            Slot0.withKP(5.0).withKI(0.0).withKD(0.0);
+            Slot0.withKP(0.1).withKI(0.0).withKD(0.0);
             // removed gravity feedforward because there's no absolute encoder for calgames
             // Slot0.withKP(5.0).withKI(1.0).withKD(0.0).withKG(0.0058333).withGravityType(GravityTypeValue.Arm_Cosine);
             // Feedback.withFeedbackRemoteSensorID(PIVOT_ENCODER.getDeviceID())
