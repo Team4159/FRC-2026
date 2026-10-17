@@ -36,11 +36,11 @@ public class PhotonVisionConstants {
 
     public static final PhotonPoseEstimator LEFT_SHOOTER_POSE_ESTIMATOR = new PhotonPoseEstimator(
         APRIL_TAG_FIELD_LAYOUT,
-        PhotonVisionConstants.LEFT_SHOOTER_CAMERA_TRANSFORM
+        LEFT_SHOOTER_CAMERA_TRANSFORM
     );
     public static final PhotonPoseEstimator RIGHT_SHOOTER_POSE_ESTIMATOR = new PhotonPoseEstimator(
         APRIL_TAG_FIELD_LAYOUT,
-        PhotonVisionConstants.RIGHT_SHOOTER_CAMERA_TRANSFORM
+        RIGHT_SHOOTER_CAMERA_TRANSFORM
     );
 
     // TODO: tune stddev values
