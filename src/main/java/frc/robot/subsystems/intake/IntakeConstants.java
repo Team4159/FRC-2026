@@ -11,6 +11,7 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.units.measure.Angle;
 import frc.robot.Constants.PeripheralConstants.MotorId;
+import frc.robot.Constants.PeripheralConstants.RotorSensorMechanismDriveRatio;
 import frc.robot.Robot;
 
 public class IntakeConstants {
@@ -26,7 +27,8 @@ public class IntakeConstants {
         public final double rollerDutyCycle;
 
         private IntakeSetpoint(Angle pivotAngle, double rollerDutyCycle) {
-            this.pivotAngle = pivotAngle;
+            // REMOVE THIS MULTIPLICATION IF USING ABSOLUTE ENCODER
+            this.pivotAngle = pivotAngle.times(RotorSensorMechanismDriveRatio.INTAKE_PIVOT.rotorToSensorRatio);
             this.rollerDutyCycle = rollerDutyCycle;
         }
     }

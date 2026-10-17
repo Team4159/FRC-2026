@@ -4,7 +4,7 @@ import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Rotations;
 
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
-import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.controls.MotionMagicDutyCycle;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.Timer;
@@ -15,14 +15,14 @@ import frc.robot.subsystems.intake.IntakeConstants.IntakeSetpoint;
 
 public class Intake extends SubsystemBase {
 
-    private final MotionMagicVoltage pivotMotionMagicVoltage;
+    private final MotionMagicDutyCycle pivotMotionMagicDutyCycle;
 
     private double rollerDutyCycle;
 
     public Intake() {
         setPivotMotionMagicConfiguration(IntakeConstants.PIVOT_FAST_MOTION_MAGIC_CONFIGURATION);
 
-        pivotMotionMagicVoltage = new MotionMagicVoltage(0.0);
+        pivotMotionMagicDutyCycle = new MotionMagicDutyCycle(0.0);
         setPivotAngle(IntakeSetpoint.DOWN_OFF.pivotAngle);
         rollerDutyCycle = 0.0;
     }
@@ -49,7 +49,7 @@ public class Intake extends SubsystemBase {
     }
 
     public void setPivotAngle(Angle angle) {
-        IntakeConstants.PIVOT_MOTOR.setControl(pivotMotionMagicVoltage.withPosition(angle));
+        IntakeConstants.PIVOT_MOTOR.setControl(pivotMotionMagicDutyCycle.withPosition(angle));
     }
 
     private Angle getPivotAngle() {
