@@ -62,6 +62,10 @@ public class Intake extends SubsystemBase {
         IntakeConstants.ROLLER_MOTOR.set(dutyCycle);
     }
 
+    public void stopIntakePivotMotor() { 
+        IntakeConstants.PIVOT_MOTOR.stopMotor();
+    }
+
     public class ChangeSetpoints extends Command {
 
         private final IntakeSetpoint intakeSetpoint;
@@ -139,7 +143,8 @@ public class Intake extends SubsystemBase {
 
         @Override
         public void end(boolean interrupted) {
-            setPivotAngle(IntakeSetpoint.BOUNCE_UP.pivotAngle);
+            // setPivotAngle(IntakeSetpoint.BOUNCE_UP.pivotAngle);
+            stopIntakePivotMotor();
         }
 
         private boolean isNear(IntakeSetpoint intakeSetpoint) {
