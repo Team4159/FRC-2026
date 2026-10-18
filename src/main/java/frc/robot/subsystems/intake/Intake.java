@@ -1,8 +1,6 @@
 package frc.robot.subsystems.intake;
 
 import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.Radians;
-import static edu.wpi.first.units.Units.Rotations;
 
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.controls.MotionMagicDutyCycle;
@@ -60,16 +58,20 @@ public class Intake extends SubsystemBase {
 
     public void setRollerDutyCycle(double dutyCycle) {
         SmartDashboard.putNumber("Intake/roller duty cycle target", dutyCycle);
+        SmartDashboard.putString("Intake/state", "DUTY CYCLE " + dutyCycle);
         IntakeConstants.ROLLER_MOTOR.set(dutyCycle);
     }
 
-    public void stopIntakePivotMotor() { 
+    public void stopIntakePivotMotor() {
+        SmartDashboard.putString("Intake/state", "STOP");
+        SmartDashboard.putNumber("Intake/stop time", Timer.getFPGATimestamp());
         IntakeConstants.PIVOT_MOTOR.stopMotor();
     }
 
     public class ChangeSetpoints extends Command {
 
         private final IntakeSetpoint intakeSetpoint;
+        private final Timer timer = new Timer();
 
         public ChangeSetpoints(IntakeSetpoint intakeSetpoint) {
             this.intakeSetpoint = intakeSetpoint;
@@ -78,14 +80,30 @@ public class Intake extends SubsystemBase {
 
         @Override
         public void initialize() {
+            timer.restart();
             rollerDutyCycle = intakeSetpoint.rollerDutyCycle;
             setPivotAngle(intakeSetpoint.pivotAngle);
         }
 
         @Override
+        public void execute() {
+            if (isTimedOut()) {
+                stopIntakePivotMotor();
+            }
+        }
+
+        @Override
         public void end(boolean interrupt) {
-            Intake.this.setRollerDutyCycle(IntakeSetpoint.UP_OFF.rollerDutyCycle);
+            if (isTimedOut()) {
+                stopIntakePivotMotor();
+            } else {
+                Intake.this.setRollerDutyCycle(IntakeSetpoint.UP_OFF.rollerDutyCycle);
+            }
             rollerDutyCycle = 0.0;
+        }
+
+        private boolean isTimedOut() {
+            return timer.hasElapsed(1.0);
         }
     }
 
@@ -122,13 +140,12 @@ public class Intake extends SubsystemBase {
         public void initialize() {
             setPivotAngle(IntakeSetpoint.BOUNCE_UP.pivotAngle);
             intakeSetpoint = IntakeSetpoint.BOUNCE_UP;
-            timer.start();
-            timer.reset();
+            timer.restart();
         }
 
         @Override
         public void execute() {
-            boolean alternate = isNear(intakeSetpoint) || timer.get() > 1.0;
+            boolean alternate = isNear(intakeSetpoint) || timer.hasElapsed(1.0);
             // System.out.println(alternate);
             // System.out.println(timer.get());
             if (intakeSetpoint == IntakeSetpoint.DOWN_OFF && alternate) {

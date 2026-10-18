@@ -12,7 +12,6 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.lib.AllianceUtil;
 import frc.lib.PoseUtil;
-import frc.lib.Telemetry;
 import frc.robot.auto.ConfigurableAuto;
 import frc.robot.commands.shoot.AutoLob;
 import frc.robot.commands.shoot.AutoShoot;
@@ -35,7 +34,7 @@ import frc.robot.subsystems.vision.PhotonVision;
 
 public class RobotContainer {
 
-    private final Telemetry telemetry = new Telemetry();
+    // private final Telemetry telemetry = new Telemetry();
 
     private final DualXboxOperatorModality operatorModality = new DualXboxOperatorModality(
         OperatorConstants.PRIMARY_CONTROLLER_PORT,
@@ -160,6 +159,6 @@ public class RobotContainer {
     }
 
     public void periodic() {
-        telemetry.update();
+        // telemetry.update();
     }
 }

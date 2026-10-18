@@ -62,15 +62,17 @@ public final class Constants {
         }
 
         public static enum RotorSensorMechanismDriveRatio {
-            INTAKE_PIVOT(1.00, 25.00 * 32.00 / 18.00),
+            INTAKE_PIVOT(1.00, (25.00 * 32.00) / 18.00),
             SHOOTER_HOOD(125.00, 34 / 16); // 34/16=2 lol
 
             public final double rotorToSensorRatio;
             public final double sensorToMechanismRatio;
+            public final double rotorToMechanismRatio;
 
             private RotorSensorMechanismDriveRatio(double rotorToSensorRatio, double sensorToMechanismRatio) {
                 this.rotorToSensorRatio = rotorToSensorRatio;
                 this.sensorToMechanismRatio = sensorToMechanismRatio;
+                this.rotorToMechanismRatio = rotorToSensorRatio * sensorToMechanismRatio;
             }
         }
 
