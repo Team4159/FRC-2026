@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
 import frc.robot.subsystems.intake.IntakeConstants.IntakeSetpoint;
 
 public class Intake extends SubsystemBase {
@@ -23,6 +24,9 @@ public class Intake extends SubsystemBase {
         setPivotMotionMagicConfiguration(IntakeConstants.PIVOT_FAST_MOTION_MAGIC_CONFIGURATION);
 
         pivotMotionMagicDutyCycle = new MotionMagicDutyCycle(0.0);
+        
+        IntakeConstants.PIVOT_MOTOR.setPosition(0);
+
         setPivotAngle(IntakeSetpoint.DOWN_OFF.pivotAngle);
         rollerDutyCycle = 0.0;
     }
@@ -31,16 +35,18 @@ public class Intake extends SubsystemBase {
     public void periodic() {
         SmartDashboard.putNumber("Intake/pivot angle (Degrees)", getPivotAngle().in(Degrees));
         SmartDashboard.putNumber("Intake/pivot angle (Rotations)", getPivotAngle().in(Rotations));
+        SmartDashboard.putNumber("Intake/motionmagic setpoint angle (Degrees)", pivotMotionMagicDutyCycle.getPositionMeasure().in(Degrees));
+        SmartDashboard.putNumber("Intake/motionmagic setpoint angle (Rotations)", pivotMotionMagicDutyCycle.getPositionMeasure().in(Rotations));
         SmartDashboard.putNumber(
             "Intake/pivot pid error",
             Units.rotationsToDegrees(IntakeConstants.PIVOT_MOTOR.getClosedLoopError().getValueAsDouble())
         );
 
-        if (getPivotAngle().in(Degrees) < 15.0) {
-            setRollerDutyCycle(rollerDutyCycle);
-        } else {
-            setRollerDutyCycle(0.0);
-        }
+        // if (getPivotAngle().in(Degrees) < 15.0) {
+        //     setRollerDutyCycle(rollerDutyCycle);
+        // } else {
+        //     setRollerDutyCycle(0.0);
+        // }
     }
 
     public void setRollerDutyCycle(double dutyCycle) {
@@ -56,7 +62,8 @@ public class Intake extends SubsystemBase {
 
     public void setPivotAngle(Angle angle) {
         SmartDashboard.putString("Intake/pivot state", "angle " + angle.baseUnitMagnitude());
-        SmartDashboard.putNumber("Intake/pivot target angle", angle.in(Degrees));
+        SmartDashboard.putNumber("Intake/pivot target angle (Degrees)", angle.in(Degrees));
+        SmartDashboard.putNumber("Intake/pivot target angle (Rotations)", angle.in(Rotations));
         IntakeConstants.PIVOT_MOTOR.setControl(pivotMotionMagicDutyCycle.withPosition(angle));
     }
 
@@ -105,7 +112,7 @@ public class Intake extends SubsystemBase {
         }
 
         private boolean isTimedOut() {
-            return timer.hasElapsed(1.0);
+            return timer.hasElapsed(0.5);
         }
     }
 
