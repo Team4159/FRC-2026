@@ -59,6 +59,7 @@ public class Intake extends SubsystemBase {
     }
 
     public void setRollerDutyCycle(double dutyCycle) {
+        SmartDashboard.putNumber("Intake/roller duty cycle target", dutyCycle);
         IntakeConstants.ROLLER_MOTOR.set(dutyCycle);
     }
 
