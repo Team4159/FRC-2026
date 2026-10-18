@@ -29,29 +29,29 @@ public final class AutoDashboardConfiguration {
 
     public static SendableChooser<String> sideChooser() {
         SendableChooser<String> chooser = new SendableChooser<>();
+        chooser.setDefaultOption("None", "None");
         chooser.addOption("Left", "L");
         chooser.addOption("Right", "R");
         chooser.addOption("Mid", "M");
-        chooser.setDefaultOption("None", "None");
         return chooser;
     }
 
     public static SendableChooser<String> intakeChooser() {
         SendableChooser<String> chooser = new SendableChooser<>();
+        chooser.setDefaultOption("None", "None");
         chooser.addOption("Outer Sweep", "OuterIntake");
         chooser.addOption("Inner Sweep", "InnerIntake");
         chooser.addOption("Line", "LineIntake");
         chooser.addOption("Far", "FarIntake");
         chooser.addOption("Mid", "MidIntake");
         chooser.addOption("Close", "CloseIntake");
-        chooser.setDefaultOption("None", "None");
         return chooser;
     }
 
     public static SendableChooser<String> shootChooser() {
         SendableChooser<String> chooser = new SendableChooser<>();
-        chooser.addOption("Shoot", "Shoot");
         chooser.setDefaultOption("None", "None");
+        chooser.addOption("Shoot", "Shoot");
         return chooser;
     }
 

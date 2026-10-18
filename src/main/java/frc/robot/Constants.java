@@ -192,13 +192,6 @@ public final class Constants {
             }
         }
 
-        public static final FieldZone[] TRENCH_ZONES = new FieldZone[] {
-            FieldZone.TRENCH_BLUE_LEFT,
-            FieldZone.TRENCH_BLUE_RIGHT,
-            FieldZone.TRENCH_RED_LEFT,
-            FieldZone.TRENCH_RED_RIGHT,
-        };
-
         public static final double HUB_Z = Units.inchesToMeters(56.4);
     }
 

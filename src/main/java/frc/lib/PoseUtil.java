@@ -52,17 +52,17 @@ public final class PoseUtil {
     }
 
     public static final Optional<FieldZone> getPoseTrenchZone(Pose2d pose) {
-        // for (FieldZone fieldZone : FieldConstants.TRENCH_ZONES) {
-        //     boolean nearX = pose
-        //         .getMeasureX()
-        //         .isNear(fieldZone.CENTER.getMeasureX(), fieldZone.SIZE.getMeasureX().div(2));
-        //     boolean nearY = pose
-        //         .getMeasureY()
-        //         .isNear(fieldZone.CENTER.getMeasureY(), fieldZone.SIZE.getMeasureY().div(2));
-        //     if (nearX && nearY) {
-        //         return Optional.of(fieldZone);
-        //     }
-        // }
+        for (FieldZone fieldZone : FieldZone.values()) {
+            boolean nearX = pose
+                .getMeasureX()
+                .isNear(fieldZone.CENTER.getMeasureX(), fieldZone.SIZE.getMeasureX().div(2));
+            boolean nearY = pose
+                .getMeasureY()
+                .isNear(fieldZone.CENTER.getMeasureY(), fieldZone.SIZE.getMeasureY().div(2));
+            if (nearX && nearY) {
+                return Optional.of(fieldZone);
+            }
+        }
         return Optional.empty();
     }
 }
