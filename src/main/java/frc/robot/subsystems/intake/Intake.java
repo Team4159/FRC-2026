@@ -1,6 +1,7 @@
 package frc.robot.subsystems.intake;
 
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Rotations;
 
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.controls.MotionMagicDutyCycle;
@@ -28,9 +29,10 @@ public class Intake extends SubsystemBase {
 
     @Override
     public void periodic() {
-        SmartDashboard.putNumber("Intake/angle", getPivotAngle().in(Degrees));
+        SmartDashboard.putNumber("Intake/pivot angle (Degrees)", getPivotAngle().in(Degrees));
+        SmartDashboard.putNumber("Intake/pivot angle (Rotations)", getPivotAngle().in(Rotations));
         SmartDashboard.putNumber(
-            "Intake/pid error",
+            "Intake/pivot pid error",
             Units.rotationsToDegrees(IntakeConstants.PIVOT_MOTOR.getClosedLoopError().getValueAsDouble())
         );
 
@@ -54,8 +56,8 @@ public class Intake extends SubsystemBase {
 
     public void setPivotAngle(Angle angle) {
         SmartDashboard.putString("Intake/pivot state", "angle " + angle.baseUnitMagnitude());
+        SmartDashboard.putNumber("Intake/pivot target angle", angle.in(Degrees));
         IntakeConstants.PIVOT_MOTOR.setControl(pivotMotionMagicDutyCycle.withPosition(angle));
-        SmartDashboard.putNumber("Intake/tgtAngle", angle.in(Degrees));
     }
 
     private Angle getPivotAngle() {
@@ -64,7 +66,7 @@ public class Intake extends SubsystemBase {
 
     public void stopIntakePivotMotor() {
         SmartDashboard.putString("Intake/pivot state", "STOP");
-        SmartDashboard.putNumber("Intake/stop time", Timer.getFPGATimestamp());
+        SmartDashboard.putNumber("Intake/pivot stop time", Timer.getFPGATimestamp());
         IntakeConstants.PIVOT_MOTOR.stopMotor();
     }
 
