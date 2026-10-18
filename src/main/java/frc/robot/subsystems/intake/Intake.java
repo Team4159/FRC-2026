@@ -41,6 +41,11 @@ public class Intake extends SubsystemBase {
         }
     }
 
+    public void setRollerDutyCycle(double dutyCycle) {
+        SmartDashboard.putNumber("Intake/roller duty cycle target", dutyCycle);
+        IntakeConstants.ROLLER_MOTOR.set(dutyCycle);
+    }
+
     public void setPivotMotionMagicConfiguration(MotionMagicConfigs motionMagicConfigs) {
         IntakeConstants.PIVOT_MOTOR.getConfigurator().apply(
             IntakeConstants.PIVOT_MOTOR_CONFIGURATION.withMotionMagic(motionMagicConfigs)
@@ -48,6 +53,7 @@ public class Intake extends SubsystemBase {
     }
 
     public void setPivotAngle(Angle angle) {
+        SmartDashboard.putString("Intake/pivot state", "angle " + angle.baseUnitMagnitude());
         IntakeConstants.PIVOT_MOTOR.setControl(pivotMotionMagicDutyCycle.withPosition(angle));
         SmartDashboard.putNumber("Intake/tgtAngle", angle.in(Degrees));
     }
@@ -56,14 +62,8 @@ public class Intake extends SubsystemBase {
         return IntakeConstants.PIVOT_MOTOR.getPosition().getValue();
     }
 
-    public void setRollerDutyCycle(double dutyCycle) {
-        SmartDashboard.putNumber("Intake/roller duty cycle target", dutyCycle);
-        SmartDashboard.putString("Intake/state", "DUTY CYCLE " + dutyCycle);
-        IntakeConstants.ROLLER_MOTOR.set(dutyCycle);
-    }
-
     public void stopIntakePivotMotor() {
-        SmartDashboard.putString("Intake/state", "STOP");
+        SmartDashboard.putString("Intake/pivot state", "STOP");
         SmartDashboard.putNumber("Intake/stop time", Timer.getFPGATimestamp());
         IntakeConstants.PIVOT_MOTOR.stopMotor();
     }
