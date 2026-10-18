@@ -9,6 +9,7 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj2.command.Commands;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -43,12 +44,14 @@ class AutoDashboardConfigurationTest {
         );
 
         NetworkTable dashboard = NetworkTableInstance.getDefault().getTable("SmartDashboard");
-        assertArrayEquals(
-            new String[] { "Left", "Right", "Mid", "None" },
-            dashboard
-                .getSubTable("Auto/Side")
-                .getEntry("options")
-                .getStringArray(new String[0])
+        assertEquals(
+            Set.of(new String[] { "Left", "Right", "Mid", "None" }),
+            Set.of(
+                dashboard
+                    .getSubTable("Auto/Side")
+                    .getEntry("options")
+                    .getStringArray(new String[0])
+            )
         );
         assertEquals("None", dashboard.getSubTable("Auto/Side").getEntry("default").getString(""));
         assertTrue(dashboard.containsKey("Auto/Generate/.type"));

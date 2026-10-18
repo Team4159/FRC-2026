@@ -36,12 +36,16 @@ class PoseUtilTest {
         assertTrue(PoseUtil.isPoseBehindAllianceTrenches(Alliance.Blue, blueZonePose));
         assertTrue(PoseUtil.isPoseInAllianceZone(Alliance.Red, redEquivalent));
         assertTrue(PoseUtil.isPoseBehindAllianceTrenches(Alliance.Red, redEquivalent));
-        assertFalse(PoseUtil.isPoseOnRight(new Pose2d(0, FieldConstants.ALLIANCE_HEIGHT.baseUnitMagnitude() / 2, new Rotation2d())));
+        assertFalse(
+            PoseUtil.isPoseOnRight(
+                new Pose2d(0, FieldConstants.ALLIANCE_HEIGHT.baseUnitMagnitude() / 2, new Rotation2d())
+            )
+        );
     }
 
     @Test
     void findsAConfiguredTrenchZoneAtItsCenter() {
-        FieldZone zone = FieldConstants.TRENCH_ZONES[0];
-        // assertEquals(zone, PoseUtil.getPoseTrenchZone(new Pose2d(zone.CENTER, new Rotation2d())).orElseThrow());
+        FieldZone zone = FieldZone.values()[0];
+        assertEquals(zone, PoseUtil.getPoseTrenchZone(new Pose2d(zone.CENTER, new Rotation2d())).orElseThrow());
     }
 }
