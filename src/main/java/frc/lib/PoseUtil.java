@@ -53,6 +53,17 @@ public final class PoseUtil {
 
     public static final Optional<FieldZone> getPoseTrenchZone(Pose2d pose) {
         for (FieldZone fieldZone : FieldZone.values()) {
+            // lol
+            if (
+                !(
+                    fieldZone == FieldZone.TRENCH_BLUE_LEFT ||
+                    fieldZone == FieldZone.TRENCH_BLUE_RIGHT ||
+                    fieldZone == FieldZone.TRENCH_RED_LEFT ||
+                    fieldZone == FieldZone.TRENCH_RED_RIGHT
+                )
+            ) {
+                continue;
+            }
             boolean nearX = pose
                 .getMeasureX()
                 .isNear(fieldZone.CENTER.getMeasureX(), fieldZone.SIZE.getMeasureX().div(2));

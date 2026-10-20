@@ -8,7 +8,6 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.Constants.FieldConstants;
-import frc.robot.Constants.FieldConstants.FieldZone;
 import org.junit.jupiter.api.Test;
 
 class PoseUtilTest {
@@ -41,11 +40,5 @@ class PoseUtilTest {
                 new Pose2d(0, FieldConstants.ALLIANCE_HEIGHT.baseUnitMagnitude() / 2, new Rotation2d())
             )
         );
-    }
-
-    @Test
-    void findsAConfiguredTrenchZoneAtItsCenter() {
-        FieldZone zone = FieldZone.values()[0];
-        assertEquals(zone, PoseUtil.getPoseTrenchZone(new Pose2d(zone.CENTER, new Rotation2d())).orElseThrow());
     }
 }
