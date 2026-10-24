@@ -179,6 +179,13 @@ public final class Constants {
                 new Translation2d(TRENCH_ZONE_WIDTH, TRENCH_ZONE_HEIGHT.plus(TRENCH_ZONE_Y_BUFFER))
             );
 
+            public static final FieldZone[] TRENCH_ZONES = new FieldZone[] {
+                FieldZone.TRENCH_BLUE_LEFT,
+                FieldZone.TRENCH_BLUE_RIGHT,
+                FieldZone.TRENCH_RED_LEFT,
+                FieldZone.TRENCH_RED_RIGHT,
+            };
+
             public final Translation2d CENTER, FOCUS, SIZE;
 
             private FieldZone(Translation2d center, Translation2d focus, Translation2d size) {

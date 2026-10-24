@@ -52,26 +52,15 @@ public final class PoseUtil {
     }
 
     public static Optional<FieldZone> getPoseTrenchZone(Pose2d pose) {
-        for (FieldZone fieldZone : FieldZone.values()) {
-            // lol
-            if (
-                !(
-                    fieldZone == FieldZone.TRENCH_BLUE_LEFT ||
-                    fieldZone == FieldZone.TRENCH_BLUE_RIGHT ||
-                    fieldZone == FieldZone.TRENCH_RED_LEFT ||
-                    fieldZone == FieldZone.TRENCH_RED_RIGHT
-                )
-            ) {
-                continue;
-            }
+        for (FieldZone trenchZone : FieldZone.TRENCH_ZONES) {
             boolean nearX = pose
                 .getMeasureX()
-                .isNear(fieldZone.CENTER.getMeasureX(), fieldZone.SIZE.getMeasureX().div(2));
+                .isNear(trenchZone.CENTER.getMeasureX(), trenchZone.SIZE.getMeasureX().div(2));
             boolean nearY = pose
                 .getMeasureY()
-                .isNear(fieldZone.CENTER.getMeasureY(), fieldZone.SIZE.getMeasureY().div(2));
+                .isNear(trenchZone.CENTER.getMeasureY(), trenchZone.SIZE.getMeasureY().div(2));
             if (nearX && nearY) {
-                return Optional.of(fieldZone);
+                return Optional.of(trenchZone);
             }
         }
         return Optional.empty();
