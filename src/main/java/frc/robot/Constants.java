@@ -180,10 +180,10 @@ public final class Constants {
             );
 
             public static final FieldZone[] TRENCH_ZONES = new FieldZone[] {
-                FieldZone.TRENCH_BLUE_LEFT,
-                FieldZone.TRENCH_BLUE_RIGHT,
-                FieldZone.TRENCH_RED_LEFT,
-                FieldZone.TRENCH_RED_RIGHT,
+                TRENCH_BLUE_LEFT,
+                TRENCH_BLUE_RIGHT,
+                TRENCH_RED_LEFT,
+                TRENCH_RED_RIGHT,
             };
 
             public final Translation2d CENTER, FOCUS, SIZE;
